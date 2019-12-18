@@ -1,0 +1,25 @@
+{
+  "name": "xpress-mongo",
+  "version": "1.0.0",
+  "description": "Light Weight ODM for mongoDb",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node tests/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xpresserjs/xpress-mongo.git"
+  },
+  "keywords": [
+    "mongodb"
+  ],
+  "author": "trapcodeio",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xpresserjs/xpress-mongo/issues"
+  },
+  "homepage": "https://github.com/xpresserjs/xpress-mongo#readme"
+}

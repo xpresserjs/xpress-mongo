@@ -1,5 +1,4 @@
-const {is, Collection} = require('./xpress-mongo');
-
+const {is, Collection} = require('../index');
 
 const UserSchema = {
     _id: is.ObjectId(),
