@@ -42,7 +42,7 @@ class XMongoClient {
      * @param name
      */
     useDb(name) {
-        this.db = this.client.db('name');
+        this.db = this.client.db(name);
         return this;
     }
 
@@ -51,7 +51,6 @@ class XMongoClient {
      * @return {Promise<MongoClient>}
      */
     connection() {
-        console.log(this.state);
         if (this.state === STATES.null) {
             throw Error`No connection found yet.`
         } else if (this.state === STATES.connecting) {

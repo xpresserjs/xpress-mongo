@@ -1,4 +1,6 @@
-const {is, Collection} = require('../index');
+const Database = require('./connection');
+const {is} = require('../index');
+
 
 const UserSchema = {
     _id: is.ObjectId(),
@@ -9,12 +11,13 @@ const UserSchema = {
     created_at: is.Date()
 };
 
-class User extends Collection("users") {
-    constructor() {
+
+class User extends Database.model("users") {
+    constructor(data = {}) {
         super();
-        this.$setSchema(UserSchema);
+        this.set(data);
+        this.setSchema(UserSchema);
     }
 }
-
 
 module.exports = User;

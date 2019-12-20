@@ -1,4 +1,7 @@
+const {ObjectID} = require('mongodb');
 const {ModelDataType} = require('./DataTypes');
+const {diff} = require('deep-object-diff');
+
 
 /**
  * Returns a model class tied to the given collection.
@@ -8,6 +11,7 @@ const {ModelDataType} = require('./DataTypes');
  * @constructor
  */
 function GenerateModel(connection, collection) {
+
     class XMongoModel {
 
         /**
@@ -21,6 +25,11 @@ function GenerateModel(connection, collection) {
         constructor() {
             // Assume data is empty
             this.data = {};
+            Object.defineProperty(this, 'schema', {
+                value: {},
+                write: true,
+                enumerable: false
+            });
         }
 
     }
@@ -30,6 +39,12 @@ function GenerateModel(connection, collection) {
      * @type {*}
      */
     XMongoModel.prototype.data = {};
+
+    /**
+     * Model Original Data
+     * @type {*}
+     */
+    XMongoModel.prototype.original = {};
 
     /**
      * Model Schema
@@ -70,6 +85,22 @@ function GenerateModel(connection, collection) {
                 enumerable: true,
             });
         }
+        return this;
+    };
+
+
+    /**
+     * Set Original result gotten from db
+     * @param data
+     * @return {XMongoModel}
+     */
+    XMongoModel.prototype.setOriginal = function (data) {
+        Object.defineProperty(this, 'original', {
+            value: data,
+            write: true,
+            enumerable: false
+        });
+
         return this;
     };
 
@@ -123,6 +154,49 @@ function GenerateModel(connection, collection) {
     };
 
 
+    XMongoModel.prototype.id = function () {
+        return this.data['_id'] || null
+    };
+
+    /**
+     * See changes made so far.
+     * @return {*}
+     */
+    XMongoModel.prototype.changes = function () {
+        return diff(this.original, this.data);
+    };
+
+    /**
+     * Create Model if not id is missing or save document if id is found.
+     * @param options
+     * @return {Promise<Collection~updateWriteOpResult|Collection~insertOneWriteOpResult>}
+     */
+    XMongoModel.prototype.save = function (options) {
+        return new Promise((resolve, reject) => {
+            const id = this.id();
+
+            if (id) {
+                return connection.updateOne(
+                    {_id: this.id()},
+                    {$set: this.changes()},
+                    options,
+                    (error, res) => error ? reject(error) : resolve(res.connection))
+            } else {
+                return connection.insertOne(
+                    this.data,
+                    options,
+                    (error, res) => {
+                        if (error) return reject(error);
+                        const {insertedId} = res;
+                        this.set('_id', insertedId);
+
+                        return resolve(res)
+                    })
+            }
+        });
+    };
+
+
     /**
      * Direct mongodb access
      * @type {Collection}
@@ -130,8 +204,79 @@ function GenerateModel(connection, collection) {
     XMongoModel.raw = connection;
 
 
+    /**
+     * Alias to mongo.ObjectID
+     * @param str {*}
+     * @param returnObject
+     * @return {{_id: MongoClient.connect.ObjectID}|MongoClient.connect.ObjectID}
+     */
+    XMongoModel.id = (str, returnObject = false) => {
+        let _id;
+
+        if (typeof str === "string") {
+            try {
+                _id = new ObjectID(str);
+            } catch (e) {
+                _id = str;
+            }
+        }
+
+        if (returnObject) {
+            return {_id}
+        } else {
+            return _id
+        }
+    };
+
+
+    /**
+     * Find many in collection
+     * @param query
+     * @param options
+     * @return {Promise<XMongoModel[]>}
+     */
     XMongoModel.find = (query, options) => {
-        return connection.find(query, options).toArray()
+        return new Promise((resolve, reject) => {
+            connection.find(query, options).toArray((error, data) => {
+                if (error) return reject(error);
+                return resolve(data);
+            });
+        });
+    };
+
+
+    /**
+     * Fetches the first document that matches the query
+     * @param query
+     * @param options
+     * @return {Promise<XMongoModel>}
+     */
+    XMongoModel.findOne = (query, options) => {
+        return new Promise((resolve, reject) => {
+            connection.findOne(query, options, (error, data) => {
+                if (error) return reject(error);
+                // Return new instance of Model
+                const model = new XMongoModel();
+
+                // Set Original Property
+                model.setOriginal(data);
+                model.set(data);
+
+                return resolve(model);
+            });
+        });
+    };
+
+
+    XMongoModel.findOneById = function (_id, isTypeObjectId = true) {
+        let where = {};
+        if (isTypeObjectId) {
+            where = XMongoModel.id(_id, true);
+        } else {
+            where = {_id}
+        }
+
+        return XMongoModel.findOne(where);
     };
 
     return XMongoModel;
