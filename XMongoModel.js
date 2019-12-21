@@ -207,7 +207,7 @@ function GenerateModel(collection) {
      * Alias to mongo.ObjectID
      * @param str {*}
      * @param returnObject
-     * @return {{_id: MongoClient.connect.ObjectID}|MongoClient.connect.ObjectID}
+     * @return {*}
      */
     XMongoModel.id = (str, returnObject = false) => {
         let _id;
@@ -232,11 +232,16 @@ function GenerateModel(collection) {
      * Find many in collection
      * @param query
      * @param options
+     * @param raw
      * @return {Promise<XMongoModel[]>}
      */
-    XMongoModel.find = (query, options) => {
+    XMongoModel.find = (query, options, raw = false) => {
         return new Promise((resolve, reject) => {
-            collection.find(query, options).toArray((error, data) => {
+            const result = collection.find(query, options);
+
+            if (raw) return resolve(result);
+
+            return result.toArray((error, data) => {
                 if (error) return reject(error);
                 return resolve(data);
             });
@@ -248,13 +253,17 @@ function GenerateModel(collection) {
      * Fetches the first document that matches the query
      * @param query
      * @param options
+     * @param raw
      * @return {Promise<XMongoModel>}
      */
-    XMongoModel.findOne = (query, options) => {
+    XMongoModel.findOne = (query, options, raw = false) => {
         return new Promise((resolve, reject) => {
             collection.findOne(query, options, (error, data) => {
                 if (error) return reject(error);
                 // Return new instance of Model
+                if (!data) return resolve(null);
+                if (raw) return resolve(data);
+
                 const model = new XMongoModel();
 
                 // Set Original Property
@@ -267,6 +276,12 @@ function GenerateModel(collection) {
     };
 
 
+    /**
+     * Fetches the first document that matches id provided.
+     * @param _id
+     * @param isTypeObjectId
+     * @return {Promise<XMongoModel>}
+     */
     XMongoModel.findOneById = function (_id, isTypeObjectId = true) {
         let where;
         if (isTypeObjectId) {
@@ -276,6 +291,16 @@ function GenerateModel(collection) {
         }
 
         return XMongoModel.findOne(where);
+    };
+
+    /**
+     * Count All the documents that match query.
+     * @param query
+     * @param options
+     * @return {void | * | Promise | undefined | IDBRequest<number>}
+     */
+    XMongoModel.count = function (query, options) {
+        return XMongoModel.raw.find(query, options).count()
     };
 
     return XMongoModel;
