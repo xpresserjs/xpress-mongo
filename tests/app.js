@@ -1,19 +1,21 @@
 const User = require('./models');
+const Chance = require('chance');
+const chance = new Chance();
 
 (async () => {
     /**
      * Async Space
      */
 
-    /*const user = new User({
-        first_name: "Foo",
-        email: "something@cash.com"
+    const user = new User();
+
+    user.set({
+        email: chance.email(),
+        first_name: chance.first(),
+        last_name: chance.last()
     });
 
-    console.log(user.save());*/
-
-    const users = await User.find();
-    console.log(users);
+    console.log(user);
 
     /**
      * End Async Space

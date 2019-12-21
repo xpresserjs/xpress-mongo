@@ -7,6 +7,11 @@ bson@^1.1.1:
   resolved "https://registry.yarnpkg.com/bson/-/bson-1.1.3.tgz#aa82cb91f9a453aaa060d6209d0675114a8154d3"
   integrity sha512-TdiJxMVnodVS7r0BdL42y/pqC9cL2iKynVwA0Ho3qbsQYr428veL3l7BQyuqiw+Q5SqqoT0m4srSY/BlZ9AxXg==
 
+chance@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/chance/-/chance-1.1.4.tgz#d8743bf8e40bb05e024c305ca1ff441195eb23db"
+  integrity sha512-pXPDSu3knKlb6H7ahQfpq//J9mSOxYK8SMtp8MV/nRJh8aLRDIl0ipLH8At8+nVogVwtvPZzyIzY/EbcY/cLuQ==
+
 deep-object-diff@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/deep-object-diff/-/deep-object-diff-1.1.0.tgz#d6fabf476c2ed1751fc94d5ca693d2ed8c18bc5a"

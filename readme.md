@@ -17,7 +17,7 @@ const UserSchema = {
 class User extends Collection("users") {
     constructor() {
         super();
-        this.$setSchema(UserSchema);
+        this.setSchema(UserSchema);
     }
 }
 

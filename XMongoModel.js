@@ -5,12 +5,11 @@ const {diff} = require('deep-object-diff');
 
 /**
  * Returns a model class tied to the given collection.
- * @param connection {Collection} - This connection
- * @param collection - This collection name
+ * @param collection {Collection} - This connection
  * @returns {XMongoModel}
  * @constructor
  */
-function GenerateModel(connection, collection) {
+function GenerateModel(collection) {
 
     class XMongoModel {
 
@@ -176,13 +175,13 @@ function GenerateModel(connection, collection) {
             const id = this.id();
 
             if (id) {
-                return connection.updateOne(
+                return collection.updateOne(
                     {_id: this.id()},
                     {$set: this.changes()},
                     options,
                     (error, res) => error ? reject(error) : resolve(res.connection))
             } else {
-                return connection.insertOne(
+                return collection.insertOne(
                     this.data,
                     options,
                     (error, res) => {
@@ -201,7 +200,7 @@ function GenerateModel(connection, collection) {
      * Direct mongodb access
      * @type {Collection}
      */
-    XMongoModel.raw = connection;
+    XMongoModel.raw = collection;
 
 
     /**
@@ -237,7 +236,7 @@ function GenerateModel(connection, collection) {
      */
     XMongoModel.find = (query, options) => {
         return new Promise((resolve, reject) => {
-            connection.find(query, options).toArray((error, data) => {
+            collection.find(query, options).toArray((error, data) => {
                 if (error) return reject(error);
                 return resolve(data);
             });
@@ -253,7 +252,7 @@ function GenerateModel(connection, collection) {
      */
     XMongoModel.findOne = (query, options) => {
         return new Promise((resolve, reject) => {
-            connection.findOne(query, options, (error, data) => {
+            collection.findOne(query, options, (error, data) => {
                 if (error) return reject(error);
                 // Return new instance of Model
                 const model = new XMongoModel();
@@ -269,7 +268,7 @@ function GenerateModel(connection, collection) {
 
 
     XMongoModel.findOneById = function (_id, isTypeObjectId = true) {
-        let where = {};
+        let where;
         if (isTypeObjectId) {
             where = XMongoModel.id(_id, true);
         } else {
