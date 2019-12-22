@@ -17,6 +17,11 @@ deep-object-diff@^1.1.0:
   resolved "https://registry.yarnpkg.com/deep-object-diff/-/deep-object-diff-1.1.0.tgz#d6fabf476c2ed1751fc94d5ca693d2ed8c18bc5a"
   integrity sha512-b+QLs5vHgS+IoSNcUE4n9HP2NwcHj7aqnJWsjPtuG75Rh5TOaGt0OjAYInh77d5T16V5cRDC+Pw/6ZZZiETBGw==
 
+lodash@^4.17.15:
+  version "4.17.15"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
+  integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
+
 memory-pager@^1.0.2:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/memory-pager/-/memory-pager-1.5.0.tgz#d8751655d22d384682741c972f2c3d6dfa3e66b5"
@@ -32,6 +37,13 @@ mongodb@^3.4.0:
     safe-buffer "^5.1.2"
   optionalDependencies:
     saslprep "^1.0.0"
+
+object-collection@^1.0.19:
+  version "1.0.19"
+  resolved "https://registry.yarnpkg.com/object-collection/-/object-collection-1.0.19.tgz#e7c37d63d4f1c30fbb0dd0489438821449de2ae4"
+  integrity sha512-BN55kK83L/DIKpKIBGgE4pzIyXDF/XSs51E5TETp5BrwhEUwoYZAk33TllEeqHjrXdhYmwjyx1FHcWUXNvhHwg==
+  dependencies:
+    lodash "^4.17.15"
 
 require_optional@^1.0.1:
   version "1.0.1"

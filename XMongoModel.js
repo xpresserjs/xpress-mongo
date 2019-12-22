@@ -1,7 +1,8 @@
 const {ObjectID} = require('mongodb');
 const {ModelDataType} = require('./DataTypes');
 const {diff} = require('deep-object-diff');
-
+const ObjectCollection = require('object-collection');
+const _ = ObjectCollection._;
 
 /**
  * Returns a model class tied to the given collection.
@@ -30,7 +31,6 @@ function GenerateModel(collection) {
                 enumerable: false
             });
         }
-
     }
 
     /**
@@ -38,6 +38,13 @@ function GenerateModel(collection) {
      * @type {*}
      */
     XMongoModel.prototype.data = {};
+
+
+    /**
+     * Model Data
+     * @type {ObjectCollection}
+     */
+    XMongoModel.prototype.$data = new ObjectCollection;
 
     /**
      * Model Original Data
@@ -58,8 +65,8 @@ function GenerateModel(collection) {
      * @param key
      * @return {*|undefined}
      */
-    XMongoModel.prototype.get = function (key) {
-        return this.data[key] || undefined;
+    XMongoModel.prototype.get = function (key, $default) {
+        return _.get(this.data, key, $default);
     };
 
     /**
@@ -71,18 +78,10 @@ function GenerateModel(collection) {
     XMongoModel.prototype.set = function (key, value) {
         if (typeof key === 'object' && value === undefined) {
             for (const property in key) {
-                Object.defineProperty(this.data, property, {
-                    value: key[property],
-                    writable: true,
-                    enumerable: true,
-                })
+                _.set(this.data, property, key[property])
             }
         } else if (typeof key === 'string') {
-            Object.defineProperty(this.data, key, {
-                value,
-                writable: true,
-                enumerable: true,
-            });
+            _.set(this.data, key, value)
         }
         return this;
     };
@@ -94,6 +93,8 @@ function GenerateModel(collection) {
      * @return {XMongoModel}
      */
     XMongoModel.prototype.setOriginal = function (data) {
+        data = _.cloneDeep(data);
+
         Object.defineProperty(this, 'original', {
             value: data,
             write: true,
@@ -154,7 +155,7 @@ function GenerateModel(collection) {
 
 
     XMongoModel.prototype.id = function () {
-        return this.data['_id'] || null
+        return (this.data && this.data['_id']) || null
     };
 
     /**
@@ -163,6 +164,17 @@ function GenerateModel(collection) {
      */
     XMongoModel.prototype.changes = function () {
         return diff(this.original, this.data);
+    };
+
+    /**
+     * Update model
+     * @param set
+     * @param options
+     * @return {Promise<Collection~updateWriteOpResult|Collection~insertOneWriteOpResult>}
+     */
+    XMongoModel.prototype.update = function (set, options) {
+        if (!this.id()) throw "Model does not have an _id, so we assume it is not from the database.";
+        return this.set(set).save(options)
     };
 
     /**
@@ -187,12 +199,30 @@ function GenerateModel(collection) {
                     (error, res) => {
                         if (error) return reject(error);
                         const {insertedId} = res;
+
                         this.set('_id', insertedId);
+                        this.setOriginal(this.data);
 
                         return resolve(res)
                     })
             }
         });
+    };
+
+    /**
+     * Sets data as an instance of ObjectCollection on this.$data
+     * @return {XMongoModel}
+     */
+    XMongoModel.prototype.toCollection = function () {
+        if (!this.hasOwnProperty('$data')) {
+            Object.defineProperty(this, '$data', {
+                value: new ObjectCollection(this.data),
+                writable: true,
+                enumerable: false
+            })
+        }
+
+        return this;
     };
 
 
@@ -256,7 +286,7 @@ function GenerateModel(collection) {
      * @param raw
      * @return {Promise<XMongoModel>}
      */
-    XMongoModel.findOne = (query, options, raw = false) => {
+    XMongoModel.findOne = function (query, options, raw = false) {
         return new Promise((resolve, reject) => {
             collection.findOne(query, options, (error, data) => {
                 if (error) return reject(error);
@@ -264,7 +294,7 @@ function GenerateModel(collection) {
                 if (!data) return resolve(null);
                 if (raw) return resolve(data);
 
-                const model = new XMongoModel();
+                const model = new this();
 
                 // Set Original Property
                 model.setOriginal(data);
@@ -279,18 +309,19 @@ function GenerateModel(collection) {
     /**
      * Fetches the first document that matches id provided.
      * @param _id
+     * @param options
      * @param isTypeObjectId
      * @return {Promise<XMongoModel>}
      */
-    XMongoModel.findOneById = function (_id, isTypeObjectId = true) {
+    XMongoModel.findById = function (_id, options={}, isTypeObjectId = true) {
         let where;
-        if (isTypeObjectId) {
+        if (!isTypeObjectId) {
             where = XMongoModel.id(_id, true);
         } else {
             where = {_id}
         }
 
-        return XMongoModel.findOne(where);
+        return this.findOne(where, options);
     };
 
     /**
