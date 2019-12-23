@@ -38,6 +38,7 @@ class Users extends Database.model("users") {
             type: 'hasOne',
             model: Contacts,
             where: {user_id: '_id'},
+            options: {projection: {_id: 1}}
         }
     };
 
@@ -47,7 +48,10 @@ class Users extends Database.model("users") {
 }
 
 /**
- * Return User
- * @type {User| typeof XMongoModel}
+ * @type {typeof Users| typeof XMongoModel}
  */
-module.exports = {Users, Contacts};
+module.exports.Users = Users;
+/**
+ * @type {typeof Contacts| typeof XMongoModel}
+ */
+module.exports.Contacts = Contacts;

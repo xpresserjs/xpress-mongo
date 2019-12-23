@@ -12,12 +12,14 @@ async function run() {
         console.log(user);
     });*/
 
+    // Users.
 
-    const user = await Users.findOne();
 
-    await user.hasOneRaw('contact', {cast: true});
+    const user = await Users.findOne({}, {projection: {_id: 1}});
 
-    console.log(user.toJson());
+    await user.hasOne('contact', {as: 'person'});
+
+    console.log(user);
 
     /**
      * End Async Space

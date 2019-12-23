@@ -24,9 +24,7 @@ function GenerateModel(collection) {
          */
         constructor() {
             // Assume data is empty
-            this.data = {
-                _id: null,
-            };
+            this.emptyData();
             Object.defineProperty(this, 'schema', {
                 value: {},
                 write: true,
@@ -228,6 +226,92 @@ function GenerateModel(collection) {
     };
 
 
+    XMongoModel.prototype.hasOne = async function (relationship, extend = {}) {
+        let config = this.constructor.relationships;
+        if (config && config.hasOwnProperty(relationship)) {
+            config = config[relationship];
+            if (config.type !== "hasOne") {
+                throw Error(`Relationship: (${relationship}) is not of type "hasOne"`)
+            }
+
+            /**
+             * Get Relationship where query.
+             * @type {*}
+             */
+            let where = config.where;
+            if (typeof where === "object" && Object.keys(where).length) {
+                /**
+                 * Loop through all keys in where query and change the values
+                 * to matching model instance values.
+                 */
+                for (const key in where) {
+                    where[key] = this.get(where[key])
+                }
+            } else {
+                where = {};
+            }
+
+            if (typeof extend !== "object") {
+                throw Error(`hasOne second argument must be of type "Object"`);
+            }
+
+            /**
+             * Raw option check.
+             * @type {boolean|boolean}
+             */
+            const cast = extend.hasOwnProperty('cast') && extend.cast === true;
+
+            /**
+             * Get query option
+             * @type {*|{}}
+             */
+            let options = config['options'] || {};
+            if (extend.hasOwnProperty('options')) options = extend.options;
+
+
+            /**
+             * Get hasOne Model.
+             * @type {typeof XMongoModel}
+             */
+            let model = config.model;
+            let relatedData = await model.raw.findOne(where, options);
+
+            if (cast) relatedData = model.use(relatedData);
+
+            /**
+             * Set relationship to value provided in the extend.as config.
+             */
+            if (extend['as']) relationship = extend['as'];
+
+            this.set(relationship, relatedData);
+
+            return relatedData;
+        }
+    };
+
+
+    /**
+     * @private
+     * @return {*}
+     */
+    XMongoModel.prototype.toJSON = function () {
+        return this.data;
+    };
+
+
+    XMongoModel.prototype.toJson = function (replacer = undefined, space = undefined) {
+        return JSON.stringify(this.data, replacer, space);
+    };
+
+
+    XMongoModel.prototype.emptyData = function () {
+        this.data = {
+            _id: this.id()
+        };
+
+        return this;
+    };
+
     /**
      * Direct mongodb access
      * @type {Collection}
@@ -286,76 +370,12 @@ function GenerateModel(collection) {
      */
     XMongoModel.use = function (data) {
         const model = new this();
+        model.emptyData();
         // Set Original Property
         model.setOriginal(data);
         model.set(data);
 
         return model;
-    };
-
-
-    XMongoModel.prototype.hasOne = async function (relationship, options = {}) {
-        let config = this.constructor.relationships;
-        if (config && config.hasOwnProperty(relationship)) {
-            config = config[relationship];
-            if (config.type !== "hasOne") {
-                throw Error(`Relationship: (${relationship}) is not of type "hasOne"`)
-            }
-
-            /**
-             * Get Relationship where query.
-             * @type {*}
-             */
-            let where = config.where;
-            if (typeof where === "object" && Object.keys(where).length) {
-                /**
-                 * Loop through all keys in where query and change the values
-                 * to matching model instance values.
-                 */
-                for (const key in where) {
-                    where[key] = this.get(where[key])
-                }
-            } else {
-                where = {};
-            }
-
-            if (typeof options !== "object") {
-                throw Error(`hasOne options must be of type "Object"`);
-            }
-
-            /**
-             * Cast option check.
-             * @type {boolean|boolean}
-             */
-            const cast = options.hasOwnProperty('cast') && options.cast === true;
-
-            /**
-             * Get hasOne Model.
-             * @type {typeof XMongoModel}
-             */
-            let model = config.model;
-            let relatedData = await model.raw.findOne(where);
-
-            if (cast) relatedData = model.use(relatedData);
-
-            this.set(relationship, relatedData);
-
-            return relatedData;
-        }
-    };
-
-
-    /**
-     * @private
-     * @return {*}
-     */
-    XMongoModel.prototype.toJSON = function () {
-        return this.data;
-    };
-
-
-    XMongoModel.prototype.toJson = function (replacer = undefined, space = undefined) {
-        return JSON.stringify(this.data, replacer, space);
     };
 
 
