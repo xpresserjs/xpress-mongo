@@ -1,6 +1,6 @@
 const {Client} = require('../index');
 
-const db = "mongodb://localhost:27017";
+const db = "mongodb://127.0.0.1:27017";
 const db_name = "test_model";
 const db_options = {
     useNewUrlParser: true,

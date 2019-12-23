@@ -17,5 +17,5 @@ function Client(url, options, errorCallback = undefined) {
 
 module.exports = {
     Client,
-    is,
+    is
 };

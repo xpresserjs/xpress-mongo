@@ -21,7 +21,8 @@ ModelDataType.prototype.schema = {
     validator: () => true
 };
 
-class NotDefined {}
+class NotDefined {
+}
 
 const isString = (v) => typeof v === 'string';
 const isBoolean = (v) => typeof v === 'boolean';

@@ -14,19 +14,19 @@ const UserSchema = {
     created_at: is.Date()
 };
 
-class User extends Collection("users") {
+class Users extends Collection("users") {
     constructor() {
         super();
         this.setSchema(UserSchema);
     }
 }
 
-module.exports = User;
+module.exports = Users;
 ```
 
 ### Data
 ```javascript
-const user = new User().set({
+const user = new Users().set({
     first_name: 'John',
     last_name: 'Doe'
 });

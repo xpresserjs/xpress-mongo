@@ -24,7 +24,9 @@ function GenerateModel(collection) {
          */
         constructor() {
             // Assume data is empty
-            this.data = {};
+            this.data = {
+                _id: null,
+            };
             Object.defineProperty(this, 'schema', {
                 value: {},
                 write: true,
@@ -115,7 +117,7 @@ function GenerateModel(collection) {
     XMongoModel.prototype.setSchema = function (schema = undefined) {
         const schemaIsData = schema === undefined;
         schema === undefined && (schema = this.data);
-        const newData = {};
+        const newData = {_id: null};
 
 
         for (const key in schema) {
@@ -266,16 +268,143 @@ function GenerateModel(collection) {
      * @return {Promise<XMongoModel[]>}
      */
     XMongoModel.find = (query, options, raw = false) => {
+        const result = collection.find(query, options);
+        if (raw) return result;
+
         return new Promise((resolve, reject) => {
-            const result = collection.find(query, options);
-
-            if (raw) return resolve(result);
-
             return result.toArray((error, data) => {
                 if (error) return reject(error);
                 return resolve(data);
             });
         });
+    };
+
+    /**
+     * Turn data provided in query function to model instances.
+     * @param {{}} data
+     * @return {XMongoModel}
+     */
+    XMongoModel.use = function (data) {
+        const model = new this();
+        // Set Original Property
+        model.setOriginal(data);
+        model.set(data);
+
+        return model;
+    };
+
+
+    XMongoModel.prototype.hasOne = async function (relationship, options = {}) {
+        let config = this.constructor.relationships;
+        if (config && config.hasOwnProperty(relationship)) {
+            config = config[relationship];
+            if (config.type !== "hasOne") {
+                throw Error(`Relationship: (${relationship}) is not of type "hasOne"`)
+            }
+
+            /**
+             * Get Relationship where query.
+             * @type {*}
+             */
+            let where = config.where;
+            if (typeof where === "object" && Object.keys(where).length) {
+                /**
+                 * Loop through all keys in where query and change the values
+                 * to matching model instance values.
+                 */
+                for (const key in where) {
+                    where[key] = this.get(where[key])
+                }
+            } else {
+                where = {};
+            }
+
+            if (typeof options !== "object") {
+                throw Error(`hasOne options must be of type "Object"`);
+            }
+
+            /**
+             * Cast option check.
+             * @type {boolean|boolean}
+             */
+            const cast = options.hasOwnProperty('cast') && options.cast === true;
+
+            /**
+             * Get hasOne Model.
+             * @type {typeof XMongoModel}
+             */
+            let model = config.model;
+            let relatedData = await model.raw.findOne(where);
+
+            if (cast) relatedData = model.use(relatedData);
+
+            this.set(relationship, relatedData);
+
+            return relatedData;
+        }
+    };
+
+
+    /**
+     * @private
+     * @return {*}
+     */
+    XMongoModel.prototype.toJSON = function () {
+        return this.data;
+    };
+
+
+    XMongoModel.prototype.toJson = function (replacer = undefined, space = undefined) {
+        return JSON.stringify(this.data, replacer, space);
+    };
+
+
+    /**
+     * @callback rawQueryFn
+     * @param {Collection} raw
+     */
+
+    /**
+     * Turn array provided to model instances.
+     *
+     * if function is passed instead of the array
+     * xpress-mongo will assume you want to provide a raw query
+     * that it will append mongodb `.toArray` function to.
+     *
+     * E.G
+     *      contact = ContactModel.fromArray([...SomeAlreadyFetchedData])
+     *
+     * OR
+     *      contact = ContactModel.fromArray(raw => raw.find().limit(10));
+     *
+     * WHICH IS ===
+     *
+     *      Model.raw.find().limit(10).toArray((err, lists) => {
+     *          Model.fromArray();
+     *      })
+     *
+     *
+     * @static
+     * @method
+     * @param {rawQueryFn|Object[]} query - Data as array or query as function.
+     * @return {Promise<this[]>|this[]} returns - Array of model instances
+     */
+    XMongoModel.fromArray = function (query) {
+        if (typeof query === "function") {
+            return new Promise((resolve, reject) => {
+                return query(this.raw).toArray((error, lists) => {
+                    if (error) return reject(error);
+                    return resolve(this.fromArray(lists));
+                });
+            });
+        } else {
+            const data = [];
+            for (const list of query) {
+                data.push(this.use(list))
+            }
+            return data;
+        }
+
     };
 
 
@@ -288,19 +417,13 @@ function GenerateModel(collection) {
      */
     XMongoModel.findOne = function (query, options, raw = false) {
         return new Promise((resolve, reject) => {
-            collection.findOne(query, options, (error, data) => {
+            return collection.findOne(query, options, (error, data) => {
                 if (error) return reject(error);
                 // Return new instance of Model
                 if (!data) return resolve(null);
                 if (raw) return resolve(data);
 
-                const model = new this();
-
-                // Set Original Property
-                model.setOriginal(data);
-                model.set(data);
-
-                return resolve(model);
+                return resolve(this.use(data));
             });
         });
     };
@@ -313,7 +436,7 @@ function GenerateModel(collection) {
      * @param isTypeObjectId
      * @return {Promise<XMongoModel>}
      */
-    XMongoModel.findById = function (_id, options={}, isTypeObjectId = true) {
+    XMongoModel.findById = function (_id, options = {}, isTypeObjectId = true) {
         let where;
         if (!isTypeObjectId) {
             where = XMongoModel.id(_id, true);
