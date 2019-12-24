@@ -163,7 +163,12 @@ function GenerateModel(collection) {
      * @return {*}
      */
     XMongoModel.prototype.changes = function () {
-        return diff(this.original, this.data);
+        const changes =  diff(this.original, this.data);
+        for(const key in changes){
+            changes[key] = this.data[key]
+        }
+
+        return changes;
     };
 
     /**
@@ -187,9 +192,12 @@ function GenerateModel(collection) {
             const id = this.id();
 
             if (id) {
+                const $set = this.changes();
+                if (!Object.keys($set).length) return resolve(false);
+                
                 return collection.updateOne(
                     {_id: this.id()},
-                    {$set: this.changes()},
+                    {$set},
                     options,
                     (error, res) => error ? reject(error) : resolve(res.connection))
             } else {
@@ -211,7 +219,7 @@ function GenerateModel(collection) {
 
     /**
      * Sets data as an instance of ObjectCollection on this.$data
-     * @return {XMongoModel}
+     * @return {ObjectCollection}
      */
     XMongoModel.prototype.toCollection = function () {
         if (!this.hasOwnProperty('$data')) {
@@ -219,10 +227,12 @@ function GenerateModel(collection) {
                 value: new ObjectCollection(this.data),
                 writable: true,
                 enumerable: false
-            })
+            });
+
+            return this.$data;
         }
 
-        return this;
+        return this.$data;
     };
 
 
@@ -235,10 +245,30 @@ function GenerateModel(collection) {
             }
 
             /**
+             * Raw option check.
+             * @type {boolean|boolean}
+             */
+            const cast = extend.hasOwnProperty('cast') && extend.cast === true;
+
+            /**
+             * Get query option
+             * @type {*|{}}
+             */
+            let options = _.cloneDeep(config['options'] || {});
+            if (extend.hasOwnProperty('options')) options = _.cloneDeep(extend.options);
+
+
+            /**
+             * Get hasOne Model.
+             * @type {typeof XMongoModel}
+             */
+            let model = config.model;
+
+            /**
              * Get Relationship where query.
              * @type {*}
              */
-            let where = config.where;
+            let where = _.clone(config.where);
             if (typeof where === "object" && Object.keys(where).length) {
                 /**
                  * Loop through all keys in where query and change the values
@@ -255,25 +285,7 @@ function GenerateModel(collection) {
                 throw Error(`hasOne second argument must be of type "Object"`);
             }
 
-            /**
-             * Raw option check.
-             * @type {boolean|boolean}
-             */
-            const cast = extend.hasOwnProperty('cast') && extend.cast === true;
 
-            /**
-             * Get query option
-             * @type {*|{}}
-             */
-            let options = config['options'] || {};
-            if (extend.hasOwnProperty('options')) options = extend.options;
-
-
-            /**
-             * Get hasOne Model.
-             * @type {typeof XMongoModel}
-             */
-            let model = config.model;
             let relatedData = await model.raw.findOne(where, options);
 
             if (cast) relatedData = model.use(relatedData);
@@ -381,7 +393,7 @@ function GenerateModel(collection) {
 
     /**
      * @callback rawQueryFn
-     * @param {Collection} raw
+     * @param {Collection|*} raw
      */
 
     /**
@@ -427,6 +439,20 @@ function GenerateModel(collection) {
 
     };
 
+    /**
+     *
+     * @param {rawQueryFn} query
+     * @return {Promise<this>|XMongoModel}
+     */
+    XMongoModel.from = function (query) {
+        return new Promise((resolve, reject) => {
+            return query(this.raw).then((error, data) => {
+                if (error) return reject(error);
+                return resolve(this.use(data));
+            });
+        });
+    };
+
 
     /**
      * Fetches the first document that matches the query
@@ -436,6 +462,13 @@ function GenerateModel(collection) {
      * @return {Promise<XMongoModel>}
      */
     XMongoModel.findOne = function (query, options, raw = false) {
+
+        if (typeof options === "boolean") {
+            raw = options
+            options = {};
+        }
+        ;
+
         return new Promise((resolve, reject) => {
             return collection.findOne(query, options, (error, data) => {
                 if (error) return reject(error);
