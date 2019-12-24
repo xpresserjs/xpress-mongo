@@ -33,6 +33,12 @@ class Users extends Database.model("users") {
         this.setSchema(UserSchema);
     }
 
+    static append = ['fullName'];
+
+    fullName() {
+        return `${this.data.first_name} ${this.data.last_name}`
+    }
+
     static relationships = {
         contact: {
             type: 'hasOne',
@@ -41,10 +47,6 @@ class Users extends Database.model("users") {
             options: {projection: {_id: 1}}
         }
     };
-
-    fullName() {
-        return `${this.data.first_name} ${this.data.last_name}`
-    }
 }
 
 /**

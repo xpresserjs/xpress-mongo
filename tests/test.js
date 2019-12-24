@@ -15,11 +15,11 @@ async function run() {
     // Users.
 
 
-    const user = await Users.findOne({}, {projection: {_id: 1}});
+    const user = await Users.findOne();
 
     await user.hasOne('contact', {as: 'person'});
 
-    console.log(user);
+    console.log(user.changes());
 
     /**
      * End Async Space

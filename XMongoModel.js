@@ -163,12 +163,17 @@ function GenerateModel(collection) {
      * @return {*}
      */
     XMongoModel.prototype.changes = function () {
-        const changes =  diff(this.original, this.data);
-        for(const key in changes){
-            changes[key] = this.data[key]
+        const changes = diff(this.original, this.data);
+        const data = {};
+        const append = this.constructor.append || [];
+
+        for (const key in changes) {
+            if (!append.includes(key)) {
+                data[key] = this.data[key]
+            }
         }
 
-        return changes;
+        return data;
     };
 
     /**
@@ -194,7 +199,7 @@ function GenerateModel(collection) {
             if (id) {
                 const $set = this.changes();
                 if (!Object.keys($set).length) return resolve(false);
-                
+
                 return collection.updateOne(
                     {_id: this.id()},
                     {$set},
@@ -387,6 +392,14 @@ function GenerateModel(collection) {
         model.setOriginal(data);
         model.set(data);
 
+        if (this.append) {
+            for (const key of this.append) {
+                if (typeof model[key] === "function") {
+                    model.set(key, model[key]())
+                }
+            }
+        }
+
         return model;
     };
 
@@ -464,10 +477,9 @@ function GenerateModel(collection) {
     XMongoModel.findOne = function (query, options, raw = false) {
 
         if (typeof options === "boolean") {
-            raw = options
+            raw = options;
             options = {};
         }
-        ;
 
         return new Promise((resolve, reject) => {
             return collection.findOne(query, options, (error, data) => {
