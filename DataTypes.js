@@ -73,5 +73,16 @@ module.exports = {
             return new ModelDataType(def)
                 .validator(isString);
         },
+
+        /**
+         * Number
+         * @param def
+         * @return {ModelDataType}
+         * @constructor
+         */
+        Number: (def = 0) => {
+            return new ModelDataType(def)
+                .validator(isNaN)
+        }
     }
 };

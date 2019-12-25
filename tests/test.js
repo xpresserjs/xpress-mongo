@@ -19,7 +19,7 @@ async function run() {
 
     await user.hasOne('contact', {as: 'person'});
 
-    console.log(user.changes());
+    console.log(user);
 
     /**
      * End Async Space

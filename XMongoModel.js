@@ -30,6 +30,12 @@ function GenerateModel(collection) {
                 write: true,
                 enumerable: false
             });
+
+            Object.defineProperty(this, 'loadedRelationships', {
+                value: [],
+                write: true,
+                enumerable: false
+            })
         }
     }
 
@@ -59,6 +65,12 @@ function GenerateModel(collection) {
      */
     XMongoModel.prototype.schema = {};
 
+    /** Model Loaded Relationships
+     * @private
+     * @type {*[]}
+     */
+    XMongoModel.prototype.loadedRelationships = [];
+
 
     /**
      * Get Data in model
@@ -84,6 +96,18 @@ function GenerateModel(collection) {
             _.set(this.data, key, value)
         }
         return this;
+    };
+
+
+    /**
+     * Insert new record and return instance.
+     * @param data
+     * @return {Promise<this|*>}
+     */
+    XMongoModel.new = async function (data) {
+        const record = new this().set(data);
+        await record.save();
+        return record;
     };
 
 
@@ -166,9 +190,10 @@ function GenerateModel(collection) {
         const changes = diff(this.original, this.data);
         const data = {};
         const append = this.constructor.append || [];
+        const excluded = [...append, ...this.loadedRelationships];
 
         for (const key in changes) {
-            if (!append.includes(key)) {
+            if (!excluded.includes(key)) {
                 data[key] = this.data[key]
             }
         }
@@ -301,6 +326,7 @@ function GenerateModel(collection) {
             if (extend['as']) relationship = extend['as'];
 
             this.set(relationship, relatedData);
+            this.loadedRelationships.push(relationship);
 
             return relatedData;
         }
