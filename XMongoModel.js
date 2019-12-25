@@ -289,12 +289,6 @@ function GenerateModel(collection) {
 
 
             /**
-             * Get hasOne Model.
-             * @type {typeof XMongoModel}
-             */
-            let model = config.model;
-
-            /**
              * Get Relationship where query.
              * @type {*}
              */
@@ -316,9 +310,17 @@ function GenerateModel(collection) {
             }
 
 
+            /**
+             * Get hasOne Model.
+             * @type {typeof XMongoModel}
+             */
+            let model = config.model;
+            if (Array.isArray(model) && typeof model[0] === "function")
+                model = model[0]();
+
             let relatedData = await model.raw.findOne(where, options);
 
-            if (cast) relatedData = model.use(relatedData);
+            if (cast && relatedData) relatedData = model.use(relatedData);
 
             /**
              * Set relationship to value provided in the extend.as config.
@@ -529,7 +531,7 @@ function GenerateModel(collection) {
      */
     XMongoModel.findById = function (_id, options = {}, isTypeObjectId = true) {
         let where;
-        if (!isTypeObjectId) {
+        if (typeof _id === "string" || !isTypeObjectId) {
             where = XMongoModel.id(_id, true);
         } else {
             where = {_id}
@@ -545,7 +547,86 @@ function GenerateModel(collection) {
      * @return {void | * | Promise | undefined | IDBRequest<number>}
      */
     XMongoModel.count = function (query, options) {
-        return XMongoModel.raw.find(query, options).count()
+        return this.raw.find(query, options).count()
+    };
+
+
+    /**
+     * Count Aggregations
+     * @param query
+     * @param options
+     * @returns {Promise<number|*>}
+     */
+    XMongoModel.countAggregate = async function (query, options) {
+        query = _.cloneDeep(query);
+
+        query.push({$count: "count_aggregate"});
+        const data = await this.raw.aggregate(query, options).toArray();
+        if (data.length) {
+            return data[0]['count_aggregate']
+        }
+        return 0;
+    };
+
+
+    /**
+     * Paginate Find.
+     * @param query
+     * @param options
+     * @param page
+     * @param perPage
+     * @return {Promise<{total: *, perPage: number, lastPage: number, data: [], page: number}>}
+     */
+    XMongoModel.paginate = async function (page = 1, perPage = 20, query = {}, options = {}) {
+        page = Number(page);
+        perPage = Number(perPage);
+
+        const total = await this.count(query);
+        const lastPage = Math.ceil(total / perPage);
+        const skips = perPage * (page - 1);
+        const data = await this.raw.find(query, options).skip(skips).limit(perPage).toArray();
+
+        return {
+            total,
+            perPage,
+            page,
+            lastPage,
+            data
+        }
+    };
+
+    /**
+     * Paginate Aggregation.
+     * @param {number} page
+     * @param {number} perPage
+     * @param {[]} query
+     * @param {*} options
+     * @returns {Promise<{total: (*|number), perPage: number, lastPage: number, data: *, page: number}>}
+     */
+    XMongoModel.paginateAggregate = async function (page = 1, perPage = 20, query = [], options = {}) {
+        query = _.cloneDeep(query);
+
+        page = Number(page);
+        perPage = Number(perPage);
+
+        const total = await this.countAggregate(query);
+        const lastPage = Math.ceil(total / perPage);
+        const skips = perPage * (page - 1);
+
+        query.push({$skip: skips});
+        query.push({$limit: perPage});
+
+        console.log(query);
+
+        const data = await this.raw.aggregate(query, options).toArray();
+
+        return {
+            total,
+            perPage,
+            page,
+            lastPage,
+            data
+        }
     };
 
     return XMongoModel;
