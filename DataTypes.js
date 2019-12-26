@@ -27,6 +27,10 @@ class NotDefined {
 const isString = (v) => typeof v === 'string';
 const isBoolean = (v) => typeof v === 'boolean';
 
+/**
+ * DataTypes
+ * @type {{NotDefined: NotDefined, ModelDataType: ModelDataType, is: {Number: (function(*=): ModelDataType), ObjectId: (function(): ModelDataType), String: (function(*=): ModelDataType), Boolean: (function(*=): ModelDataType), Date: (function(*=): ModelDataType)}}}
+ */
 module.exports = {
     NotDefined,
     ModelDataType,

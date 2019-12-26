@@ -1,5 +1,5 @@
 const {ObjectID} = require('mongodb');
-const {ModelDataType} = require('./DataTypes');
+const {is, ModelDataType} = require('./DataTypes');
 const {diff} = require('deep-object-diff');
 const ObjectCollection = require('object-collection');
 const _ = ObjectCollection._;
@@ -128,12 +128,17 @@ function GenerateModel(collection) {
         return this;
     };
 
+    /**
+     * @callback schemaWithIs
+     * @param {is|*} raw
+     */
+
 
     /**
      * Set Model Schema
      *
      * if `schema` is undefined then `this.data` is used as schema object
-     * @param schema
+     * @param {schemaWithIs|Object} schema
      * @returns {XMongoModel}
      */
     XMongoModel.prototype.setSchema = function (schema = undefined) {
@@ -141,10 +146,16 @@ function GenerateModel(collection) {
         schema === undefined && (schema = this.data);
         const newData = {_id: null};
 
+        // If schema is a function then call it and pass is.
+        if (typeof schema === "function") {
+            schema = schema(is);
+        }
+
 
         for (const key in schema) {
             if (schema.hasOwnProperty(key)) {
-                const val = schema[key];
+                let val = schema[key];
+
 
                 if (val instanceof ModelDataType) {
                     this.schema[key] = val['schema'];
@@ -208,7 +219,7 @@ function GenerateModel(collection) {
      * @return {Promise<Collection~updateWriteOpResult|Collection~insertOneWriteOpResult>}
      */
     XMongoModel.prototype.update = function (set, options) {
-        if (!this.id()) throw "Model does not have an _id, so we assume it is not from the database.";
+        if (!this.id()) throw "UPDATE_ERROR: Model does not have an _id, so we assume it is not from the database.";
         return this.set(set).save(options)
     };
 
@@ -245,6 +256,23 @@ function GenerateModel(collection) {
                     })
             }
         });
+    };
+
+
+    /**
+     * Delete this
+     * @param writeConcern
+     * @returns {Promise}
+     */
+    XMongoModel.prototype.delete = function (writeConcern) {
+        const _id = this.id();
+
+        if (_id) {
+            this.emptyData();
+            return collection.deleteOne({_id})
+        } else {
+            throw "DELETE_ERROR: Model does not have an _id, so we assume it is not from the database.";
+        }
     };
 
     /**
@@ -444,6 +472,7 @@ function GenerateModel(collection) {
      * xpress-mongo will assume you want to provide a raw query
      * that it will append mongodb `.toArray` function to.
      *
+     * @example
      * E.G
      *      contact = ContactModel.fromArray([...SomeAlreadyFetchedData])
      *
@@ -453,7 +482,7 @@ function GenerateModel(collection) {
      * WHICH IS ===
      *
      *      Model.raw.find().limit(10).toArray((err, lists) => {
-     *          Model.fromArray();
+     *          Model.fromArray(lists);
      *      })
      *
      *
@@ -615,8 +644,6 @@ function GenerateModel(collection) {
 
         query.push({$skip: skips});
         query.push({$limit: perPage});
-
-        console.log(query);
 
         const data = await this.raw.aggregate(query, options).toArray();
 

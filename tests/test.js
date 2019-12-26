@@ -15,9 +15,11 @@ async function run() {
     // Users.
 
 
-    const user = await Users.findOne();
-
-    await user.hasOne('contact', {as: 'person'});
+    const user = await Users.new({
+        email: chance.email(),
+        first_name: chance.first(),
+        last_name: chance.last()
+    });
 
     console.log(user);
 

@@ -1,14 +1,13 @@
 const Database = require('./connection');
-const {is} = require('../index');
 
 
-const ContactSchema = {
+const ContactSchema = is => ({
     user_id: is.ObjectId(),
     first_name: is.String().required(),
     last_name: is.String().required(),
     phone: is.String(),
     created_at: is.Date()
-};
+});
 
 class Contacts extends Database.model("contacts") {
     constructor() {
@@ -17,14 +16,14 @@ class Contacts extends Database.model("contacts") {
     }
 }
 
-const UserSchema = {
+const UserSchema = is => ({
     email: is.String().required(),
     first_name: is.String().required(),
     last_name: is.String().required(),
     verified: is.Boolean(),
-    updated_at: is.Date(),
-    created_at: is.Date()
-};
+    updated_at: is.Date,
+    created_at: is.Date
+});
 
 
 class Users extends Database.model("users") {
