@@ -18,13 +18,14 @@ class XMongoClient {
         this.client = client
     }
 
-    connect(errorCallback) {
+    connect(successCallback, errorCallback) {
         this.state = STATES.connecting;
 
         this._connection = this.client.connect();
 
         this._connection.then(() => {
             this.state = STATES.connected;
+            successCallback(this);
         }).catch((err) => {
             this.state = STATES.disconnected;
             if (errorCallback && typeof errorCallback === "function") {
