@@ -25,7 +25,11 @@ class XMongoClient {
 
         this._connection.then(() => {
             this.state = STATES.connected;
-            successCallback(this);
+
+            // Call success fallback.
+            if (typeof successCallback === 'function')
+                successCallback(this);
+
         }).catch((err) => {
             this.state = STATES.disconnected;
             if (errorCallback && typeof errorCallback === "function") {
