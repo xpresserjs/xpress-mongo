@@ -38,11 +38,28 @@ module.exports.omitKeys = omitKeys;
 module.exports.pickKeys = pickKeys;
 
 /**
- * Get both pick and omit arrays
- * @param pick
+ * Omits _id and keys passed.
  * @param omit
+ * @example
+ * omitIdAndPick(['name', 'email'])
+ * // will return
+ * {_id: 0, name: 1, email}
  * @returns {{}}
  */
-module.exports.omitAndPick = (omit = [], pick = []) => {
-    return {...omitKeys(pick), ...pickKeys(omit)};
+module.exports.omitIdAnd = (omit = []) => {
+    return {_id: 0, ...omitKeys(omit)};
+};
+
+/**
+ * Omits _id and pick keys passed.
+ * @param pick
+ *
+ * @example
+ * omitIdAndPick(['name', 'email'])
+ * // will return
+ * {_id: 0, name: 1, email}
+ * @returns {{}}
+ */
+module.exports.omitIdAndPick = (pick = []) => {
+    return {_id: 0, ...pickKeys(pick)};
 };
