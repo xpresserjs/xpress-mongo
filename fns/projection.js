@@ -43,6 +43,6 @@ module.exports.pickKeys = pickKeys;
  * @param omit
  * @returns {{}}
  */
-module.exports.omitAndPick = (pick = [], omit = []) => {
-    return {...pickKeys(pick), ...omitKeys(omit)};
+module.exports.omitAndPick = (omit = [], pick = []) => {
+    return {...omitKeys(pick), ...pickKeys(omit)};
 };
