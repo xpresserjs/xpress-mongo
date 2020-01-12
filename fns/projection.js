@@ -5,6 +5,9 @@
  * @returns {*}
  */
 function omitKeys(keys, returnObject = false) {
+    // Turn keys to array if not array.
+    if (!Array.isArray(keys)) keys = [keys];
+
     const data = {};
     for (const key of keys) {
         data[key] = 0;
@@ -20,6 +23,9 @@ function omitKeys(keys, returnObject = false) {
  * @returns {*}
  */
 function pickKeys(keys, returnObject = false) {
+    // Turn keys to array if not array.
+    if (!Array.isArray(keys)) keys = [keys];
+
     const data = {};
     for (const key of keys) {
         data[key] = 1;
@@ -36,8 +42,7 @@ module.exports.pickKeys = pickKeys;
  * @param pick
  * @param omit
  * @returns {{}}
- * @deprecated - mongodb does not support mix of inclusion and exclusion.
  */
-module.exports.project = (pick = [], omit = []) => {
+module.exports.omitAndPick = (pick = [], omit = []) => {
     return {...pickKeys(pick), ...omitKeys(omit)};
 };

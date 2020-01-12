@@ -11,7 +11,7 @@ const db_options = {
  * Export Client
  * @type {XMongoClient}
  */
-module.exports = Client(db, db_options).connect((err) => {
+module.exports = Client(db, db_options).connect(null,(err) => {
     console.log(`DB Connection Error: ${err.message}`);
     process.exit();
 }).useDb(db_name);

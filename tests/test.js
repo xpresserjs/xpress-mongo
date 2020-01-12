@@ -15,13 +15,18 @@ async function run() {
     // Users.
 
 
-    const user = await Users.new({
-        email: chance.email(),
-        first_name: chance.first(),
-        last_name: chance.last()
-    });
+    function newUser() {
+        const user = new Users().set({
+            email: chance.email(),
+            first_name: chance.first(),
+            last_name: chance.last()
+        });
 
-    console.log(user);
+        console.log(user);
+    }
+
+    await newUser();
+    setInterval(newUser, 5000);
 
     /**
      * End Async Space
@@ -29,5 +34,5 @@ async function run() {
 }
 
 run().then(() => {
-    process.exit();
+    // process.exit();
 });

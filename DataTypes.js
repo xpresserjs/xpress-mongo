@@ -73,7 +73,7 @@ module.exports = {
          * @return {ModelDataType}
          * @constructor
          */
-        Date: (def = new Date()) => {
+        Date: (def = () => new Date()) => {
             return new ModelDataType(def)
                 .validator(isString);
         },

@@ -1,5 +1,6 @@
 const {ObjectID} = require('mongodb');
 const {is, ModelDataType} = require('./DataTypes');
+const {defaultValue} = require('./fns/inbuilt');
 const {diff} = require('deep-object-diff');
 const ObjectCollection = require('object-collection');
 const _ = ObjectCollection._;
@@ -75,6 +76,7 @@ function GenerateModel(collection) {
     /**
      * Get Data in model
      * @param key
+     * @param $default
      * @return {*|undefined}
      */
     XMongoModel.prototype.get = function (key, $default) {
@@ -101,12 +103,13 @@ function GenerateModel(collection) {
 
     /**
      * Insert new record and return instance.
-     * @param data
+     * @param data - new record data.
+     * @param save - Save new date, default = true
      * @return {Promise<this|*>}
      */
-    XMongoModel.new = async function (data) {
+    XMongoModel.new = async function (data, save = true) {
         const record = new this().set(data);
-        await record.save();
+        if (save) await record.save();
         return record;
     };
 
@@ -165,9 +168,9 @@ function GenerateModel(collection) {
                 const dataValIsNotBoolean = typeof dataVal !== "boolean";
 
                 if (!schemaIsData && dataValIsNotBoolean && !dataVal) {
-                    newData[key] = val['schema'].default;
+                    newData[key] = defaultValue(val['schema']);
                 } else if (schemaIsData && dataVal instanceof ModelDataType) {
-                    newData[key] = dataVal['schema'].default
+                    newData[key] = defaultValue(dataVal['schema'])
                 } else {
                     newData[key] = dataVal
                 }
@@ -178,7 +181,9 @@ function GenerateModel(collection) {
          * Fill up keys defined in data but not in schema
          */
         for (const key in this.data) {
+            // noinspection JSUnfilteredForInLoop
             if (!newData.hasOwnProperty(key)) {
+                // noinspection JSUnfilteredForInLoop
                 newData[key] = this.data[key]
             }
         }

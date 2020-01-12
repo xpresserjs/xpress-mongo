@@ -21,8 +21,8 @@ const UserSchema = is => ({
     first_name: is.String().required(),
     last_name: is.String().required(),
     verified: is.Boolean(),
-    updated_at: is.Date,
-    created_at: is.Date
+    updated_at: is.Date(),
+    created_at: is.Date()
 });
 
 
