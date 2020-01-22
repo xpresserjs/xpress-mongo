@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "node tests/app.js"
+    "test": "node tests/test.js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
   "dependencies": {
     "deep-object-diff": "^1.1.0",
     "mongodb": "^3.4.1",
-    "object-collection": "^1.0.20"
+    "object-collection": "^1.0.21"
   },
   "devDependencies": {
     "chance": "^1.1.4"

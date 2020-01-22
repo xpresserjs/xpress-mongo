@@ -514,8 +514,25 @@ function GenerateModel(collection) {
 
     };
 
+
     /**
-     *
+     * A helper to fetch result as array.
+     * @param query - a function
+     * @returns {Promise<[]>}
+     */
+    XMongoModel.toArray = function (query) {
+        return new Promise((resolve, reject) => {
+            if (typeof query !== "function") return reject(Error('.toArray expects a function as argument'));
+
+            query(this.raw).toArray((error, data) => {
+                if (error) return reject(error);
+                return resolve(data);
+            });
+        });
+    };
+
+    /**
+     * @deprecated
      * @param {rawQueryFn} query
      * @return {Promise<this>|XMongoModel}
      */
