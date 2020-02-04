@@ -1,5 +1,37 @@
 # Xpress-Mongo
----- Still in development
+##### ---- Still in development
+
+Xpress-Mongo is a lightweight mongodb ODM both in size and in actions.
+
+Unlike other Mongodb ODM's, xpress keeps you closer to **mongodb-native** calls using the `raw` function available on all model instances
+
+```javascript
+// Using
+const User = SomeCollection();
+
+User.findOne(); // XpressMongo findOne
+User.raw.findOne(); // Mongodb findOne
+```
+
+
+
+### Setup
+Assuming you already have your client connected already..
+
+```javascript
+// Import XpressMongo
+const {Client} = require('xpress-mongo');
+// Use your already existing  client.
+const Database = Client('your_client').useDb('database_name');
+
+// Define models using collection names
+const UserModel = Database.model('users');
+const PostModel = Database.model('posts');
+
+UserModel.findOne().then(user =>  console.log(user));
+PostModel.find().then(posts =>  console.log(posts));
+
+```
 
 ### Model
 ```javascript

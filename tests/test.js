@@ -1,15 +1,14 @@
-const {Users, Contacts} = require('./models');
-const helpers = require('../fns/projection');
-const Chance = require('chance');
-const chance = new Chance();
+const {Client} = require('../index');
+const mongodb = require('mongodb');
 
+mongodb.MongoClient.connect(
+    'mongodb://localhost/test_model',
+    {useNewUrlParser: true, useUnifiedTopology: true}
+).then(async client => {
+    const Database = Client(client).useDb('test_model');
+    const UserModel = Database.model('users');
 
-async function run() {
-    const data = await Users.toArray(r => r.find());
-
-    console.log(data);
-}
-
-run().then(() => {
-    // process.exit();
+    console.log(await UserModel.findOne())
+}).catch(err => {
+    console.log(err);
 });
