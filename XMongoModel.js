@@ -194,9 +194,42 @@ function GenerateModel(collection) {
     };
 
 
+    /**
+     * Get id of current model instance
+     * @returns {*|null}
+     */
     XMongoModel.prototype.id = function () {
         return (this.data && this.data['_id']) || null
     };
+
+
+    /**
+     * Compare model id with a string or ObjectId type variable.
+     * @param to
+     * @param key
+     * @returns {boolean}
+     */
+    XMongoModel.prototype.idEqualTo = function (to, key = "_id") {
+
+        /**
+         * Get Value to be compared with
+         * @type {ObjectID|string}
+         */
+        let compareWith = this.get(key, undefined);
+
+        // Return false of to || compareWith is false, undefined or null
+        if (!to || !compareWith) return false;
+
+        /**
+         * If to || compareWith is typeof objectID, we run toString() get the string value.
+         */
+        if (ObjectID.isValid(to)) to = to.toString();
+        if (ObjectID.isValid(compareWith)) compareWith = compareWith.toString();
+
+        // Compare Strings
+        return to === compareWith;
+    };
+
 
     /**
      * See changes made so far.
@@ -420,7 +453,6 @@ function GenerateModel(collection) {
             return _id
         }
     };
-
 
     /**
      * Find many in collection
