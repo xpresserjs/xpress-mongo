@@ -1,3 +1,4 @@
+const XMongoUsing = require('./XMongoUsing');
 const {ObjectID} = require('mongodb');
 const {is, ModelDataType} = require('./DataTypes');
 const {defaultValue} = require('./fns/inbuilt');
@@ -40,6 +41,7 @@ function GenerateModel(collection) {
         }
     }
 
+
     /**
      * Model Data
      * @type {*}
@@ -65,6 +67,13 @@ function GenerateModel(collection) {
      * @type {{}}
      */
     XMongoModel.prototype.schema = {};
+
+    /**
+     * Defined relationships
+     * @type {{}}
+     */
+    XMongoModel.relationships = {};
+
 
     /** Model Loaded Relationships
      * @private
@@ -334,7 +343,7 @@ function GenerateModel(collection) {
 
     XMongoModel.prototype.hasOne = async function (relationship, extend = {}) {
         let config = this.constructor.relationships;
-        if (config && config.hasOwnProperty(relationship)) {
+        if (config && typeof config === "object" && config.hasOwnProperty(relationship)) {
             config = config[relationship];
             if (config.type !== "hasOne") {
                 throw Error(`Relationship: (${relationship}) is not of type "hasOne"`)
@@ -397,6 +406,8 @@ function GenerateModel(collection) {
             this.loadedRelationships.push(relationship);
 
             return relatedData;
+        } else {
+            throw Error(`Relationship: (${relationship}) does not exists in model {${this.constructor.name}}`)
         }
     };
 
@@ -503,6 +514,11 @@ function GenerateModel(collection) {
      */
 
     /**
+     * @callback modelQueryFn
+     * @param {XMongoModel|*} raw
+     */
+
+    /**
      * Turn array provided to model instances.
      *
      * if function is passed instead of the array
@@ -526,14 +542,23 @@ function GenerateModel(collection) {
      * @static
      * @method
      * @param {rawQueryFn|Object[]} query - Data as array or query as function.
+     * @param {function|boolean} interceptor - Intercepts raw database array if not false.
+     *
      * @return {Promise<this[]>|this[]} returns - Array of model instances
      */
-    XMongoModel.fromArray = function (query) {
+    XMongoModel.fromArray = function (query, interceptor = false) {
         if (typeof query === "function") {
             return new Promise((resolve, reject) => {
                 return query(this.raw).toArray((error, lists) => {
                     if (error) return reject(error);
-                    return resolve(this.fromArray(lists));
+
+                    /**
+                     * Check if interceptor is a function
+                     * if it is we pass list to the function
+                     *
+                     * else we pass it to self (fromArray)
+                     */
+                    return resolve(typeof interceptor === "function" ? interceptor(lists) : this.fromArray(lists));
                 });
             });
         } else {
@@ -552,7 +577,7 @@ function GenerateModel(collection) {
      * @param query - a function
      * @returns {Promise<[]>}
      */
-    XMongoModel.toArray = function (query) {
+    XMongoModel.toArray = function (query, raw = false) {
         return new Promise((resolve, reject) => {
             if (typeof query !== "function") return reject(Error('.toArray expects a function as argument'));
 
@@ -707,6 +732,28 @@ function GenerateModel(collection) {
             page,
             lastPage,
             data
+        }
+    };
+
+
+    /**
+     * Use array or result from function provided
+     * @param {[]|modelQueryFn} data
+     *
+     *@return {XMongoUsing | Promise<XMongoUsing>}
+     */
+    XMongoModel.using = function (data) {
+        if (typeof data === "function") {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const dataResult = await data(this);
+                    resolve(new XMongoUsing(this, dataResult));
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        } else {
+            return new XMongoUsing(this, data)
         }
     };
 
