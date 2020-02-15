@@ -400,10 +400,14 @@ function GenerateModel(collection) {
             /**
              * Set relationship to value provided in the extend.as config.
              */
-            if (extend['as']) relationship = extend['as'];
+            if (typeof extend['as'] === "string") relationship = extend['as'];
 
-            this.set(relationship, relatedData);
-            this.loadedRelationships.push(relationship);
+            // Don't extend if extend === false
+            if (extend['as'] !== false) {
+                this.set(relationship, relatedData);
+                this.loadedRelationships.push(relationship);
+            }
+
 
             return relatedData;
         } else {
@@ -577,7 +581,7 @@ function GenerateModel(collection) {
      * @param query - a function
      * @returns {Promise<[]>}
      */
-    XMongoModel.toArray = function (query, raw = false) {
+    XMongoModel.toArray = function (query) {
         return new Promise((resolve, reject) => {
             if (typeof query !== "function") return reject(Error('.toArray expects a function as argument'));
 
