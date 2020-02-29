@@ -30,6 +30,13 @@ function GenerateModel(collection) {
             Object.defineProperty(this, 'schema', {
                 value: {},
                 write: true,
+                enumerable: false,
+                configurable: true,
+            });
+
+            Object.defineProperty(this, 'schemaStore', {
+                value: {},
+                write: true,
                 enumerable: false
             });
 
@@ -67,6 +74,7 @@ function GenerateModel(collection) {
      * @type {{}}
      */
     XMongoModel.prototype.schema = {};
+
 
     /**
      * Defined relationships
@@ -129,6 +137,7 @@ function GenerateModel(collection) {
      * @return {XMongoModel}
      */
     XMongoModel.prototype.setOriginal = function (data) {
+
         data = _.cloneDeep(data);
 
         Object.defineProperty(this, 'original', {
@@ -136,6 +145,21 @@ function GenerateModel(collection) {
             write: true,
             enumerable: false
         });
+
+        return this;
+    };
+
+
+    /**
+     * Set multiple schemas and use them at anytime using `.setSchema`
+     * @param {string} name
+     * @param {Object} schema
+     * @return {XMongoModel}
+     */
+    XMongoModel.prototype.addSchema = function (name, schema) {
+
+        // Save to schemaStore
+        this.schemaStore[name] = schema;
 
         return this;
     };
@@ -150,10 +174,45 @@ function GenerateModel(collection) {
      * Set Model Schema
      *
      * if `schema` is undefined then `this.data` is used as schema object
-     * @param {schemaWithIs|Object} schema
+     * @param {schemaWithIs|Object|string} schema
      * @returns {XMongoModel}
+     *
+     * @deprecated
      */
     XMongoModel.prototype.setSchema = function (schema = undefined) {
+        console.log(`.setSchema is deprecated use .useSchema`);
+        return this.useSchema(schema);
+    };
+
+
+    /**
+     * Set Model Schema
+     *
+     * if `schema` is undefined then `this.data` is used as schema object
+     * @param {schemaWithIs|Object|String} schema
+     * @returns {XMongoModel}
+     */
+    XMongoModel.prototype.useSchema = function (schema = undefined) {
+
+        // Redefine schema
+        Object.defineProperty(this, 'schema', {
+            value: {},
+            write: true,
+            enumerable: false,
+            configurable: true,
+        });
+
+        // Try to find schema from .schemaStore if string
+        if (typeof schema === "string") {
+            if (!this.schemaStore.hasOwnProperty(schema)) {
+                throw Error(`schemaStore does not have schema named: ${schema}`)
+            }
+
+            // Empty Data to remove any predefined schemas
+            this.emptyData();
+            schema = this.schemaStore[schema] || {}
+        }
+
         const schemaIsData = schema === undefined;
         schema === undefined && (schema = this.data);
         const newData = {_id: null};
@@ -281,7 +340,15 @@ function GenerateModel(collection) {
 
             if (id) {
                 const $set = this.changes();
+
                 if (!Object.keys($set).length) return resolve(false);
+
+                // Try to validate changes
+                try {
+                    this.validate($set);
+                } catch (e) {
+                    return reject(e)
+                }
 
                 return collection.updateOne(
                     {_id: this.id()},
@@ -289,6 +356,13 @@ function GenerateModel(collection) {
                     options,
                     (error, res) => error ? reject(error) : resolve(res.connection))
             } else {
+                // Try to validate new data.
+                try {
+                    this.validate();
+                } catch (e) {
+                    return reject(e)
+                }
+
                 return collection.insertOne(
                     this.data,
                     options,
@@ -306,12 +380,42 @@ function GenerateModel(collection) {
     };
 
 
+    XMongoModel.prototype.validate = function (data = undefined) {
+        if (!data) {
+            data = this.data;
+        }
+
+        const validated = {};
+
+        for (const schemaKey in this.schema) {
+            if (data.hasOwnProperty(schemaKey)) {
+                const schema = this.schema[schemaKey];
+                let dataValue = data[schemaKey];
+
+                if (dataValue === undefined && schema['required'] === true) {
+                    throw new TypeError(`${schemaKey} is required.`)
+                }
+
+                // validate using validator if value is not undefined
+                if (dataValue !== undefined && !schema.validator(dataValue)) {
+                    throw new TypeError(schema.validationError(schemaKey))
+                }
+
+                validated[schemaKey] = dataValue;
+            } else {
+                throw new TypeError(`${schemaKey} is missing in data but defined in schema`)
+            }
+        }
+
+        return validated;
+    };
+
+
     /**
      * Delete this
-     * @param writeConcern
      * @returns {Promise}
      */
-    XMongoModel.prototype.delete = function (writeConcern) {
+    XMongoModel.prototype.delete = function () {
         const _id = this.id();
 
         if (_id) {

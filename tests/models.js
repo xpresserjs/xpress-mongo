@@ -12,24 +12,39 @@ const ContactSchema = is => ({
 class Contacts extends Database.model("contacts") {
     constructor() {
         super();
-        this.setSchema(ContactSchema);
+        this.useSchema(ContactSchema);
     }
 }
 
 const UserSchema = is => ({
+    type: is.String().required(),
     email: is.String().required(),
     first_name: is.String().required(),
     last_name: is.String().required(),
-    verified: is.Boolean(),
-    updated_at: is.Date(),
-    created_at: is.Date()
+    verified: is.Boolean().required(),
+    updated_at: is.Date().required(),
+    address: is.String(),
+    created_at: is.Date().required()
+});
+
+
+const GuestSchema = is => ({
+    type: is.String().required(),
+    first_name: is.String().required(),
+    last_name: is.String().required(),
+    guestId: is.String().required(),
+    created_at: is.Date().required()
 });
 
 
 class Users extends Database.model("users") {
     constructor() {
         super();
-        this.setSchema(UserSchema);
+
+        this.addSchema('GuestSchema', GuestSchema);
+        this.addSchema('UserSchema', UserSchema);
+
+        this.useSchema('UserSchema');
     }
 
     static append = ['fullName'];
@@ -51,8 +66,8 @@ class Users extends Database.model("users") {
 /**
  * @type {typeof Users| typeof XMongoModel}
  */
-module.exports.Users = Users;
+exports.Users = Users;
 /**
  * @type {typeof Contacts| typeof XMongoModel}
  */
-module.exports.Contacts = Contacts;
+exports.Contacts = Contacts;

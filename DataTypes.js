@@ -14,6 +14,11 @@ class ModelDataType {
         this.schema.validator = validator;
         return this;
     }
+
+    validatorError(error) {
+        this.schema.validationError = error;
+        return this;
+    }
 }
 
 ModelDataType.prototype.schema = {
@@ -26,6 +31,9 @@ class NotDefined {
 
 const isString = (v) => typeof v === 'string';
 const isBoolean = (v) => typeof v === 'boolean';
+const isObject = (v) => v && typeof v === 'object';
+const isArray = (v) => Array.isArray(v);
+const isDate = (v) => v instanceof Date;
 
 /**
  * DataTypes
@@ -42,7 +50,27 @@ module.exports = {
          */
         ObjectId: () => {
             return new ModelDataType(null)
-                .required(true);
+                .required(true)
+                .validatorError((key) => `(${key}) is not a Mongodb-ObjectID`);
+
+        },
+
+        /**
+         * Array
+         * @param def
+         * @return {ModelDataType}
+         * @constructor
+         */
+        Array: (def = () => ([])) => {
+            return new ModelDataType(def)
+                .validator(isArray)
+        },
+
+        Object: (def = () => ({})) => {
+            return new ModelDataType(def)
+                .validator(isObject)
+                .validatorError((key) => `(${key}) is not an Object`);
+
         },
 
         /**
@@ -53,7 +81,8 @@ module.exports = {
          */
         String: (def = undefined) => {
             return new ModelDataType(def)
-                .validator(isString);
+                .validator(isString)
+                .validatorError((key) => `(${key}) is not a String`);
         },
 
         /**
@@ -64,7 +93,9 @@ module.exports = {
          */
         Boolean: (def = false) => {
             return new ModelDataType(def)
-                .validator(isBoolean);
+                .validator(isBoolean)
+                .validatorError((key) => `(${key}) is not a Boolean`);
+
         },
 
         /**
@@ -75,7 +106,8 @@ module.exports = {
          */
         Date: (def = () => new Date()) => {
             return new ModelDataType(def)
-                .validator(isString);
+                .validator(isDate)
+                .validatorError((key) => `(${key}) is not a Date`);
         },
 
         /**
@@ -87,6 +119,7 @@ module.exports = {
         Number: (def = 0) => {
             return new ModelDataType(def)
                 .validator(isNaN)
+                .validatorError((key) => `(${key}) is not a Number`);
         }
     }
 };

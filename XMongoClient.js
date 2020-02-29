@@ -70,7 +70,7 @@ class XMongoClient {
      */
     model(collection) {
         const connection = this.db.collection(collection);
-        return GenerateModel(connection, collection)
+        return GenerateModel(connection)
     }
 }
 
