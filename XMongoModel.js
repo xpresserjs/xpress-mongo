@@ -1,7 +1,7 @@
 const XMongoUsing = require('./XMongoUsing');
 const {ObjectID} = require('mongodb');
 const {is, ModelDataType} = require('./DataTypes');
-const {defaultValue} = require('./fns/inbuilt');
+const {defaultValue, runOrValidation, runAndValidation} = require('./fns/inbuilt');
 const {diff} = require('deep-object-diff');
 const ObjectCollection = require('object-collection');
 const _ = ObjectCollection._;
@@ -106,7 +106,7 @@ function GenerateModel(collection) {
      * @param value
      * @return {XMongoModel}
      */
-    XMongoModel.prototype.set = function (key, value) {
+    XMongoModel.prototype.set = function (key, value=undefined) {
         if (typeof key === 'object' && value === undefined) {
             for (const property in key) {
                 _.set(this.data, property, key[property])
@@ -209,13 +209,15 @@ function GenerateModel(collection) {
             }
 
             // Empty Data to remove any predefined schemas
-            this.emptyData();
+            if (!Object.keys(this.original).length) {
+                this.emptyData();
+            }
             schema = this.schemaStore[schema] || {}
         }
 
         const schemaIsData = schema === undefined;
         schema === undefined && (schema = this.data);
-        const newData = {_id: null};
+        const newData = {_id: this.id()};
 
         // If schema is a function then call it and pass is.
         if (typeof schema === "function") {
@@ -339,13 +341,13 @@ function GenerateModel(collection) {
             const id = this.id();
 
             if (id) {
-                const $set = this.changes();
+                let $set = this.changes();
 
                 if (!Object.keys($set).length) return resolve(false);
 
                 // Try to validate changes
                 try {
-                    this.validate($set);
+                    $set = {$set, ...this.validate($set)};
                 } catch (e) {
                     return reject(e)
                 }
@@ -358,7 +360,7 @@ function GenerateModel(collection) {
             } else {
                 // Try to validate new data.
                 try {
-                    this.validate();
+                    this.set(this.validate());
                 } catch (e) {
                     return reject(e)
                 }
@@ -380,30 +382,121 @@ function GenerateModel(collection) {
     };
 
 
+    /**
+     * Validate
+     * @description
+     * Runs validation on this.data if data is undefined.
+     * @param data
+     * @return {{}}
+     */
     XMongoModel.prototype.validate = function (data = undefined) {
+        /**
+         * Checks if data was defined or not.
+         * @type {boolean}
+         */
+        let customData = true;
+
+        /**
+         * If data is undefined, default to this.data
+         * And set customData to false.
+         */
         if (!data) {
             data = this.data;
+            customData = false;
         }
 
+        /**
+         * Stores validated keys and values.
+         * @type {{}}
+         */
         const validated = {};
 
+        /**
+         * Loop through all defined schemas and validate.
+         */
         for (const schemaKey in this.schema) {
+
+            /**
+             * If data doesnt have schemaKey we skip
+             * else throw Error if this is not a customData
+             *
+             * i.e else if data === this.data
+             */
             if (data.hasOwnProperty(schemaKey)) {
+
+                /**
+                 * Schema Definition of current schema
+                 * @type {*|ModelDataType}
+                 */
                 const schema = this.schema[schemaKey];
+
+                /**
+                 * Current value of key being validated.
+                 * @type {*}
+                 */
                 let dataValue = data[schemaKey];
 
+                /**
+                 * If schema is required and dataValue is undefined
+                 * Throw required error
+                 */
                 if (dataValue === undefined && schema['required'] === true) {
-                    throw new TypeError(`${schemaKey} is required.`)
+                    throw new TypeError(`(${schemaKey}) is required.`)
                 }
 
                 // validate using validator if value is not undefined
-                if (dataValue !== undefined && !schema.validator(dataValue)) {
-                    throw new TypeError(schema.validationError(schemaKey))
+                if (dataValue !== undefined) {
+
+                    /**
+                     * Holds type of validator.
+                     * @type {"undefined"|"object"|"boolean"|"number"|"string"|"function"|"symbol"|"bigint"}
+                     */
+                    let validatorType = typeof schema.validator;
+
+                    /**
+                     * Holds validator Error for schemaKey
+                     * @type {string}
+                     */
+                    const validatorError = schema.validationError(schemaKey);
+
+                    /**
+                     * If validatorType is 'function', run validator
+                     * Throw error if validator returns false.
+                     *
+                     * Else if validatorType is 'object'
+                     * validate the object received.
+                     */
+                    if (validatorType === 'function' && !schema.validator(dataValue)) {
+                        throw new TypeError(validatorError);
+                    } else if (validatorType === 'object') {
+                        // Get first key of object
+                        validatorType = Object.keys(schema.validator)[0];
+
+                        /**
+                         * If validatorType === 'or' run `runOrValidation`,
+                         * If validatorType === 'and' run `runAndValidation`
+                         */
+                        if (validatorType === 'or' && !runOrValidation(dataValue, schema.validator['or'])) {
+                            throw new TypeError(validatorError);
+                        } else if (validatorType === 'and' && !runAndValidation(dataValue, schema.validator['and'])) {
+                            throw new TypeError(validatorError);
+                        }
+                    }
+
+
+                    /**
+                     * Cast dataValue if schema.cast is defined and a function
+                     */
+                    if (typeof schema['cast'] === 'function') {
+                        dataValue = schema.cast(dataValue, schemaKey);
+                    }
                 }
 
+                // Add to validated object
                 validated[schemaKey] = dataValue;
             } else {
-                throw new TypeError(`${schemaKey} is missing in data but defined in schema`)
+                if (!customData)
+                    throw new TypeError(`${schemaKey} is missing in data but defined in schema`)
             }
         }
 

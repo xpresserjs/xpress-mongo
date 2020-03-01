@@ -20,4 +20,40 @@ function defaultValue(data) {
     return data.default;
 }
 
-module.exports = {defaultValue};
+/**
+ * RunOrValidation
+ * @description
+ * Run validators and stop if any is true
+ * @param {*} value
+ * @param {[]} validators
+ * @return {boolean}
+ */
+function runOrValidation(value, validators = []) {
+    for (const validator of validators) {
+        if (validator(value) === true) return true
+    }
+
+    return false;
+}
+
+/**
+ * RunAndValidation
+ * @description
+ * Run validators and stop if any is false
+ * @param {*} value
+ * @param {[]} validators
+ * @return {boolean}
+ */
+function runAndValidation(value, validators = []) {
+    for (const validator of validators) {
+        if (!validator(value)) return false
+    }
+
+    return true;
+}
+
+module.exports = {
+    defaultValue,
+    runOrValidation,
+    runAndValidation
+};

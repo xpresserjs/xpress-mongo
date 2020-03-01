@@ -1,3 +1,5 @@
+const {ObjectID} = require('mongodb');
+
 class ModelDataType {
     constructor($default = undefined) {
         this.schema = {
@@ -10,6 +12,11 @@ class ModelDataType {
         return this;
     }
 
+    /**
+     * Set Type Validator
+     * @param {function|{or: Array}|{and: Array}} validator
+     * @return {ModelDataType}
+     */
     validator(validator = () => true) {
         this.schema.validator = validator;
         return this;
@@ -19,11 +26,18 @@ class ModelDataType {
         this.schema.validationError = error;
         return this;
     }
+
+    cast(cast) {
+        this.schema.cast = cast;
+        return this;
+    }
 }
 
 ModelDataType.prototype.schema = {
     required: false,
-    validator: () => true
+    validator: () => true,
+    validationError: () => 'Validation Error',
+    cast: null,
 };
 
 class NotDefined {
@@ -31,9 +45,13 @@ class NotDefined {
 
 const isString = (v) => typeof v === 'string';
 const isBoolean = (v) => typeof v === 'boolean';
-const isObject = (v) => v && typeof v === 'object';
+const isObject = (v) => (v && typeof v === 'object');
 const isArray = (v) => Array.isArray(v);
 const isDate = (v) => v instanceof Date;
+
+
+isObject(null);
+
 
 /**
  * DataTypes
@@ -51,6 +69,21 @@ module.exports = {
         ObjectId: () => {
             return new ModelDataType(null)
                 .required(true)
+                .validator({
+                    or: [isString, isObject]
+                })
+                .cast((val, key) => {
+
+                    if (typeof val === "object" && ObjectID.isValid(val)) {
+                        return val
+                    }
+
+                    try {
+                        return new ObjectID(val);
+                    } catch (e) {
+                        throw  TypeError(`(${key}) is not valid Mongodb-ObjectID`);
+                    }
+                })
                 .validatorError((key) => `(${key}) is not a Mongodb-ObjectID`);
 
         },
@@ -64,8 +97,16 @@ module.exports = {
         Array: (def = () => ([])) => {
             return new ModelDataType(def)
                 .validator(isArray)
+                .validatorError((key) => `(${key}) is not an Array`);
         },
 
+
+        /**
+         * Object
+         * @param def
+         * @return {ModelDataType}
+         * @constructor
+         */
         Object: (def = () => ({})) => {
             return new ModelDataType(def)
                 .validator(isObject)

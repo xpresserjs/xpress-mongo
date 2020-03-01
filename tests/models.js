@@ -1,12 +1,11 @@
 const Database = require('./connection');
 
-
 const ContactSchema = is => ({
-    user_id: is.ObjectId(),
-    first_name: is.String().required(),
+    user_id: is.ObjectId().required(),
+    first_name: is.String(),
     last_name: is.String().required(),
-    phone: is.String(),
-    created_at: is.Date()
+    phone: is.String().required(),
+    created_at: is.Date().required()
 });
 
 class Contacts extends Database.model("contacts") {
@@ -31,7 +30,7 @@ const UserSchema = is => ({
 const GuestSchema = is => ({
     type: is.String().required(),
     first_name: is.String().required(),
-    last_name: is.String().required(),
+    last_name: is.String(),
     guestId: is.String().required(),
     created_at: is.Date().required()
 });
