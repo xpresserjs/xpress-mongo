@@ -1,7 +1,13 @@
 const XMongoUsing = require('./XMongoUsing');
 const {ObjectID} = require('mongodb');
 const {is, ModelDataType} = require('./DataTypes');
-const {defaultValue, runOrValidation, runAndValidation} = require('./fns/inbuilt');
+
+const {
+    defaultValue,
+    runOrValidation,
+    runAndValidation
+} = require('./fns/inbuilt');
+
 const {diff} = require('deep-object-diff');
 const ObjectCollection = require('object-collection');
 const _ = ObjectCollection._;
@@ -106,7 +112,7 @@ function GenerateModel(collection) {
      * @param value
      * @return {XMongoModel}
      */
-    XMongoModel.prototype.set = function (key, value=undefined) {
+    XMongoModel.prototype.set = function (key, value = undefined) {
         if (typeof key === 'object' && value === undefined) {
             for (const property in key) {
                 _.set(this.data, property, key[property])
@@ -347,7 +353,7 @@ function GenerateModel(collection) {
 
                 // Try to validate changes
                 try {
-                    $set = {$set, ...this.validate($set)};
+                    $set = {...$set, ...this.validate($set)};
                 } catch (e) {
                     return reject(e)
                 }
@@ -360,7 +366,7 @@ function GenerateModel(collection) {
             } else {
                 // Try to validate new data.
                 try {
-                    this.set(this.validate());
+                    this.emptyData(this.validate());
                 } catch (e) {
                     return reject(e)
                 }
@@ -490,17 +496,31 @@ function GenerateModel(collection) {
                     if (typeof schema['cast'] === 'function') {
                         dataValue = schema.cast(dataValue, schemaKey);
                     }
-                }
 
-                // Add to validated object
-                validated[schemaKey] = dataValue;
+                    // Add to validated object
+                    validated[schemaKey] = dataValue;
+                }
             } else {
                 if (!customData)
                     throw new TypeError(`${schemaKey} is missing in data but defined in schema`)
             }
         }
 
-        return validated;
+        // Add keys not in schema but in data and removed undefined values
+        for (const dataKey in data) {
+            const dataValue = data[dataKey];
+
+            if (!this.schema.hasOwnProperty(dataKey) && dataValue !== undefined) {
+                validated[dataKey] = dataValue
+            }
+
+            if (dataValue === undefined) {
+                delete data[dataKey];
+            }
+        }
+
+        // Return this way to retain original object structure
+        return {...data, ...validated};
     };
 
 
@@ -627,10 +647,12 @@ function GenerateModel(collection) {
     };
 
 
-    XMongoModel.prototype.emptyData = function () {
+    XMongoModel.prototype.emptyData = function (replaceWith=undefined) {
         this.data = {
             _id: this.id()
         };
+
+        if(replaceWith && typeof replaceWith === 'object') this.data = {...this.data, ...replaceWith};
 
         return this;
     };

@@ -14,18 +14,16 @@ async function run() {
         //     guestId: chance.guid()
         // });
 
-    const contact = await Contacts.new({
-            user_id: '5e5acba088ebeef8a715ca43',
-            first_name: null
-        });
-
-    console.log(contact.changes());
+        // const contact = await Contacts.findById('5e5b92f6d7fd524b7ce4fade');
+        //
+        // contact.set('job', 39);
+        // console.log(await contact.save());
 
 
-    // console.log(guest.data);
-    // const user = new Users().useSchema('UserSchema').set({
-    //     email: chance.email()
-    // });
+        // console.log(guest.data);
+        // const user = new Users().useSchema('UserSchema').set({
+        //     email: chance.email()
+        // });
 
     /**
      * End Async Space
