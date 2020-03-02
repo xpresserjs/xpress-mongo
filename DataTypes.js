@@ -48,6 +48,7 @@ const isBoolean = (v) => typeof v === 'boolean';
 const isObject = (v) => (v && typeof v === 'object');
 const isArray = (v) => Array.isArray(v);
 const isDate = (v) => v instanceof Date;
+const isNumber = (v) => !isNaN(v);
 
 
 isObject(null);
@@ -67,8 +68,7 @@ module.exports = {
          * @constructor
          */
         ObjectId: () => {
-            return new ModelDataType(null)
-                .required(true)
+            return new ModelDataType(undefined)
                 .validator({
                     or: [isString, isObject]
                 })
@@ -159,7 +159,8 @@ module.exports = {
          */
         Number: (def = 0) => {
             return new ModelDataType(def)
-                .validator(isNaN)
+                .validator(isNumber)
+                .cast((v) => Number(v))
                 .validatorError((key) => `(${key}) is not a Number`);
         }
     }
