@@ -389,6 +389,53 @@ function GenerateModel(collection) {
 
 
     /**
+     * Unset a key or keys from this collection
+     * @param {string|[]} keys - Key or Keys to unset from collection
+     * @param {Object} options - Update options
+     */
+    XMongoModel.prototype.unset = function (keys, options = {}) {
+
+        // Throw Error if keys is undefined
+        if (!keys)
+            throw Error('Unset key or keys is required.');
+
+        // Throw Error if keys is not a string or array
+        if (typeof keys !== "string" && typeof keys !== "object")
+            throw Error('Unset key or keys must be typeof (String|Array)');
+
+        // Setup $unset object
+        const $unset = {};
+
+        // Change keys to Array if its a string
+        if (typeof keys === "string") keys = [keys];
+
+        // Loop Through and add to $unset object
+        for (const key of keys) {
+            $unset[key] = 1
+        }
+
+        // Run MongoDb query and return response in Promise
+        return new Promise((resolve, reject) => {
+            return collection.updateOne(
+                {_id: this.id()},
+                {$unset},
+                {},
+                (error, res) => {
+                    if (error) return reject(error);
+
+                    // Remove keys from current data
+                    for (const key of keys) {
+                        this.toCollection().unset(key);
+                    }
+
+                    return resolve(res)
+                }
+            )
+        });
+    };
+
+
+    /**
      * Validate
      * @description
      * Runs validation on this.data if data is undefined.
@@ -647,12 +694,12 @@ function GenerateModel(collection) {
     };
 
 
-    XMongoModel.prototype.emptyData = function (replaceWith=undefined) {
+    XMongoModel.prototype.emptyData = function (replaceWith = undefined) {
         this.data = {
             _id: this.id()
         };
 
-        if(replaceWith && typeof replaceWith === 'object') this.data = {...this.data, ...replaceWith};
+        if (replaceWith && typeof replaceWith === 'object') this.data = {...this.data, ...replaceWith};
 
         return this;
     };

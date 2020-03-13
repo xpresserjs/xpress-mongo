@@ -28,7 +28,7 @@ class XMongoClient {
 
             // Call success fallback.
             if (typeof successCallback === 'function')
-                successCallback(this);
+                return successCallback(this);
 
         }).catch((err) => {
             this.state = STATES.disconnected;
@@ -64,7 +64,7 @@ class XMongoClient {
     }
 
     /**
-     *
+     * Creates a model using current connection
      * @param collection
      * @return {typeof XMongoModel}
      */
