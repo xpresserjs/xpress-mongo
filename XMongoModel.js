@@ -138,6 +138,16 @@ function GenerateModel(collection) {
 
 
     /**
+     * Check if id is a valid id
+     * @param objectId
+     * @return {boolean}
+     */
+    XMongoModel.isValidId = function (objectId) {
+        return ObjectID.isValid(objectId)
+    };
+
+
+    /**
      * Set Original result gotten from db
      * @param data
      * @return {XMongoModel}
