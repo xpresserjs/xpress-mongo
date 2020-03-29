@@ -1,5 +1,5 @@
 const {MongoClient} = require('mongodb');
-const {is} = require('./DataTypes');
+const {is, ModelDataType} = require('./DataTypes');
 const XMongoClient = require('./XMongoClient');
 
 
@@ -26,5 +26,6 @@ function Client(url, options = undefined, errorCallback = undefined) {
 
 module.exports = {
     Client,
-    is
+    is,
+    ModelDataType
 };

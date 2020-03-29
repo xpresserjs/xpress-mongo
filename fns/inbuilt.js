@@ -30,7 +30,13 @@ function defaultValue(data) {
  */
 function runOrValidation(value, validators = []) {
     for (const validator of validators) {
-        if (validator(value) === true) return true
+        if (typeof validator === 'function' && validator(value) === true) {
+            return true
+        } else if (typeof validator === 'object' && validator.hasOwnProperty('or')) {
+            if (runOrValidation(value, validator['or']) === true) {
+                return true;
+            }
+        }
     }
 
     return false;

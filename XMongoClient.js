@@ -1,4 +1,5 @@
-const GenerateModel = require('./XMongoModel');
+const XMongoModel = require('./XMongoModel');
+
 
 /**
  * States
@@ -18,28 +19,27 @@ class XMongoClient {
         this.client = client
     }
 
-    connect(successCallback, errorCallback) {
+    /**
+     * Connect to database
+     * @return {Promise<XMongoClient>}
+     */
+    connect() {
         this.state = STATES.connecting;
-
         this._connection = this.client.connect();
 
-        this._connection.then(() => {
-            this.state = STATES.connected;
+        return new Promise((resolve, reject) => {
+            this._connection.then(() => {
 
-            // Call success fallback.
-            if (typeof successCallback === 'function')
-                return successCallback(this);
+                this.state = STATES.connected;
+                return resolve(this);
 
-        }).catch((err) => {
-            this.state = STATES.disconnected;
-            if (errorCallback && typeof errorCallback === "function") {
-                return errorCallback(err);
-            } else {
-                console.log(`DB Connection Error: ${err.message}`)
-            }
+            }).catch(err => {
+
+                this.state = STATES.disconnected;
+                return reject(err)
+
+            });
         });
-
-        return this;
     }
 
     /**
@@ -70,7 +70,13 @@ class XMongoClient {
      */
     model(collection) {
         const connection = this.db.collection(collection);
-        return GenerateModel(connection)
+
+        /**
+         * Extend XMongoModel
+         */
+        return class extends XMongoModel {
+            static raw = connection;
+        }
     }
 }
 

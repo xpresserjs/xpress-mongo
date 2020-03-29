@@ -1,29 +1,26 @@
-const {Users, Contacts} = require('./models');
+const connection = require('./connection');
 const Chance = require('chance');
 const chance = new Chance();
 
 async function run() {
+    await connection();
+    const {Users, Contacts} = require('./models');
+
     /**
      * Async Space
      */
 
-        // const guest = new Users().useSchema('UserS').set({
-        //     type: 'guest',
-        //     first_name: 'Hello',
-        //     last_name: 'World',
-        //     guestId: chance.guid()
-        // });
 
-        // const contact = await Contacts.findById('5e5b92f6d7fd524b7ce4fade');
-        //
-        // contact.set('job', 39);
-        // console.log(await contact.save());
-
+        const guest = new Users().set({
+            type: 'guest',
+            first_name: 'Hello',
+            last_name: 'World',
+            guestId: Users.id('5e5acba088ebeef8a715ca43')
+        });
 
         // console.log(guest.data);
-        // const user = new Users().useSchema('UserSchema').set({
-        //     email: chance.email()
-        // });
+        console.log(guest.validate());
+
 
     /**
      * End Async Space

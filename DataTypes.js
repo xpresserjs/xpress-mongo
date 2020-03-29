@@ -1,10 +1,17 @@
 const {ObjectID} = require('mongodb');
 
 class ModelDataType {
-    constructor($default = undefined) {
+    constructor(name, $default = undefined) {
         this.schema = {
-            default: $default
+            name,
+            default: $default,
+            validationError: (key) => `${key} failed ${name} validation.`
         };
+    }
+
+    default($default){
+        this.schema.default = $default;
+        return this;
     }
 
     required(required = true) {
@@ -45,19 +52,15 @@ class NotDefined {
 
 const isString = (v) => typeof v === 'string';
 const isBoolean = (v) => typeof v === 'boolean';
-const isObject = (v) => (v && typeof v === 'object');
+const isObject = (v) => (v && typeof v === 'object' && !Array.isArray(v));
+const isObjectId = (v) => ObjectID.isValid(v);
 const isArray = (v) => Array.isArray(v);
 const isDate = (v) => v instanceof Date;
-const isNumber = (v) => !isNaN(v);
+const isNumber = (v) => !isBoolean(v) && !isNaN(v);
 
 
 isObject(null);
 
-
-/**
- * DataTypes
- * @type {{NotDefined: NotDefined, ModelDataType: ModelDataType, is: {Number: (function(*=): ModelDataType), ObjectId: (function(): ModelDataType), String: (function(*=): ModelDataType), Boolean: (function(*=): ModelDataType), Date: (function(*=): ModelDataType)}}}
- */
 module.exports = {
     NotDefined,
     ModelDataType,
@@ -65,12 +68,11 @@ module.exports = {
         /**
          * ObjectId
          * @return {ModelDataType}
-         * @constructor
          */
         ObjectId: () => {
-            return new ModelDataType(undefined)
+            return new ModelDataType('ObjectId', undefined)
                 .validator({
-                    or: [isString, isObject]
+                    or: [isString, isObjectId]
                 })
                 .cast((val, key) => {
 
@@ -92,10 +94,9 @@ module.exports = {
          * Array
          * @param def
          * @return {ModelDataType}
-         * @constructor
          */
         Array: (def = () => ([])) => {
-            return new ModelDataType(def)
+            return new ModelDataType('Array', def)
                 .validator(isArray)
                 .validatorError((key) => `(${key}) is not an Array`);
         },
@@ -105,10 +106,9 @@ module.exports = {
          * Object
          * @param def
          * @return {ModelDataType}
-         * @constructor
          */
         Object: (def = () => ({})) => {
-            return new ModelDataType(def)
+            return new ModelDataType('Object', def)
                 .validator(isObject)
                 .validatorError((key) => `(${key}) is not an Object`);
 
@@ -118,10 +118,9 @@ module.exports = {
          * String
          * @param def
          * @return {ModelDataType}
-         * @constructor
          */
         String: (def = undefined) => {
-            return new ModelDataType(def)
+            return new ModelDataType('String', def)
                 .validator(isString)
                 .validatorError((key) => `(${key}) is not a String`);
         },
@@ -130,10 +129,9 @@ module.exports = {
          * Boolean
          * @param def
          * @return {ModelDataType}
-         * @constructor
          */
         Boolean: (def = false) => {
-            return new ModelDataType(def)
+            return new ModelDataType('Boolean', def)
                 .validator(isBoolean)
                 .validatorError((key) => `(${key}) is not a Boolean`);
 
@@ -143,10 +141,9 @@ module.exports = {
          * Date
          * @param def
          * @return {ModelDataType}
-         * @constructor
          */
         Date: (def = () => new Date()) => {
-            return new ModelDataType(def)
+            return new ModelDataType('Date', def)
                 .validator(isDate)
                 .validatorError((key) => `(${key}) is not a Date`);
         },
@@ -155,13 +152,56 @@ module.exports = {
          * Number
          * @param def
          * @return {ModelDataType}
-         * @constructor
          */
         Number: (def = 0) => {
-            return new ModelDataType(def)
+            return new ModelDataType('Number', def)
                 .validator(isNumber)
                 .cast((v) => Number(v))
                 .validatorError((key) => `(${key}) is not a Number`);
+        },
+
+        /**
+         * Is Multiple types
+         * @param {ModelDataType[]} types
+         * @return {ModelDataType}
+         */
+        Types: (types = []) => {
+            const multipleType = new ModelDataType('MultipleDataTypes');
+            const mainSchema = types[0].schema;
+
+            // Set default function to first type default
+            multipleType.default(mainSchema.default);
+
+            // set validators
+            const validators = [];
+            let typeNames = [];
+            let isRequired = false;
+
+            for (const type of types) {
+                validators.push(type.schema.validator);
+                typeNames.push(type.schema.name);
+
+                if (type.schema.required) isRequired = true;
+            }
+
+            // Set required if any type has required(true)
+            if (isRequired) multipleType.required();
+
+            // Set or to validators
+            multipleType.validator({or: validators});
+
+            // Set cast if main function has cast
+            if (typeof mainSchema.cast === 'function') {
+                multipleType.cast(mainSchema.cast);
+            }
+
+            // Join names to string
+            typeNames = typeNames.join(', ');
+
+            // Set Validation Error
+            multipleType.validatorError(key => `${key} failed [${typeNames}] validations`);
+
+            return multipleType;
         }
     }
 };

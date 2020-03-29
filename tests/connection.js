@@ -7,11 +7,21 @@ const db_options = {
     useUnifiedTopology: true
 };
 
+
 /**
  * Export Client
  * @type {XMongoClient}
  */
-module.exports = Client(db, db_options).connect(null,(err) => {
-    console.log(`DB Connection Error: ${err.message}`);
-    process.exit();
-}).useDb(db_name);
+module.exports = async (runAfterConnection = () => false) => {
+    const connection = Client(db, db_options);
+    let client;
+    try {
+        client = await connection.connect();
+        client.useDb(db_name);
+
+        global['Database'] = client;
+    } catch (e) {
+        console.log(`DB Connection Error: ${e.message}`);
+        process.exit();
+    }
+};
