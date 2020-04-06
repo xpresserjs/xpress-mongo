@@ -1,27 +1,27 @@
-import ModelDataType from "./XMongoDataType";
+import XMongoDataType = require("./XMongoDataType");
 import { StringToAnyObject } from "./CustomTypes";
 declare type XMongoSchemaBuilder = {
-    ObjectId: () => ModelDataType;
+    ObjectId: () => XMongoDataType;
     Array: {
-        (def?: () => Array<any>): ModelDataType;
+        (def?: () => Array<any>): XMongoDataType;
     };
     Object: {
-        (def?: () => StringToAnyObject): ModelDataType;
+        (def?: () => StringToAnyObject): XMongoDataType;
     };
     String: {
-        (def?: string): ModelDataType;
+        (def?: string): XMongoDataType;
     };
     Boolean: {
-        (def?: boolean): ModelDataType;
+        (def?: boolean): XMongoDataType;
     };
     Date: {
-        (def?: () => Date): ModelDataType;
+        (def?: () => Date): XMongoDataType;
     };
     Number: {
-        (def?: 0): ModelDataType;
+        (def?: 0): XMongoDataType;
     };
     Types: {
-        (types: ModelDataType[]): ModelDataType;
+        (types: XMongoDataType[]): XMongoDataType;
     };
 };
 declare const is: XMongoSchemaBuilder;

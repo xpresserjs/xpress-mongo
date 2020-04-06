@@ -65,6 +65,11 @@ declare class XMongoModel {
      * The ModelAction class uses this function to access this models data.
      */
     constructor();
+    /**
+     * Empties data in current model.
+     * @param replaceWith
+     * @returns {this}
+     */
     emptyData(replaceWith?: StringToAnyObject): this;
     /**
      * Get Data in model
@@ -77,7 +82,7 @@ declare class XMongoModel {
      * Set data in model
      * @param key
      * @param value
-     * @return {XMongoModel}
+     * @return {this}
      */
     set(key: string | StringToAnyObject, value?: any): this;
     /**
@@ -96,14 +101,14 @@ declare class XMongoModel {
     /**
      * Set Original result gotten from db
      * @param data
-     * @return {XMongoModel}
+     * @return {this}
      */
     setOriginal(data: StringToAnyObject): this;
     /**
      * Set multiple schemas and use them at anytime using `.setSchema`
      * @param {string} name
      * @param {Object} schema
-     * @return {XMongoModel}
+     * @return {this}
      */
     addSchema(name: string, schema: StringToAnyObject): this;
     /**
@@ -111,7 +116,7 @@ declare class XMongoModel {
      *
      * if `schema` is undefined then `this.data` is used as schema object
      * @param {Object|string} schema
-     * @returns {XMongoModel}
+     * @returns {this}
      *
      * @deprecated
      */
@@ -121,14 +126,14 @@ declare class XMongoModel {
      *
      * if `schema` is undefined then `this.data` is used as schema object
      * @param {Object|String} schema
-     * @returns {XMongoModel}
+     * @returns {this}
      */
     useSchema(schema: string | StringToAnyObject | {
         (is: XMongoSchemaBuilder): StringToAnyObject;
     }): this;
     /**
      * Get id of current model instance
-     * @returns {*|null}
+     * @returns {*|ObjectID|null}
      */
     id(): any | ObjectID | null;
     /**
@@ -149,7 +154,7 @@ declare class XMongoModel {
      * @param options
      * @return {Promise<UpdateWriteOpResult>}
      */
-    update(set: StringToAnyObject, options: UpdateOneOptions): Promise<boolean | UpdateWriteOpResult | InsertOneWriteOpResult<any>>;
+    update(set: StringToAnyObject, options: UpdateOneOptions): Promise<UpdateWriteOpResult>;
     /**
      * Create Model if not id is missing or save document if id is found.
      * @param options
@@ -186,12 +191,22 @@ declare class XMongoModel {
      * @return {XMongoModel}
      */
     static use(data: StringToAnyObject): XMongoModel;
+    /**
+     * Has One relationship
+     * @param relationship
+     * @param extend
+     */
     hasOne(relationship: string, extend?: StringToAnyObject): Promise<StringToAnyObject | XMongoModel>;
     /**
      * @private
      * @return {*}
      */
     toJSON(): StringToAnyObject;
+    /**
+     * Converts this.data to json using JSON.stringify()
+     * @param replacer
+     * @param space
+     */
     toJson(replacer?: undefined, space?: undefined): string;
     /**
      * Alias to mongo.ObjectID

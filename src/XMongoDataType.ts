@@ -25,7 +25,7 @@ class XMongoDataType {
         this.schema.required = required;
         return this;
     }
-    
+
     validator(validator: ValidatorType) {
         this.schema.validator = validator;
         return this;

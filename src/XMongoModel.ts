@@ -1,5 +1,5 @@
 import ObjectCollection = require('object-collection');
-import ModelDataType = require('./XMongoDataType');
+import XMongoDataType = require('./XMongoDataType');
 
 import {
     ObjectID,
@@ -119,7 +119,12 @@ class XMongoModel {
         })
     }
 
-    emptyData(replaceWith?: StringToAnyObject) {
+    /**
+     * Empties data in current model.
+     * @param replaceWith
+     * @returns {this}
+     */
+    emptyData(replaceWith?: StringToAnyObject): this {
         this.data = {
             _id: this.id()
         };
@@ -144,7 +149,7 @@ class XMongoModel {
      * Set data in model
      * @param key
      * @param value
-     * @return {XMongoModel}
+     * @return {this}
      */
     set(key: string | StringToAnyObject, value?: any): this {
         if (typeof key === 'object' && value === undefined) {
@@ -183,7 +188,7 @@ class XMongoModel {
     /**
      * Set Original result gotten from db
      * @param data
-     * @return {XMongoModel}
+     * @return {this}
      */
     setOriginal(data: StringToAnyObject): this {
 
@@ -202,7 +207,7 @@ class XMongoModel {
      * Set multiple schemas and use them at anytime using `.setSchema`
      * @param {string} name
      * @param {Object} schema
-     * @return {XMongoModel}
+     * @return {this}
      */
     addSchema(name: string, schema: StringToAnyObject): this {
         // Save to schemaStore
@@ -215,7 +220,7 @@ class XMongoModel {
      *
      * if `schema` is undefined then `this.data` is used as schema object
      * @param {Object|string} schema
-     * @returns {XMongoModel}
+     * @returns {this}
      *
      * @deprecated
      */
@@ -229,7 +234,7 @@ class XMongoModel {
      *
      * if `schema` is undefined then `this.data` is used as schema object
      * @param {Object|String} schema
-     * @returns {XMongoModel}
+     * @returns {this}
      */
     useSchema(schema: string | StringToAnyObject | { (is: XMongoSchemaBuilder): StringToAnyObject }): this {
 
@@ -267,7 +272,7 @@ class XMongoModel {
                 if (schema.hasOwnProperty(key)) {
                     let schemaVal: any = schema[key];
 
-                    if (schemaVal instanceof ModelDataType) {
+                    if (schemaVal instanceof XMongoDataType) {
 
                         this.schema[key] = schemaVal['schema'];
 
@@ -304,7 +309,7 @@ class XMongoModel {
 
     /**
      * Get id of current model instance
-     * @returns {*|null}
+     * @returns {*|ObjectID|null}
      */
     id(): any | ObjectID | null {
         return (this.data && this.data['_id']) || null
@@ -365,9 +370,9 @@ class XMongoModel {
      * @param options
      * @return {Promise<UpdateWriteOpResult>}
      */
-    update(set: StringToAnyObject, options: UpdateOneOptions) {
+    update(set: StringToAnyObject, options: UpdateOneOptions): Promise<UpdateWriteOpResult> {
         if (!this.id()) throw "UPDATE_ERROR: Model does not have an _id, so we assume it is not from the database.";
-        return this.set(set).save(options)
+        return <Promise<UpdateWriteOpResult>>this.set(set).save(options)
     };
 
     /**
@@ -511,7 +516,7 @@ class XMongoModel {
 
                 /**
                  * Schema Definition of current schema
-                 * @type {*|ModelDataType}
+                 * @type {*|XMongoDataType}
                  */
                 const schema = this.schema[schemaKey];
 
@@ -659,6 +664,11 @@ class XMongoModel {
         return <XMongoModel>model;
     };
 
+    /**
+     * Has One relationship
+     * @param relationship
+     * @param extend
+     */
     async hasOne(relationship: string, extend: StringToAnyObject = {}): Promise<StringToAnyObject | XMongoModel> {
         let config = (<typeof XMongoModel>this.constructor).relationships;
 
@@ -742,6 +752,11 @@ class XMongoModel {
         return this.data;
     }
 
+    /**
+     * Converts this.data to json using JSON.stringify()
+     * @param replacer
+     * @param space
+     */
     toJson(replacer = undefined, space = undefined): string {
         return JSON.stringify(this.data, replacer, space);
     };
@@ -910,7 +925,7 @@ class XMongoModel {
      * @param options
      * @return {void | * | Promise | undefined | IDBRequest<number>}
      */
-    static count(query: StringToAnyObject, options?: FindOneOptions) {
+    static count(query: StringToAnyObject, options?: FindOneOptions): Promise<number> {
         return this.raw.find(query, options).count()
     }
 

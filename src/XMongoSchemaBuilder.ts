@@ -1,4 +1,4 @@
-import ModelDataType from "./XMongoDataType";
+import XMongoDataType = require("./XMongoDataType");
 import {ObjectID} from "mongodb";
 import {StringToAnyObject} from "./CustomTypes";
 
@@ -12,23 +12,23 @@ const isDate = (v: any) => v instanceof Date;
 const isNumber = (v: any) => !isBoolean(v) && !isNaN(v);
 
 type XMongoSchemaBuilder = {
-    ObjectId: () => ModelDataType,
-    Array: { (def?: () => Array<any>): ModelDataType },
-    Object: { (def?: () => StringToAnyObject): ModelDataType },
-    String: { (def?: string): ModelDataType },
-    Boolean: { (def?: boolean): ModelDataType },
-    Date: { (def?: () => Date): ModelDataType },
-    Number: { (def?: 0): ModelDataType },
-    Types: { (types: ModelDataType[]): ModelDataType },
+    ObjectId: () => XMongoDataType,
+    Array: { (def?: () => Array<any>): XMongoDataType },
+    Object: { (def?: () => StringToAnyObject): XMongoDataType },
+    String: { (def?: string): XMongoDataType },
+    Boolean: { (def?: boolean): XMongoDataType },
+    Date: { (def?: () => Date): XMongoDataType },
+    Number: { (def?: 0): XMongoDataType },
+    Types: { (types: XMongoDataType[]): XMongoDataType },
 };
 
 const is: XMongoSchemaBuilder = {
     /**
      * ObjectId
-     * @return {ModelDataType}
+     * @return {XMongoDataType}
      */
-    ObjectId: () => {
-        return new ModelDataType('ObjectId', undefined)
+    ObjectId: (): XMongoDataType => {
+        return new XMongoDataType('ObjectId', undefined)
             .validator({
                 or: [isString, isObjectId]
             })
@@ -51,10 +51,10 @@ const is: XMongoSchemaBuilder = {
     /**
      * Array
      * @param def
-     * @return {ModelDataType}
+     * @return {XMongoDataType}
      */
-    Array: (def = () => []) => {
-        return new ModelDataType('Array', def)
+    Array: (def = () => []): XMongoDataType => {
+        return new XMongoDataType('Array', def)
             .validator(isArray)
             .validatorError((key) => `(${key}) is not an Array`);
     },
@@ -63,10 +63,10 @@ const is: XMongoSchemaBuilder = {
     /**
      * Object
      * @param def
-     * @return {ModelDataType}
+     * @return {XMongoDataType}
      */
-    Object: (def = () => ({})) => {
-        return new ModelDataType('Object', def)
+    Object: (def = () => ({})): XMongoDataType => {
+        return new XMongoDataType('Object', def)
             .validator(isObject)
             .validatorError((key) => `(${key}) is not an Object`);
 
@@ -75,10 +75,10 @@ const is: XMongoSchemaBuilder = {
     /**
      * String
      * @param def
-     * @return {ModelDataType}
+     * @return {XMongoDataType}
      */
-    String: (def = undefined) => {
-        return new ModelDataType('String', def)
+    String: (def = undefined): XMongoDataType => {
+        return new XMongoDataType('String', def)
             .validator(isString)
             .validatorError((key) => `(${key}) is not a String`);
     },
@@ -86,10 +86,10 @@ const is: XMongoSchemaBuilder = {
     /**
      * Boolean
      * @param def
-     * @return {ModelDataType}
+     * @return {XMongoDataType}
      */
-    Boolean: (def = false) => {
-        return new ModelDataType('Boolean', def)
+    Boolean: (def = false): XMongoDataType => {
+        return new XMongoDataType('Boolean', def)
             .validator(isBoolean)
             .validatorError((key) => `(${key}) is not a Boolean`);
 
@@ -98,20 +98,20 @@ const is: XMongoSchemaBuilder = {
     /**
      * Date
      * @param def
-     * @return {ModelDataType}
+     * @return {XMongoDataType}
      */
-    Date: (def = () => new Date()) => {
-        return new ModelDataType('Date', def)
+    Date: (def = () => new Date()): XMongoDataType => {
+        return new XMongoDataType('Date', def)
             .validator(isDate)
             .validatorError((key) => `(${key}) is not a Date`);
     },
     /**
      * Number
      * @param def
-     * @return {ModelDataType}
+     * @return {XMongoDataType}
      */
-    Number: (def = 0) => {
-        return new ModelDataType('Number', def)
+    Number: (def = 0): XMongoDataType => {
+        return new XMongoDataType('Number', def)
             .validator(isNumber)
             .cast((v) => Number(v))
             .validatorError((key) => `(${key}) is not a Number`);
@@ -119,11 +119,11 @@ const is: XMongoSchemaBuilder = {
 
     /**
      * Is Multiple types
-     * @param {ModelDataType[]} types
-     * @return {ModelDataType}
+     * @param {XMongoDataType[]} types
+     * @return {XMongoDataType}
      */
-    Types: (types: ModelDataType[]) => {
-        const multipleType = new ModelDataType('MultipleDataTypes');
+    Types: (types: XMongoDataType[]): XMongoDataType => {
+        const multipleType = new XMongoDataType('MultipleDataTypes');
         const mainSchema = types[0].schema;
 
         // Set default function to first type default
