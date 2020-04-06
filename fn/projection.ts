@@ -4,16 +4,18 @@
  * @param returnObject
  * @returns {*}
  */
-function omitKeys(keys, returnObject = false) {
+export const omitKeys = (keys: string | string[], returnObject = false): object => {
     // Turn keys to array if not array.
     if (!Array.isArray(keys)) keys = [keys];
 
-    const data = {};
+    const data: any = {};
+
     for (const key of keys) {
         data[key] = 0;
     }
+
     return returnObject ? {projection: data} : data;
-}
+};
 
 
 /**
@@ -22,31 +24,29 @@ function omitKeys(keys, returnObject = false) {
  * @param returnObject
  * @returns {*}
  */
-function pickKeys(keys, returnObject = false) {
+export const pickKeys = (keys: string | string[], returnObject = false): object => {
     // Turn keys to array if not array.
     if (!Array.isArray(keys)) keys = [keys];
 
-    const data = {};
+    const data: any = {};
+
     for (const key of keys) {
         data[key] = 1;
     }
+
     return returnObject ? {projection: data} : data;
-}
-
-
-module.exports.omitKeys = omitKeys;
-module.exports.pickKeys = pickKeys;
+};
 
 /**
  * Omits _id and keys passed.
  * @param omit
  * @example
- * omitIdAndPick(['name', 'email'])
+ * omitIdAnd(['name', 'email'])
  * // will return
- * {_id: 0, name: 1, email}
+ * {_id: 0, name: 0, email: 0}
  * @returns {{}}
  */
-module.exports.omitIdAnd = (omit = []) => {
+export const omitIdAnd = (omit: string | string[] = []): object => {
     return {_id: 0, ...omitKeys(omit)};
 };
 
@@ -57,9 +57,9 @@ module.exports.omitIdAnd = (omit = []) => {
  * @example
  * omitIdAndPick(['name', 'email'])
  * // will return
- * {_id: 0, name: 1, email}
+ * {_id: 0, name: 1, email: 1}
  * @returns {{}}
  */
-module.exports.omitIdAndPick = (pick = []) => {
+export const omitIdAndPick = (pick: string | string[] = []): object => {
     return {_id: 0, ...pickKeys(pick)};
 };

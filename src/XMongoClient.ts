@@ -1,4 +1,5 @@
-const XMongoModel = require('./XMongoModel');
+import XMongoModel = require('./XMongoModel');
+import {Collection, Db, MongoClient} from "mongodb";
 
 
 /**
@@ -14,7 +15,16 @@ const STATES = {
 };
 
 class XMongoClient {
-    constructor(client) {
+    // Mongo Client
+    client: MongoClient;
+    // Mongo Database
+    db: Db | undefined;
+    // Current State
+    state: number = STATES.null;
+    // Current Connection
+    _connection: Promise<MongoClient> | undefined;
+
+    constructor(client: MongoClient) {
         // Save instance client.
         this.client = client
     }
@@ -23,12 +33,12 @@ class XMongoClient {
      * Connect to database
      * @return {Promise<XMongoClient>}
      */
-    connect() {
+    connect(): Promise<XMongoClient> {
         this.state = STATES.connecting;
         this._connection = this.client.connect();
 
         return new Promise((resolve, reject) => {
-            this._connection.then(() => {
+            (<Promise<MongoClient>>this._connection).then(() => {
 
                 this.state = STATES.connected;
                 return resolve(this);
@@ -46,7 +56,7 @@ class XMongoClient {
      * Use Database
      * @param name
      */
-    useDb(name) {
+    useDb(name: string) {
         this.db = this.client.db(name);
         return this;
     }
@@ -57,7 +67,7 @@ class XMongoClient {
      */
     connection() {
         if (this.state === STATES.null) {
-            throw Error`No connection found yet.`
+            throw new Error(`No connection found yet.`)
         } else if (this.state === STATES.connecting) {
             return Promise.resolve(this._connection);
         }
@@ -68,8 +78,8 @@ class XMongoClient {
      * @param collection
      * @return {typeof XMongoModel}
      */
-    model(collection) {
-        const connection = this.db.collection(collection);
+    model(collection: string) {
+        const connection: Collection = (<Db>this.db).collection(collection);
 
         /**
          * Extend XMongoModel
@@ -80,23 +90,5 @@ class XMongoClient {
     }
 }
 
-/**
- * Mongo Client.
- * @type {MongoClient|null}
- */
-XMongoClient.prototype.client = null;
 
-/**
- * Mongo Database.
- * @type {Db|null}
- */
-XMongoClient.prototype.db = null;
-
-/**
- * Instance Connection State.
- * @type {number}
- */
-XMongoClient.prototype.state = STATES.null;
-
-
-module.exports = XMongoClient;
+export = XMongoClient;

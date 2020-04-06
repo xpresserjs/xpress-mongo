@@ -2,7 +2,8 @@
   "name": "xpress-mongo",
   "version": "0.0.18",
   "description": "Light Weight ODM for mongoDb",
-  "main": "index.js",
+  "main": "js/index.js",
+  "types": "types/index.d.ts",
   "directories": {
     "test": "tests"
   },
@@ -24,10 +25,15 @@
   "homepage": "https://github.com/xpresserjs/xpress-mongo#readme",
   "dependencies": {
     "deep-object-diff": "^1.1.0",
-    "mongodb": "^3.4.1",
-    "object-collection": "^1.0.21"
+    "mongodb": "^3.5.5",
+    "object-collection": "^1.0.24",
+    "typescript": "^3.8.3"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.149",
+    "@types/lodash-es": "^4.17.3",
+    "@types/mongodb": "^3.5.4",
+    "@types/node": "^13.11.0",
     "chance": "^1.1.4"
   }
 }

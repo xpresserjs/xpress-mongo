@@ -1,3 +1,5 @@
+import {FunctionReturnsBoolean, SchemaPropertiesType, ValidatorType} from "../src/CustomTypes";
+
 /**
  * Get Default value.
  *
@@ -9,7 +11,7 @@
  * @returns {*}
  * @param data
  */
-function defaultValue(data) {
+export function defaultValue(data: SchemaPropertiesType): any {
     // Return undefined if no default property in data.
     if (!data || (data && !data.hasOwnProperty('default'))) return undefined;
 
@@ -25,15 +27,15 @@ function defaultValue(data) {
  * @description
  * Run validators and stop if any is true
  * @param {*} value
- * @param {[]} validators
+ * @param {ValidatorType[]} validators
  * @return {boolean}
  */
-function runOrValidation(value, validators = []) {
+export function runOrValidation(value: any, validators: ValidatorType[] | FunctionReturnsBoolean[]): boolean {
     for (const validator of validators) {
         if (typeof validator === 'function' && validator(value) === true) {
             return true
         } else if (typeof validator === 'object' && validator.hasOwnProperty('or')) {
-            if (runOrValidation(value, validator['or']) === true) {
+            if (runOrValidation(value, <FunctionReturnsBoolean[]>validator['or'])) {
                 return true;
             }
         }
@@ -50,17 +52,10 @@ function runOrValidation(value, validators = []) {
  * @param {[]} validators
  * @return {boolean}
  */
-function runAndValidation(value, validators = []) {
+export function runAndValidation(value: any, validators: ValidatorType[] | FunctionReturnsBoolean[]): boolean {
     for (const validator of validators) {
-        if (!validator(value)) return false
+        if (typeof validator === 'function' && validator(value) === true) return false
     }
 
     return true;
 }
-
-
-module.exports = {
-    defaultValue,
-    runOrValidation,
-    runAndValidation
-};
