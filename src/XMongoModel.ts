@@ -44,7 +44,7 @@ class XMongoModel {
      * Model Data
      * @type {ObjectCollection}
      */
-    public $data: ObjectCollection = new ObjectCollection;
+    public $data: ObjectCollection | undefined;
 
     /**
      * Model Original Data
@@ -632,10 +632,10 @@ class XMongoModel {
                 enumerable: false
             });
 
-            return this.$data;
+            return <ObjectCollection>this.$data;
         }
 
-        return this.$data;
+        return <ObjectCollection>this.$data;
     };
 
     /**

@@ -18,7 +18,7 @@ declare class XMongoModel {
      * Model Data
      * @type {ObjectCollection}
      */
-    $data: ObjectCollection;
+    $data: ObjectCollection | undefined;
     /**
      * Model Original Data
      * @type {*}

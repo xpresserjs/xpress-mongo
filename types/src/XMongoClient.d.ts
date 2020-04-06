@@ -29,12 +29,9 @@ declare class XMongoClient {
     model(collection: string): {
         new (): {
             data: import("./CustomTypes").StringToAnyObject;
-            $data: import("object-collection");
+            $data: import("object-collection") | undefined;
             original: import("./CustomTypes").StringToAnyObject;
-            schema: import("./CustomTypes").StringToAnyObject; /**
-             * Use Database
-             * @param name
-             */
+            schema: import("./CustomTypes").StringToAnyObject;
             schemaStore: import("./CustomTypes").StringToAnyObject;
             loadedRelationships: string[];
             emptyData(replaceWith?: import("./CustomTypes").StringToAnyObject | undefined): any;
