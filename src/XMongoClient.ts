@@ -56,7 +56,7 @@ class XMongoClient {
      * Use Database
      * @param name
      */
-    useDb(name: string) {
+    useDb(name: string): this {
         this.db = this.client.db(name);
         return this;
     }
@@ -65,7 +65,7 @@ class XMongoClient {
      * Connection not found!
      * @return {Promise<MongoClient>}
      */
-    connection() {
+    connection(): Promise<MongoClient | undefined> | void {
         if (this.state === STATES.null) {
             throw new Error(`No connection found yet.`)
         } else if (this.state === STATES.connecting) {
@@ -74,17 +74,25 @@ class XMongoClient {
     }
 
     /**
+     * Get collection from current connection.
+     * @param name
+     */
+    collection(name: string): Collection {
+        return (<Db>this.db).collection(name)
+    }
+
+    /**
      * Creates a model using current connection
      * @param collection
      * @return {typeof XMongoModel}
      */
-    model(collection: string) {
-        const connection: Collection = (<Db>this.db).collection(collection);
+    model(collection: string): typeof XMongoModel {
+        const connection: Collection = this.collection(collection);
 
         /**
          * Extend XMongoModel
          */
-        return class extends XMongoModel {
+        return <typeof XMongoModel><unknown>class extends XMongoModel {
             static raw = connection;
         }
     }

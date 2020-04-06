@@ -1,5 +1,5 @@
+import ObjectCollection = require('object-collection');
 import { ObjectID, Collection, UpdateWriteOpResult, InsertOneWriteOpResult, DeleteWriteOpResultObject, Cursor, FindOneOptions, UpdateOneOptions, CollectionInsertOneOptions, CollectionAggregationOptions } from 'mongodb';
-import ObjectCollection from 'object-collection';
 import { XMongoSchemaBuilder } from './XMongoSchemaBuilder';
 import { PaginationData, StringToAnyObject } from "./CustomTypes";
 declare type FunctionWithRawArgument = {

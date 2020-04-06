@@ -1,7 +1,9 @@
+import ObjectCollection = require('object-collection');
+import ModelDataType = require('./XMongoDataType');
+
 import {
     ObjectID,
     Collection,
-    MongoCallback,
     UpdateWriteOpResult,
     InsertOneWriteOpResult,
     DeleteWriteOpResultObject,
@@ -12,18 +14,14 @@ import {
     CollectionAggregationOptions
 } from 'mongodb';
 
-import ObjectCollection from  'object-collection';
-
 import {is, XMongoSchemaBuilder} from './XMongoSchemaBuilder';
 import {diff} from 'deep-object-diff';
-import {
-    defaultValue,
-    runOrValidation,
-    runAndValidation
-} from '../fn/inbuilt';
+import {defaultValue, runOrValidation, runAndValidation} from '../fn/inbuilt';
 import {PaginationData, StringToAnyObject} from "./CustomTypes";
-import ModelDataType from "./XMongoDataType";
 
+/**
+ * Get Lodash
+ */
 const _ = ObjectCollection.getLodash();
 
 type FunctionWithRawArgument = { (raw: Collection): Cursor };
