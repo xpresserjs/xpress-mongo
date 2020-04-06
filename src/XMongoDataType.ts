@@ -25,12 +25,7 @@ class XMongoDataType {
         this.schema.required = required;
         return this;
     }
-
-    /**
-     * Set Type Validator
-     * @param {function|{or: Array}|{and: Array}} validator
-     * @return {ModelDataType}
-     */
+    
     validator(validator: ValidatorType) {
         this.schema.validator = validator;
         return this;
