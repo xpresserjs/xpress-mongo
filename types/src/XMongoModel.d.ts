@@ -1,9 +1,9 @@
 import ObjectCollection = require('object-collection');
-import { ObjectID, Collection, UpdateWriteOpResult, InsertOneWriteOpResult, DeleteWriteOpResultObject, Cursor, FindOneOptions, UpdateOneOptions, CollectionInsertOneOptions, CollectionAggregationOptions } from 'mongodb';
+import { ObjectID, Collection, UpdateWriteOpResult, InsertOneWriteOpResult, DeleteWriteOpResultObject, Cursor, FindOneOptions, UpdateOneOptions, CollectionInsertOneOptions, CollectionAggregationOptions, AggregationCursor } from 'mongodb';
 import { XMongoSchemaBuilder } from './XMongoSchemaBuilder';
 import { PaginationData, StringToAnyObject } from "./CustomTypes";
 declare type FunctionWithRawArgument = {
-    (raw: Collection): Cursor;
+    (raw: Collection): Cursor | AggregationCursor;
 };
 /**
  * @class
@@ -154,7 +154,7 @@ declare class XMongoModel {
      * @param options
      * @return {Promise<UpdateWriteOpResult>}
      */
-    update(set: StringToAnyObject, options: UpdateOneOptions): Promise<UpdateWriteOpResult>;
+    update(set: StringToAnyObject, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
     /**
      * Create Model if not id is missing or save document if id is found.
      * @param options
@@ -196,7 +196,7 @@ declare class XMongoModel {
      * @param relationship
      * @param extend
      */
-    hasOne(relationship: string, extend?: StringToAnyObject): Promise<StringToAnyObject | XMongoModel>;
+    hasOne(relationship: string, extend?: StringToAnyObject): Promise<any | XMongoModel>;
     /**
      * @private
      * @return {*}

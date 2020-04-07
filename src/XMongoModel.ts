@@ -11,7 +11,7 @@ import {
     FindOneOptions,
     UpdateOneOptions,
     CollectionInsertOneOptions,
-    CollectionAggregationOptions
+    CollectionAggregationOptions, AggregationCursor
 } from 'mongodb';
 
 import {is, XMongoSchemaBuilder} from './XMongoSchemaBuilder';
@@ -24,7 +24,7 @@ import {PaginationData, StringToAnyObject} from "./CustomTypes";
  */
 const _ = ObjectCollection.getLodash();
 
-type FunctionWithRawArgument = { (raw: Collection): Cursor };
+type FunctionWithRawArgument = { (raw: Collection): Cursor | AggregationCursor };
 
 
 /**
@@ -370,7 +370,7 @@ class XMongoModel {
      * @param options
      * @return {Promise<UpdateWriteOpResult>}
      */
-    update(set: StringToAnyObject, options: UpdateOneOptions): Promise<UpdateWriteOpResult> {
+    update(set: StringToAnyObject, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
         if (!this.id()) throw "UPDATE_ERROR: Model does not have an _id, so we assume it is not from the database.";
         return <Promise<UpdateWriteOpResult>>this.set(set).save(options)
     };
@@ -669,7 +669,7 @@ class XMongoModel {
      * @param relationship
      * @param extend
      */
-    async hasOne(relationship: string, extend: StringToAnyObject = {}): Promise<StringToAnyObject | XMongoModel> {
+    async hasOne(relationship: string, extend: StringToAnyObject = {}): Promise<any | XMongoModel> {
         let config = (<typeof XMongoModel>this.constructor).relationships;
 
         if (config && typeof config === "object" && config.hasOwnProperty(relationship)) {
