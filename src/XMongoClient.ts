@@ -93,7 +93,7 @@ class XMongoClient {
          * Extend XMongoModel
          */
         return <typeof XMongoModel><unknown>class extends XMongoModel {
-            static raw = connection;
+            static thisCollection = () => connection;
         }
     }
 }

@@ -31,7 +31,6 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.149",
-    "@types/lodash-es": "^4.17.3",
     "@types/mongodb": "^3.5.4",
     "@types/node": "^13.11.0",
     "chance": "^1.1.4"

@@ -49,6 +49,7 @@ declare class XMongoModel {
     /**
      * Direct mongodb access
      * @type {Collection|null}
+     * @deprecated - use thisCollection()
      */
     static raw: Collection;
     /**
@@ -65,6 +66,7 @@ declare class XMongoModel {
      * The ModelAction class uses this function to access this models data.
      */
     constructor();
+    static thisCollection(): Collection;
     /**
      * Empties data in current model.
      * @param replaceWith
@@ -241,7 +243,7 @@ declare class XMongoModel {
      *
      * WHICH IS ===
      *
-     *      Model.raw.find().limit(10).toArray((err, lists) => {
+     *      Model.thisCollection().find().limit(10).toArray((err, lists) => {
      *          Model.fromArray(lists);
      *      })
      *
@@ -253,7 +255,7 @@ declare class XMongoModel {
      *
      * @return {Promise<this[]>|this[]} returns - Array of model instances
      */
-    static fromArray(query: FunctionWithRawArgument | StringToAnyObject[], interceptor?: boolean | {
+    static fromArray(query: FunctionWithRawArgument | any[], interceptor?: boolean | {
         (lists: Array<any>): any;
     }): XMongoModel[] | Promise<any[]>;
     /**

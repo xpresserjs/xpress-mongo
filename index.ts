@@ -1,4 +1,4 @@
-import {MongoClient} from "mongodb";
+import {MongoClient, MongoClientOptions} from "mongodb";
 import {is, XMongoSchemaBuilder} from './src/XMongoSchemaBuilder';
 import * as Projectors from './fn/projection';
 import XMongoDataType = require('./src/XMongoDataType');
@@ -6,14 +6,13 @@ import XMongoClient = require('./src/XMongoClient');
 import XMongoModel = require('./src/XMongoModel');
 
 /**
- *
- * @param url
- * @param options
- * @param errorCallback
+ * Get connected to a client
+ * @param {string|MongoClient} url
+ * @param {MongoClientOptions} options
  * @return {XMongoClient}
  * @constructor
  */
-function Client(url: string | MongoClient, options = undefined, errorCallback = undefined): XMongoClient {
+function Client(url: string | MongoClient, options: MongoClientOptions = {}): XMongoClient {
     /**
      * If first argument i.e url is an instance of MongoClient
      * We use it instead

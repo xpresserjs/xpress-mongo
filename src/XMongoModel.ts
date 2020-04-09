@@ -79,6 +79,7 @@ class XMongoModel {
     /**
      * Direct mongodb access
      * @type {Collection|null}
+     * @deprecated - use thisCollection()
      */
     static raw: Collection;
 
@@ -119,6 +120,9 @@ class XMongoModel {
         })
     }
 
+    // @ts-ignore
+    static thisCollection(): Collection { return null };
+
     /**
      * Empties data in current model.
      * @param replaceWith
@@ -143,7 +147,7 @@ class XMongoModel {
      */
     get(key: string, $default?: any): any {
         return _.get(this.data, key, $default);
-    };
+    }
 
     /**
      * Set data in model
@@ -160,7 +164,7 @@ class XMongoModel {
             _.set(this.data, key, value)
         }
         return this;
-    };
+    }
 
 
     /**
@@ -173,7 +177,7 @@ class XMongoModel {
         const record = (new this()).set(data);
         if (save) await record.save();
         return record;
-    };
+    }
 
     /**
      * Check if id is a valid id
@@ -182,7 +186,7 @@ class XMongoModel {
      */
     static isValidId(objectId: any): boolean {
         return ObjectID.isValid(objectId)
-    };
+    }
 
 
     /**
@@ -201,7 +205,7 @@ class XMongoModel {
         });
 
         return this;
-    };
+    }
 
     /**
      * Set multiple schemas and use them at anytime using `.setSchema`
@@ -213,7 +217,7 @@ class XMongoModel {
         // Save to schemaStore
         this.schemaStore[name] = schema;
         return this;
-    };
+    }
 
     /**
      * Set Model Schema
@@ -227,7 +231,7 @@ class XMongoModel {
     setSchema(schema: any): this {
         console.log(`.setSchema is deprecated use .useSchema`);
         return this.useSchema(schema);
-    };
+    }
 
     /**
      * Set Model Schema
@@ -305,7 +309,7 @@ class XMongoModel {
         this.data = newData;
 
         return this;
-    };
+    }
 
     /**
      * Get id of current model instance
@@ -373,7 +377,7 @@ class XMongoModel {
     update(set: StringToAnyObject, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
         if (!this.id()) throw "UPDATE_ERROR: Model does not have an _id, so we assume it is not from the database.";
         return <Promise<UpdateWriteOpResult>>this.set(set).save(options)
-    };
+    }
 
     /**
      * Create Model if not id is missing or save document if id is found.
@@ -396,7 +400,7 @@ class XMongoModel {
                     return reject(e)
                 }
 
-                return (<typeof XMongoModel>this.constructor).raw.updateOne(
+                return (<typeof XMongoModel>this.constructor).thisCollection().updateOne(
                     {_id: this.id()},
                     {$set},
                     <UpdateOneOptions>options,
@@ -409,7 +413,7 @@ class XMongoModel {
                     return reject(e)
                 }
 
-                return (<typeof XMongoModel>this.constructor).raw.insertOne(
+                return (<typeof XMongoModel>this.constructor).thisCollection().insertOne(
                     this.data,
                     <CollectionInsertOneOptions>options,
                     (error, res) => {
@@ -453,7 +457,7 @@ class XMongoModel {
 
         // Run MongoDb query and return response in Promise
         return new Promise((resolve, reject) => {
-            return (<typeof XMongoModel>this.constructor).raw.updateOne(
+            return (<typeof XMongoModel>this.constructor).thisCollection().updateOne(
                 {_id: this.id()},
                 {$unset},
                 options,
@@ -616,7 +620,7 @@ class XMongoModel {
 
         if (_id) {
             this.emptyData();
-            return (<typeof XMongoModel>this.constructor).raw.deleteOne({_id})
+            return (<typeof XMongoModel>this.constructor).thisCollection().deleteOne({_id})
         } else {
             throw "DELETE_ERROR: Model does not have an _id, so we assume it is not from the database.";
         }
@@ -639,7 +643,7 @@ class XMongoModel {
         }
 
         return <ObjectCollection>this.$data;
-    };
+    }
 
     /**
      * Turn data provided in query function to model instances.
@@ -662,7 +666,7 @@ class XMongoModel {
         }
 
         return <XMongoModel>model;
-    };
+    }
 
     /**
      * Has One relationship
@@ -723,7 +727,7 @@ class XMongoModel {
             if (Array.isArray(model) && typeof model[0] === "function")
                 model = model[0]();
 
-            let relatedData: StringToAnyObject | void = await (<typeof XMongoModel>model).raw.findOne(where, options);
+            let relatedData: StringToAnyObject | void = await (<typeof XMongoModel>model).thisCollection().findOne(where, options);
 
             if (cast && relatedData) relatedData = (<typeof XMongoModel>model).use(relatedData);
 
@@ -759,7 +763,7 @@ class XMongoModel {
      */
     toJson(replacer = undefined, space = undefined): string {
         return JSON.stringify(this.data, replacer, space);
-    };
+    }
 
     /**
      * Alias to mongo.ObjectID
@@ -793,7 +797,7 @@ class XMongoModel {
      * @return {Promise<XMongoModel[]>}
      */
     static find(query: StringToAnyObject, options: FindOneOptions = {}, raw = false): Promise<XMongoModel[]> | Cursor {
-        const result = this.raw.find(query, options);
+        const result = this.thisCollection().find(query, options);
         if (raw) return result;
 
         return new Promise((resolve, reject) => {
@@ -802,7 +806,7 @@ class XMongoModel {
                 return resolve(data);
             });
         });
-    };
+    }
 
     /**
      * Turn array provided to model instances.
@@ -820,7 +824,7 @@ class XMongoModel {
      *
      * WHICH IS ===
      *
-     *      Model.raw.find().limit(10).toArray((err, lists) => {
+     *      Model.thisCollection().find().limit(10).toArray((err, lists) => {
      *          Model.fromArray(lists);
      *      })
      *
@@ -832,10 +836,10 @@ class XMongoModel {
      *
      * @return {Promise<this[]>|this[]} returns - Array of model instances
      */
-    static fromArray(query: FunctionWithRawArgument | StringToAnyObject[], interceptor: boolean | { (lists: Array<any>): any } = false): XMongoModel[] | Promise<any[]> {
+    static fromArray(query: FunctionWithRawArgument | any[], interceptor: boolean | { (lists: Array<any>): any } = false): XMongoModel[] | Promise<any[]> {
         if (typeof query === "function") {
             return new Promise((resolve, reject) => {
-                return (<Cursor>query(this.raw)).toArray((error, lists) => {
+                return (<Cursor>query(this.thisCollection())).toArray((error, lists) => {
                     if (error) return reject(error);
 
                     /**
@@ -865,7 +869,7 @@ class XMongoModel {
         return new Promise((resolve, reject) => {
             if (typeof query !== "function") return reject(Error('.toArray expects a function as argument'));
 
-            (<Cursor>query(this.raw)).toArray((error, data) => {
+            (<Cursor>query(this.thisCollection())).toArray((error, data) => {
                 if (error) return reject(error);
                 return resolve(data);
             });
@@ -888,7 +892,7 @@ class XMongoModel {
         }
 
         return new Promise((resolve, reject) => {
-            return this.raw.findOne(query, <FindOneOptions>options, (error, data) => {
+            return this.thisCollection().findOne(query, <FindOneOptions>options, (error, data) => {
                 if (error) return reject(error);
                 // Return new instance of Model
                 if (!data) return resolve(null);
@@ -926,7 +930,7 @@ class XMongoModel {
      * @return {void | * | Promise | undefined | IDBRequest<number>}
      */
     static count(query: StringToAnyObject, options?: FindOneOptions): Promise<number> {
-        return this.raw.find(query, options).count()
+        return this.thisCollection().find(query, options).count()
     }
 
     /**
@@ -939,7 +943,7 @@ class XMongoModel {
         query = _.cloneDeep(query);
         query.push({$count: "count_aggregate"});
 
-        const data = await this.raw.aggregate(query, options).toArray();
+        const data = await this.thisCollection().aggregate(query, options).toArray();
 
         if (data.length) {
             return data[0]['count_aggregate']
@@ -963,7 +967,7 @@ class XMongoModel {
         const total = await this.count(query);
         const lastPage = Math.ceil(total / perPage);
         const skips = perPage * (page - 1);
-        const data = await this.raw.find(query, options).skip(skips).limit(perPage).toArray();
+        const data = await this.thisCollection().find(query, options).skip(skips).limit(perPage).toArray();
 
         return {
             total,
@@ -972,7 +976,7 @@ class XMongoModel {
             lastPage,
             data
         }
-    };
+    }
 
     /**
      * Paginate Aggregation.
@@ -995,7 +999,7 @@ class XMongoModel {
         query.push({$skip: skips});
         query.push({$limit: perPage});
 
-        const data = await this.raw.aggregate(query, options).toArray();
+        const data = await this.thisCollection().aggregate(query, options).toArray();
 
         return {
             total,
@@ -1004,7 +1008,7 @@ class XMongoModel {
             lastPage,
             data
         }
-    };
+    }
 }
 
 
