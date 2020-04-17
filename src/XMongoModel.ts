@@ -181,11 +181,26 @@ class XMongoModel {
 
     /**
      * Check if id is a valid id
-     * @param objectId
+     * @param id
      * @return {boolean}
      */
-    static isValidId(objectId: any): boolean {
-        return ObjectID.isValid(objectId)
+    static isValidId(id: any): boolean {
+        const isMongoID = ObjectID.isValid(id);
+
+        /**
+         * referring to this StackOverflow post
+         * https://stackoverflow.com/questions/13850819/can-i-determine-if-a-string-is-a-mongodb-objectid
+         *
+         * ObjectID.isValid returns true on any 12 length string
+         *
+         * So converting to objectID and checking if the string value matches the original value
+         * makes the check strict
+         */
+        if (isMongoID && typeof id === 'string') {
+            return (new ObjectID(id)).toString() === id;
+        }
+
+        return isMongoID;
     }
 
 

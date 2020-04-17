@@ -96,10 +96,10 @@ declare class XMongoModel {
     static new(data: StringToAnyObject, save?: boolean): Promise<XMongoModel>;
     /**
      * Check if id is a valid id
-     * @param objectId
+     * @param id
      * @return {boolean}
      */
-    static isValidId(objectId: any): boolean;
+    static isValidId(id: any): boolean;
     /**
      * Set Original result gotten from db
      * @param data
