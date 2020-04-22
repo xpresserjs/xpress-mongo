@@ -17,7 +17,7 @@ import {
 import {is, XMongoSchemaBuilder} from './XMongoSchemaBuilder';
 import {diff} from 'deep-object-diff';
 import {defaultValue, runOrValidation, runAndValidation} from '../fn/inbuilt';
-import {PaginationData, StringToAnyObject} from "./CustomTypes";
+import {PaginationData, SchemaPropertiesType, StringToAnyObject} from "./CustomTypes";
 
 /**
  * Get Lodash
@@ -48,7 +48,7 @@ class XMongoModel {
      * Model Original Data
      * @type {*}
      */
-    public original: StringToAnyObject = {};
+    private original: StringToAnyObject = {};
 
     /**
      * Model Schema
@@ -74,7 +74,7 @@ class XMongoModel {
      * @private
      * @type {*[]}
      */
-    public loadedRelationships: string[] = [];
+    private loadedRelationships: string[] = [];
 
     /**
      * Direct mongodb access
@@ -107,6 +107,12 @@ class XMongoModel {
             configurable: true,
         });
 
+        Object.defineProperty(this, 'original', {
+            value: {},
+            writable: true,
+            enumerable: false
+        });
+
         Object.defineProperty(this, 'schemaStore', {
             value: {},
             writable: true,
@@ -121,7 +127,10 @@ class XMongoModel {
     }
 
     // @ts-ignore
-    static thisCollection(): Collection { return null };
+    static thisCollection(): Collection {
+        // @ts-ignore
+        return null;
+    };
 
     /**
      * Empties data in current model.
@@ -289,21 +298,24 @@ class XMongoModel {
         if (typeof schema === 'object') {
             for (const key in schema) {
                 if (schema.hasOwnProperty(key)) {
-                    let schemaVal: any = schema[key];
+                    let schemaVal: XMongoDataType = schema[key];
+                    this.schema[key] = schemaVal['schema'];
 
-                    if (schemaVal instanceof XMongoDataType) {
+                    // Attach default values
+                    const value = defaultValue(this.schema[key]);
 
-                        this.schema[key] = schemaVal['schema'];
-
-                    }
-
-                    const dataVal = this.data[key];
-                    const dataValIsNotBoolean = typeof dataVal !== "boolean";
-
-                    if (dataValIsNotBoolean && !dataVal) {
-                        newData[key] = defaultValue(this.schema[key]);
+                    /**
+                     * If default value is undefined and schema is required set key to undefined.
+                     * else set key to value.
+                     *
+                     * This removes not required keys with undefined values.
+                     */
+                    if (value === undefined) {
+                        if (schemaVal.schema.required) {
+                            newData[key] = value
+                        }
                     } else {
-                        newData[key] = dataVal
+                        newData[key] = value
                     }
                 }
             }
@@ -604,8 +616,12 @@ class XMongoModel {
                     validated[schemaKey] = dataValue;
                 }
             } else {
-                if (!customData)
-                    throw new TypeError(`${schemaKey} is missing in data but defined in schema`)
+                if (!customData) {
+                    const schema: SchemaPropertiesType = this.schema[schemaKey];
+
+                    if (schema && schema.required)
+                        throw new TypeError(`${schemaKey} is missing in data but defined in schema`)
+                }
             }
         }
 

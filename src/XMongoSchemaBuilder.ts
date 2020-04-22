@@ -92,7 +92,6 @@ const is: XMongoSchemaBuilder = {
         return new XMongoDataType('Boolean', def)
             .validator(isBoolean)
             .validatorError((key) => `(${key}) is not a Boolean`);
-
     },
 
     /**

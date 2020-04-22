@@ -23,7 +23,7 @@ declare class XMongoModel {
      * Model Original Data
      * @type {*}
      */
-    original: StringToAnyObject;
+    private original;
     /**
      * Model Schema
      * @private
@@ -45,7 +45,7 @@ declare class XMongoModel {
      * @private
      * @type {*[]}
      */
-    loadedRelationships: string[];
+    private loadedRelationships;
     /**
      * Direct mongodb access
      * @type {Collection|null}
