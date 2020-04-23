@@ -11,7 +11,7 @@ import {
     FindOneOptions,
     UpdateOneOptions,
     CollectionInsertOneOptions,
-    CollectionAggregationOptions, AggregationCursor
+    CollectionAggregationOptions, AggregationCursor, UpdateQuery
 } from 'mongodb';
 
 import {is, XMongoSchemaBuilder} from './XMongoSchemaBuilder';
@@ -407,6 +407,23 @@ class XMongoModel {
     }
 
     /**
+     * Update model using raw updateQuery
+     * @param update
+     * @param options
+     * @return {Promise<UpdateWriteOpResult>}
+     */
+    updateRaw(update: UpdateQuery<any> | Partial<any>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
+        if (!this.id()) throw "UPDATE_RAW_ERROR: Model does not have an _id, so we assume it is not from the database.";
+        return new Promise((resolve, reject) => {
+            return (<typeof XMongoModel>this.constructor).thisCollection().updateOne(
+                {_id: this.id()},
+                update,
+                <UpdateOneOptions>options,
+                (error, res) => error ? reject(error) : resolve(res.connection))
+        });
+    }
+
+    /**
      * Create Model if not id is missing or save document if id is found.
      * @param options
      * @return {Promise<UpdateWriteOpResult | InsertOneWriteOpResult<*>>}
@@ -679,7 +696,6 @@ class XMongoModel {
     /**
      * Turn data provided in query function to model instances.
      * @param {{}} data
-     * @return {XMongoModel}
      */
     static use(data: StringToAnyObject): XMongoModel {
         const model: typeof XMongoModel | StringToAnyObject = new this();
@@ -913,7 +929,6 @@ class XMongoModel {
      * @param query
      * @param options
      * @param raw
-     * @return {Promise<XMongoModel>}
      */
     static findOne(query: StringToAnyObject, options: FindOneOptions | boolean = {}, raw = false): Promise<XMongoModel | null> {
 

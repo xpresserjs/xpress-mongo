@@ -1,5 +1,5 @@
 import ObjectCollection = require('object-collection');
-import { ObjectID, Collection, UpdateWriteOpResult, InsertOneWriteOpResult, DeleteWriteOpResultObject, Cursor, FindOneOptions, UpdateOneOptions, CollectionInsertOneOptions, CollectionAggregationOptions, AggregationCursor } from 'mongodb';
+import { ObjectID, Collection, UpdateWriteOpResult, InsertOneWriteOpResult, DeleteWriteOpResultObject, Cursor, FindOneOptions, UpdateOneOptions, CollectionInsertOneOptions, CollectionAggregationOptions, AggregationCursor, UpdateQuery } from 'mongodb';
 import { XMongoSchemaBuilder } from './XMongoSchemaBuilder';
 import { PaginationData, StringToAnyObject } from "./CustomTypes";
 declare type FunctionWithRawArgument = {
@@ -158,6 +158,13 @@ declare class XMongoModel {
      */
     update(set: StringToAnyObject, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
     /**
+     * Update model using raw updateQuery
+     * @param update
+     * @param options
+     * @return {Promise<UpdateWriteOpResult>}
+     */
+    updateRaw(update: UpdateQuery<any> | Partial<any>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
+    /**
      * Create Model if not id is missing or save document if id is found.
      * @param options
      * @return {Promise<UpdateWriteOpResult | InsertOneWriteOpResult<*>>}
@@ -190,7 +197,6 @@ declare class XMongoModel {
     /**
      * Turn data provided in query function to model instances.
      * @param {{}} data
-     * @return {XMongoModel}
      */
     static use(data: StringToAnyObject): XMongoModel;
     /**
@@ -269,7 +275,6 @@ declare class XMongoModel {
      * @param query
      * @param options
      * @param raw
-     * @return {Promise<XMongoModel>}
      */
     static findOne(query: StringToAnyObject, options?: FindOneOptions | boolean, raw?: boolean): Promise<XMongoModel | null>;
     /**
