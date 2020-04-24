@@ -930,7 +930,7 @@ class XMongoModel {
      * @param options
      * @param raw
      */
-    static findOne(query: StringToAnyObject, options: FindOneOptions | boolean = {}, raw = false): Promise<XMongoModel | null> {
+    static findOne<T extends XMongoModel>(query: StringToAnyObject, options: FindOneOptions | boolean = {}, raw = false): Promise<T | null> {
 
         if (typeof options === "boolean") {
             raw = options;
@@ -944,7 +944,7 @@ class XMongoModel {
                 if (!data) return resolve(null);
                 if (raw) return resolve(data);
 
-                return resolve(this.use(data));
+                return resolve(this.use(data) as T);
             });
         });
     }

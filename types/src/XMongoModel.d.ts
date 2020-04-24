@@ -276,7 +276,7 @@ declare class XMongoModel {
      * @param options
      * @param raw
      */
-    static findOne(query: StringToAnyObject, options?: FindOneOptions | boolean, raw?: boolean): Promise<XMongoModel | null>;
+    static findOne<T extends XMongoModel>(query: StringToAnyObject, options?: FindOneOptions | boolean, raw?: boolean): Promise<T | null>;
     /**
      * Fetches the first document that matches id provided.
      * @param _id
