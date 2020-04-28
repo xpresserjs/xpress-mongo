@@ -1,6 +1,6 @@
 import {MongoClient, MongoClientOptions} from "mongodb";
 import {is, XMongoSchemaBuilder} from './src/XMongoSchemaBuilder';
-import * as Projectors from './fn/projection';
+import {omitIdAndPick, omitIdAnd, omitKeys, pickKeys} from './fn/projection';
 import XMongoDataType = require('./src/XMongoDataType');
 import XMongoClient = require('./src/XMongoClient');
 import XMongoModel = require('./src/XMongoModel');
@@ -26,10 +26,20 @@ function Client(url: string | MongoClient, options: MongoClientOptions = {}): XM
 }
 
 export {
+    // Export is schemaBuilder
     is,
+
+    // Export Client
     Client,
-    Projectors,
+
+    // Export Model Class and Helpers
     XMongoModel,
     XMongoDataType,
-    XMongoSchemaBuilder
+    XMongoSchemaBuilder,
+
+    // Export Projectors for quicker requirement
+    omitKeys,
+    pickKeys,
+    omitIdAnd,
+    omitIdAndPick,
 };

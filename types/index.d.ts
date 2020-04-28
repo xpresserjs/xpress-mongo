@@ -1,6 +1,6 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
 import { is, XMongoSchemaBuilder } from './src/XMongoSchemaBuilder';
-import * as Projectors from './fn/projection';
+import { omitIdAndPick, omitIdAnd, omitKeys, pickKeys } from './fn/projection';
 import XMongoDataType = require('./src/XMongoDataType');
 import XMongoClient = require('./src/XMongoClient');
 import XMongoModel = require('./src/XMongoModel');
@@ -12,4 +12,4 @@ import XMongoModel = require('./src/XMongoModel');
  * @constructor
  */
 declare function Client(url: string | MongoClient, options?: MongoClientOptions): XMongoClient;
-export { is, Client, Projectors, XMongoModel, XMongoDataType, XMongoSchemaBuilder };
+export { is, Client, XMongoModel, XMongoDataType, XMongoSchemaBuilder, omitKeys, pickKeys, omitIdAnd, omitIdAndPick, };
