@@ -93,7 +93,15 @@ declare class XMongoModel {
      * @param save - Save new date, default = true
      * @return {Promise<this|*>}
      */
-    static new(data: StringToAnyObject, save?: boolean): Promise<XMongoModel>;
+    static new<T extends XMongoModel>(data: StringToAnyObject, save?: boolean): Promise<T>;
+    /**
+     * Creates instance.
+     * @desc
+     * Just like .new but unlike .new it does not save the record to the database it to the database
+     * @param data - new record data.
+     * @return {Promise<this|*>}
+     */
+    static make<T extends XMongoModel>(data: StringToAnyObject): T;
     /**
      * Check if id is a valid id
      * @param id
@@ -195,7 +203,7 @@ declare class XMongoModel {
      */
     toCollection(): ObjectCollection;
     /**
-     * Turn data provided in query function to model instances.
+     * Use data provided to model instance.
      * @param {{}} data
      */
     static use(data: StringToAnyObject): XMongoModel;

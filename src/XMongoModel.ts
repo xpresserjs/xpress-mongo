@@ -182,10 +182,21 @@ class XMongoModel {
      * @param save - Save new date, default = true
      * @return {Promise<this|*>}
      */
-    static async new(data: StringToAnyObject, save = true): Promise<XMongoModel> {
-        const record = (new this()).set(data);
+    static async new<T extends XMongoModel>(data: StringToAnyObject, save = true): Promise<T> {
+        const record = this.make(data);
         if (save) await record.save();
-        return record;
+        return <T>record;
+    }
+
+    /**
+     * Creates instance.
+     * @desc
+     * Just like .new but unlike .new it does not save the record to the database it to the database
+     * @param data - new record data.
+     * @return {Promise<this|*>}
+     */
+    static make<T extends XMongoModel>(data: StringToAnyObject): T {
+        return <T>(new this()).set(data);
     }
 
     /**
@@ -694,7 +705,7 @@ class XMongoModel {
     }
 
     /**
-     * Turn data provided in query function to model instances.
+     * Use data provided to model instance.
      * @param {{}} data
      */
     static use(data: StringToAnyObject): XMongoModel {
