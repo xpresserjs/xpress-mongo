@@ -103,10 +103,10 @@ mongodb@^3.5.9:
   optionalDependencies:
     saslprep "^1.0.0"
 
-object-collection@^1.0.24:
-  version "1.0.24"
-  resolved "https://registry.yarnpkg.com/object-collection/-/object-collection-1.0.24.tgz#0d62132b63260742a934d70d1ed7254cb0d734c9"
-  integrity sha512-50HNfghw6L3qEKrkzW2IOVcp+MGxcxOSdogAJg4pkNS1n1aKKpBXlySCdwyNmJfn1bK/jyZw2FN2uAql0hZ9PA==
+object-collection@^1.0.25:
+  version "1.0.25"
+  resolved "https://registry.yarnpkg.com/object-collection/-/object-collection-1.0.25.tgz#e1759d4b230db3d5d9b445e4f02f5943cc46184c"
+  integrity sha512-pcyMwfZNxnQ6gPYvGRl7u6eyBqY6XsKh1c04jOc3WjSDyYkVIrV7d+s4J0qr+ylWSkjRngiYszzFEXBs11eA7A==
   dependencies:
     "@types/lodash" "^4.14.149"
     lodash "^4.17.15"
