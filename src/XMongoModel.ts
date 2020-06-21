@@ -691,7 +691,6 @@ class XMongoModel {
      */
     toCollection(): ObjectCollection {
         if (!this.hasOwnProperty('$data')) {
-
             Object.defineProperty(this, '$data', {
                 value: new ObjectCollection(this.data),
                 writable: true,
