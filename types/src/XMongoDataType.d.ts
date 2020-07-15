@@ -31,5 +31,9 @@ declare class XMongoDataType {
      * Set default value to undefined
      */
     isUndefined(): this;
+    /**
+     * Set required to false
+     */
+    isOptional(): this;
 }
 export = XMongoDataType;

@@ -88,6 +88,20 @@ declare class XMongoModel {
      */
     set(key: string | StringToAnyObject, value?: any): this;
     /**
+     * Push element to model
+     * @param key
+     * @param value
+     * @param strict
+     * @return {this}
+     */
+    pushToArray(key: string, value: any, strict?: boolean): this;
+    /**
+     * Find data in array
+     * @param key
+     * @param value
+     */
+    findInArray(key: string, value: any): any;
+    /**
      * Insert new record and return instance.
      * @param data - new record data.
      * @param save - Save new date, default = true

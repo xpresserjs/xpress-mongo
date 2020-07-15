@@ -177,6 +177,58 @@ class XMongoModel {
 
 
     /**
+     * Push element to model
+     * @param key
+     * @param value
+     * @param strict
+     * @return {this}
+     */
+    pushToArray(key: string, value: any, strict: boolean = false): this {
+        // Find current value of key
+        let data: any[] = this.get(key, undefined);
+
+        // if current value is undefined create new array
+        if (data === undefined) {
+            data = [];
+        }
+
+        // Else if not array we throw an error
+        else if (!Array.isArray(data)) {
+            throw Error(`PushTo: Current value of {${key}} is not an array.`);
+        }
+
+        // Else if strict and value already exists.
+        else if (strict && data.includes(value)) {
+            return this;
+        }
+
+        // push value to array
+        data.push(value);
+
+        // Set data to model
+        this.set(key, data);
+
+        // Return this.
+        return this;
+    }
+
+
+    /**
+     * Find data in array
+     * @param key
+     * @param value
+     */
+    findInArray(key: string, value: any): any {
+        // Get data value
+        const data = this.get(key, undefined);
+        // Return undefined of value is undefined
+        if (data === undefined) return data;
+        // Find in data
+        return _.find(data, value);
+    }
+
+
+    /**
      * Insert new record and return instance.
      * @param data - new record data.
      * @param save - Save new date, default = true

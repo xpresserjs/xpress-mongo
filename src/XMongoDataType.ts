@@ -67,6 +67,13 @@ class XMongoDataType {
     isUndefined() {
         return this.default(undefined);
     }
+
+    /**
+     * Set required to false
+     */
+    isOptional() {
+        return this.required(false);
+    }
 }
 
 export = XMongoDataType;
