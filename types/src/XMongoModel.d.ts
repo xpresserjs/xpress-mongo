@@ -254,7 +254,54 @@ declare class XMongoModel {
      * @param raw
      * @return {Promise<XMongoModel[]>}
      */
-    static find(query: StringToAnyObject, options?: FindOneOptions, raw?: boolean): Promise<XMongoModel[]> | Cursor;
+    static find(query?: StringToAnyObject, options?: FindOneOptions, raw?: boolean): Promise<XMongoModel[]> | Cursor;
+    /**
+     * Fetches the first document that matches the query
+     * @param query
+     * @param options
+     * @param raw
+     */
+    static findOne<T extends XMongoModel>(query?: StringToAnyObject, options?: FindOneOptions | boolean, raw?: boolean): Promise<T | null>;
+    /**
+     * Fetches the first document that matches id provided.
+     * @param _id
+     * @param options
+     * @param isTypeObjectId
+     * @return {Promise<XMongoModel>}
+     */
+    static findById(_id: any, options?: FindOneOptions, isTypeObjectId?: boolean): Promise<XMongoModel | null>;
+    /**
+     * Count All the documents that match query.
+     * @param query
+     * @param options
+     * @return {void | * | Promise | undefined | IDBRequest<number>}
+     */
+    static count(query?: StringToAnyObject, options?: FindOneOptions): Promise<number>;
+    /**
+     * Count Aggregations
+     * @param query
+     * @param options
+     * @returns {Promise<number|*>}
+     */
+    static countAggregate(query?: any[], options?: CollectionAggregationOptions): Promise<number>;
+    /**
+     * Paginate Find.
+     * @param query
+     * @param options
+     * @param page
+     * @param perPage
+     * @return {Promise<{total: *, perPage: number, lastPage: number, data: [], page: number}>}
+     */
+    static paginate(page?: number, perPage?: number, query?: {}, options?: FindOneOptions): Promise<PaginationData>;
+    /**
+     * Paginate Aggregation.
+     * @param {number} page
+     * @param {number} perPage
+     * @param {[]} query
+     * @param {*} options
+     * @returns {Promise<{total: (*|number), perPage: number, lastPage: number, data: *, page: number}>}
+     */
+    static paginateAggregate(page?: number, perPage?: number, query?: any[], options?: CollectionAggregationOptions): Promise<PaginationData>;
     /**
      * Turn array provided to model instances.
      *
@@ -292,52 +339,5 @@ declare class XMongoModel {
      * @returns {Promise<[]>}
      */
     static toArray(query: FunctionWithRawArgument): Promise<any[]>;
-    /**
-     * Fetches the first document that matches the query
-     * @param query
-     * @param options
-     * @param raw
-     */
-    static findOne<T extends XMongoModel>(query: StringToAnyObject, options?: FindOneOptions | boolean, raw?: boolean): Promise<T | null>;
-    /**
-     * Fetches the first document that matches id provided.
-     * @param _id
-     * @param options
-     * @param isTypeObjectId
-     * @return {Promise<XMongoModel>}
-     */
-    static findById(_id: any, options?: FindOneOptions, isTypeObjectId?: boolean): Promise<XMongoModel | null>;
-    /**
-     * Count All the documents that match query.
-     * @param query
-     * @param options
-     * @return {void | * | Promise | undefined | IDBRequest<number>}
-     */
-    static count(query: StringToAnyObject, options?: FindOneOptions): Promise<number>;
-    /**
-     * Count Aggregations
-     * @param query
-     * @param options
-     * @returns {Promise<number|*>}
-     */
-    static countAggregate(query: any[], options?: CollectionAggregationOptions): Promise<number>;
-    /**
-     * Paginate Find.
-     * @param query
-     * @param options
-     * @param page
-     * @param perPage
-     * @return {Promise<{total: *, perPage: number, lastPage: number, data: [], page: number}>}
-     */
-    static paginate(page?: number, perPage?: number, query?: {}, options?: FindOneOptions): Promise<PaginationData>;
-    /**
-     * Paginate Aggregation.
-     * @param {number} page
-     * @param {number} perPage
-     * @param {[]} query
-     * @param {*} options
-     * @returns {Promise<{total: (*|number), perPage: number, lastPage: number, data: *, page: number}>}
-     */
-    static paginateAggregate(page?: number, perPage?: number, query?: any[], options?: CollectionAggregationOptions): Promise<PaginationData>;
 }
 export = XMongoModel;
