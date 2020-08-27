@@ -905,7 +905,7 @@ class XMongoModel {
      * @param raw
      * @return {Promise<XMongoModel[]>}
      */
-    static find(query: StringToAnyObject, options: FindOneOptions = {}, raw = false): Promise<XMongoModel[]> | Cursor {
+    static find(query: StringToAnyObject = {}, options: FindOneOptions = {}, raw = false): Promise<XMongoModel[]> | Cursor {
         const result = this.thisCollection().find(query, options);
         if (raw) return result;
 
@@ -915,6 +915,138 @@ class XMongoModel {
                 return resolve(data);
             });
         });
+    }
+
+    /**
+     * Fetches the first document that matches the query
+     * @param query
+     * @param options
+     * @param raw
+     */
+    static findOne<T extends XMongoModel>(query: StringToAnyObject = {}, options: FindOneOptions | boolean = {}, raw = false): Promise<T | null> {
+
+        if (typeof options === "boolean") {
+            raw = options;
+            options = {};
+        }
+
+        return new Promise((resolve, reject) => {
+            return this.thisCollection().findOne(query, <FindOneOptions>options, (error, data) => {
+                if (error) return reject(error);
+                // Return new instance of Model
+                if (!data) return resolve(null);
+                if (raw) return resolve(data);
+
+                return resolve(this.use(data) as T);
+            });
+        });
+    }
+
+
+    /**
+     * Fetches the first document that matches id provided.
+     * @param _id
+     * @param options
+     * @param isTypeObjectId
+     * @return {Promise<XMongoModel>}
+     */
+    static findById(_id: any, options: FindOneOptions = {}, isTypeObjectId = true): Promise<XMongoModel | null> {
+        let where;
+        if (typeof _id === "string" || !isTypeObjectId) {
+            where = XMongoModel.id(_id, true);
+        } else {
+            where = {_id}
+        }
+
+        return this.findOne(<StringToAnyObject>where, options);
+    }
+
+
+    /**
+     * Count All the documents that match query.
+     * @param query
+     * @param options
+     * @return {void | * | Promise | undefined | IDBRequest<number>}
+     */
+    static count(query: StringToAnyObject = {}, options?: FindOneOptions): Promise<number> {
+        return this.thisCollection().find(query, options).count()
+    }
+
+    /**
+     * Count Aggregations
+     * @param query
+     * @param options
+     * @returns {Promise<number|*>}
+     */
+    static async countAggregate(query: any[] = [], options?: CollectionAggregationOptions): Promise<number> {
+        query = _.cloneDeep(query);
+        query.push({$count: "count_aggregate"});
+
+        const data = await this.thisCollection().aggregate(query, options).toArray();
+
+        if (data.length) {
+            return data[0]['count_aggregate']
+        }
+        return 0;
+    }
+
+
+    /**
+     * Paginate Find.
+     * @param query
+     * @param options
+     * @param page
+     * @param perPage
+     * @return {Promise<{total: *, perPage: number, lastPage: number, data: [], page: number}>}
+     */
+    static async paginate(page: number = 1, perPage: number = 20, query = {}, options: FindOneOptions = {}): Promise<PaginationData> {
+        page = Number(page);
+        perPage = Number(perPage);
+
+        const total = await this.count(query);
+        const lastPage = Math.ceil(total / perPage);
+        const skips = perPage * (page - 1);
+        const data = await this.thisCollection().find(query, options).skip(skips).limit(perPage).toArray();
+
+        return {
+            total,
+            perPage,
+            page,
+            lastPage,
+            data
+        }
+    }
+
+    /**
+     * Paginate Aggregation.
+     * @param {number} page
+     * @param {number} perPage
+     * @param {[]} query
+     * @param {*} options
+     * @returns {Promise<{total: (*|number), perPage: number, lastPage: number, data: *, page: number}>}
+     */
+    static async paginateAggregate(page = 1, perPage = 20, query: any[] = [], options: CollectionAggregationOptions = {}): Promise<PaginationData> {
+        query = _.cloneDeep(query);
+
+        page = Number(page);
+        perPage = Number(perPage);
+
+        const total = await this.countAggregate(query);
+        const lastPage = Math.ceil(total / perPage);
+        const skips = perPage * (page - 1);
+
+        query.push({$skip: skips});
+        query.push({$limit: perPage});
+
+        const data = await this.thisCollection().aggregate(query, options).toArray();
+
+        return {
+            total,
+            perPage,
+            page,
+            lastPage,
+            data
+        }
     }
 
     /**
@@ -985,138 +1117,6 @@ class XMongoModel {
         });
     }
 
-
-    /**
-     * Fetches the first document that matches the query
-     * @param query
-     * @param options
-     * @param raw
-     */
-    static findOne<T extends XMongoModel>(query: StringToAnyObject, options: FindOneOptions | boolean = {}, raw = false): Promise<T | null> {
-
-        if (typeof options === "boolean") {
-            raw = options;
-            options = {};
-        }
-
-        return new Promise((resolve, reject) => {
-            return this.thisCollection().findOne(query, <FindOneOptions>options, (error, data) => {
-                if (error) return reject(error);
-                // Return new instance of Model
-                if (!data) return resolve(null);
-                if (raw) return resolve(data);
-
-                return resolve(this.use(data) as T);
-            });
-        });
-    }
-
-
-    /**
-     * Fetches the first document that matches id provided.
-     * @param _id
-     * @param options
-     * @param isTypeObjectId
-     * @return {Promise<XMongoModel>}
-     */
-    static findById(_id: any, options: FindOneOptions = {}, isTypeObjectId = true): Promise<XMongoModel | null> {
-        let where;
-        if (typeof _id === "string" || !isTypeObjectId) {
-            where = XMongoModel.id(_id, true);
-        } else {
-            where = {_id}
-        }
-
-        return this.findOne(<StringToAnyObject>where, options);
-    }
-
-
-    /**
-     * Count All the documents that match query.
-     * @param query
-     * @param options
-     * @return {void | * | Promise | undefined | IDBRequest<number>}
-     */
-    static count(query: StringToAnyObject, options?: FindOneOptions): Promise<number> {
-        return this.thisCollection().find(query, options).count()
-    }
-
-    /**
-     * Count Aggregations
-     * @param query
-     * @param options
-     * @returns {Promise<number|*>}
-     */
-    static async countAggregate(query: any[], options?: CollectionAggregationOptions): Promise<number> {
-        query = _.cloneDeep(query);
-        query.push({$count: "count_aggregate"});
-
-        const data = await this.thisCollection().aggregate(query, options).toArray();
-
-        if (data.length) {
-            return data[0]['count_aggregate']
-        }
-        return 0;
-    }
-
-
-    /**
-     * Paginate Find.
-     * @param query
-     * @param options
-     * @param page
-     * @param perPage
-     * @return {Promise<{total: *, perPage: number, lastPage: number, data: [], page: number}>}
-     */
-    static async paginate(page: number = 1, perPage: number = 20, query = {}, options: FindOneOptions = {}): Promise<PaginationData> {
-        page = Number(page);
-        perPage = Number(perPage);
-
-        const total = await this.count(query);
-        const lastPage = Math.ceil(total / perPage);
-        const skips = perPage * (page - 1);
-        const data = await this.thisCollection().find(query, options).skip(skips).limit(perPage).toArray();
-
-        return {
-            total,
-            perPage,
-            page,
-            lastPage,
-            data
-        }
-    }
-
-    /**
-     * Paginate Aggregation.
-     * @param {number} page
-     * @param {number} perPage
-     * @param {[]} query
-     * @param {*} options
-     * @returns {Promise<{total: (*|number), perPage: number, lastPage: number, data: *, page: number}>}
-     */
-    static async paginateAggregate(page = 1, perPage = 20, query: any[] = [], options: CollectionAggregationOptions = {}): Promise<PaginationData> {
-        query = _.cloneDeep(query);
-
-        page = Number(page);
-        perPage = Number(perPage);
-
-        const total = await this.countAggregate(query);
-        const lastPage = Math.ceil(total / perPage);
-        const skips = perPage * (page - 1);
-
-        query.push({$skip: skips});
-        query.push({$limit: perPage});
-
-        const data = await this.thisCollection().aggregate(query, options).toArray();
-
-        return {
-            total,
-            perPage,
-            page,
-            lastPage,
-            data
-        }
-    }
 }
 
 
