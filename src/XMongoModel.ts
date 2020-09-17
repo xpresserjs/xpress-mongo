@@ -972,6 +972,61 @@ class XMongoModel {
         return this.thisCollection().find(query, options).count()
     }
 
+
+    /**
+     * Sum fields in this collection.
+     * @example
+     * data: [
+     *  {name: 'john', credit: 100, debit: 400},
+     *  {name: 'doe', credit: 200, debit: 300}
+     * ]
+     *
+     * const sumOfCredit = await Model.sum('credit');
+     * ==> 300
+     *
+     * const sumOfBoth = await Model.sum(['credit', 'debit']);
+     * ==> {credit: 300, debit: 700}
+     *
+     * @param fields
+     * @param match
+     */
+    static async sum(fields: string | StringToAnyObject | string[], match?: StringToAnyObject): Promise<string | { [name: string]: number }> {
+        const $group: StringToAnyObject = {_id: null};
+        const $result: StringToAnyObject = {};
+
+        if (typeof fields === 'string') fields = [fields];
+
+        const fieldIsArray = Array.isArray(fields);
+        if (fieldIsArray) {
+            for (const field of fields as string[]) {
+                $group[field] = {$sum: '$' + field};
+                $result[field] = 0;
+            }
+        } else if (typeof fields === "object") {
+            const keys = Object.keys(fields);
+            for (const field of keys as string[]) {
+                $group[field] = {$sum: '$' + (<any>fields)[field]};
+                $result[field] = 0;
+            }
+            fields = keys;
+        }
+
+        let result = await this.thisCollection().aggregate([
+            {$match: match},
+            {$group}
+        ]).toArray();
+
+        if (result.length) {
+            result = result[0];
+
+            for (const field of fields as string[]) {
+                $result[field] = result[field as any] || 0;
+            }
+        }
+
+        return fields.length === 1 ? $result[(<string[]>fields)[0]] : $result;
+    }
+
     /**
      * Count Aggregations
      * @param query

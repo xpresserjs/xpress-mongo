@@ -278,6 +278,26 @@ declare class XMongoModel {
      */
     static count(query?: StringToAnyObject, options?: FindOneOptions): Promise<number>;
     /**
+     * Sum fields in this collection.
+     * @example
+     * data: [
+     *  {name: 'john', credit: 100, debit: 400},
+     *  {name: 'doe', credit: 200, debit: 300}
+     * ]
+     *
+     * const sumOfCredit = await Model.sum('credit');
+     * ==> 300
+     *
+     * const sumOfBoth = await Model.sum(['credit', 'debit']);
+     * ==> {credit: 300, debit: 700}
+     *
+     * @param fields
+     * @param match
+     */
+    static sum(fields: string | StringToAnyObject | string[], match?: StringToAnyObject): Promise<string | {
+        [name: string]: number;
+    }>;
+    /**
      * Count Aggregations
      * @param query
      * @param options
