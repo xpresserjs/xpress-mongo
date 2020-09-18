@@ -294,7 +294,7 @@ declare class XMongoModel {
      * @param fields
      * @param match
      */
-    static sum(fields: string | StringToAnyObject | string[], match?: StringToAnyObject): Promise<string | {
+    static sum(fields: string | StringToAnyObject | string[], match?: StringToAnyObject): Promise<number | {
         [name: string]: number;
     }>;
     /**

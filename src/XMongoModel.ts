@@ -990,7 +990,7 @@ class XMongoModel {
      * @param fields
      * @param match
      */
-    static async sum(fields: string | StringToAnyObject | string[], match?: StringToAnyObject): Promise<string | { [name: string]: number }> {
+    static async sum(fields: string | StringToAnyObject | string[], match?: StringToAnyObject): Promise<number | { [name: string]: number }> {
         const $group: StringToAnyObject = {_id: null};
         const $result: StringToAnyObject = {};
 
