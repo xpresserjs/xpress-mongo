@@ -12,4 +12,14 @@ import XMongoModel = require('./src/XMongoModel');
  * @constructor
  */
 declare function Client(url: string | MongoClient, options?: MongoClientOptions): XMongoClient;
-export { is, Client, XMongoModel, XMongoDataType, XMongoSchemaBuilder, omitKeys, pickKeys, omitIdAnd, omitIdAndPick, };
+/**
+ * Mongodb online server url parser.
+ * Inserts dbname and URI encoded password
+ * @param url
+ * @param options
+ */
+declare function parseServerUrl(url: string, options: {
+    dbname: string;
+    password: string;
+}): string;
+export { is, Client, XMongoModel, XMongoDataType, XMongoSchemaBuilder, omitKeys, pickKeys, omitIdAnd, omitIdAndPick, parseServerUrl };

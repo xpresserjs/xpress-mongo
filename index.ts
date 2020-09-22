@@ -25,6 +25,18 @@ function Client(url: string | MongoClient, options: MongoClientOptions = {}): XM
     return new XMongoClient(new MongoClient(url, options));
 }
 
+/**
+ * Mongodb online server url parser.
+ * Inserts dbname and URI encoded password
+ * @param url
+ * @param options
+ */
+function parseServerUrl(url: string, options: { dbname: string, password: string }) {
+    options.password = encodeURI(options.password);
+    return url.replace('<dbname>', options.dbname)
+        .replace('<password>', options.password);
+}
+
 export {
     // Export is schemaBuilder
     is,
@@ -42,4 +54,7 @@ export {
     pickKeys,
     omitIdAnd,
     omitIdAndPick,
+
+    // Others
+    parseServerUrl
 };
