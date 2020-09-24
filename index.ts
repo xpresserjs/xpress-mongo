@@ -32,11 +32,16 @@ function Client(url: string | MongoClient, options: MongoClientOptions = {}): XM
  * @param options
  */
 function parseServerUrl(url: string, options: { dbname: string, password: string }) {
-    if (options.password)
-        options.password = encodeURI(options.password);
+    if (options.dbname) {
+        url = url.replace('<dbname>', options.dbname)
+    }
 
-    return url.replace('<dbname>', options.dbname)
-        .replace('<password>', options.password);
+    if (options.password) {
+        options.password = encodeURI(options.password);
+        url = url.replace('<password>', options.password);
+    }
+
+    return url;
 }
 
 export {
