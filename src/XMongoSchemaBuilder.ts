@@ -8,7 +8,15 @@ const isBoolean = (v: any) => typeof v === 'boolean';
 const isObject = (v: any) => (v && typeof v === 'object' && !Array.isArray(v));
 const isObjectId = (v: any) => ObjectID.isValid(v);
 const isArray = (v: any) => Array.isArray(v);
-const isDate = (v: any) => v instanceof Date;
+const isDate = (v: any) => {
+    if (v instanceof Date) {
+        return true
+    } else if (typeof v === "string") {
+        return !isNaN(new Date(v).getTime())
+    } else {
+        return false
+    }
+};
 const isNumber = (v: any) => !isBoolean(v) && !isNaN(v);
 
 type XMongoSchemaBuilder = {
@@ -45,7 +53,6 @@ const is: XMongoSchemaBuilder = {
                 }
             })
             .validatorError((key) => `(${key}) is not a Mongodb-ObjectID`);
-
     },
 
     /**
@@ -102,6 +109,13 @@ const is: XMongoSchemaBuilder = {
     Date: (def = () => new Date()): XMongoDataType => {
         return new XMongoDataType('Date', def)
             .validator(isDate)
+            .cast((value) => {
+                if (value instanceof Date) {
+                    return value
+                } else {
+                    return new Date(value)
+                }
+            })
             .validatorError((key) => `(${key}) is not a Date`);
     },
     /**

@@ -9,17 +9,16 @@ async function run() {
     /**
      * Async Space
      */
+    const guest = new Users().set({
+        type: 'guest',
+        first_name: 'Hello',
+        last_name: 'World',
+        guestId: Users.id('5e5acba088ebeef8a715ca43'),
+        updated_at: 'Fri, 03 Apr 2020 00:00:00 GMT'
+    });
 
-
-        const guest = new Users().set({
-            type: 'guest',
-            first_name: 'Hello',
-            last_name: 'World',
-            guestId: Users.id('5e5acba088ebeef8a715ca43')
-        });
-
-        // console.log(guest.data);
-        console.log(guest.validate());
+    // console.log(guest.data);
+    console.log(guest.validate());
 
 
     /**

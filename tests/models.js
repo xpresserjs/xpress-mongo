@@ -1,4 +1,4 @@
-const {is, ModelDataType} = require('../index');
+const {is, ModelDataType} = require('../');
 const Database = global['Database'];
 
 
@@ -36,7 +36,7 @@ const GuestSchema = {
         is.String().required(),
         is.ObjectId().required(),
     ]),
-    created_at: is.Date().required()
+    updated_at: is.Date().required()
 };
 
 
