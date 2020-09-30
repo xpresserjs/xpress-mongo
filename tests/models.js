@@ -33,9 +33,10 @@ const GuestSchema = {
     first_name: is.String().required(),
     last_name: is.String(),
     guestId: is.Types([
-        is.String().required(),
-        is.ObjectId().required(),
-    ]),
+        is.Number(),
+        is.Array(),
+    ]).default(() => ['en']).required(),
+    // guestId: is.ObjectId().required(),
     updated_at: is.Date().required()
 };
 
@@ -43,10 +44,6 @@ const GuestSchema = {
 class Users extends Database.model("users") {
     constructor() {
         super();
-
-        // this.addSchema('GuestSchema', GuestSchema);
-        // this.addSchema('UserSchema', UserSchema);
-        //
         this.useSchema(GuestSchema);
     }
 
