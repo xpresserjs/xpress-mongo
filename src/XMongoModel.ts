@@ -484,7 +484,7 @@ class XMongoModel {
      * @return {Promise<UpdateWriteOpResult>}
      */
     update(set: StringToAnyObject, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
-        if (!this.id()) throw "UPDATE_ERROR: Model does not have an _id, so we assume it is not from the database.";
+        if (!this.id()) throw Error("UPDATE_ERROR: Model does not have an _id, so we assume it is not from the database.");
         return <Promise<UpdateWriteOpResult>>this.set(set).save(options)
     }
 
@@ -495,7 +495,7 @@ class XMongoModel {
      * @return {Promise<UpdateWriteOpResult>}
      */
     updateRaw(update: UpdateQuery<any> | Partial<any>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
-        if (!this.id()) throw "UPDATE_RAW_ERROR: Model does not have an _id, so we assume it is not from the database.";
+        if (!this.id()) throw Error("UPDATE_RAW_ERROR: Model does not have an _id, so we assume it is not from the database.");
         return new Promise((resolve, reject) => {
             return (<typeof XMongoModel>this.constructor).native().updateOne(
                 {_id: this.id()},
@@ -508,9 +508,10 @@ class XMongoModel {
     /**
      * Create Model if not id is missing or save document if id is found.
      * @param options
+     * @param create
      * @return {Promise<UpdateWriteOpResult | InsertOneWriteOpResult<*>>}
      */
-    save(options: UpdateOneOptions | CollectionInsertOneOptions = {}): Promise<boolean | UpdateWriteOpResult | InsertOneWriteOpResult<any>> {
+    save(options: UpdateOneOptions | CollectionInsertOneOptions = {}, create = false): Promise<boolean | UpdateWriteOpResult | InsertOneWriteOpResult<any>> {
         return new Promise((resolve, reject) => {
             const id = this.id();
 

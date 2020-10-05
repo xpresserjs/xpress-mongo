@@ -197,9 +197,10 @@ declare class XMongoModel {
     /**
      * Create Model if not id is missing or save document if id is found.
      * @param options
+     * @param create
      * @return {Promise<UpdateWriteOpResult | InsertOneWriteOpResult<*>>}
      */
-    save(options?: UpdateOneOptions | CollectionInsertOneOptions): Promise<boolean | UpdateWriteOpResult | InsertOneWriteOpResult<any>>;
+    save(options?: UpdateOneOptions | CollectionInsertOneOptions, create?: boolean): Promise<boolean | UpdateWriteOpResult | InsertOneWriteOpResult<any>>;
     /**
      * Unset a key or keys from this collection
      * @param {string|[]} keys - Key or Keys to unset from collection

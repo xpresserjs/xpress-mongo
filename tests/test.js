@@ -1,13 +1,11 @@
 const connection = require('./connection');
-const Chance = require('chance');
-const chance = new Chance();
 
 async function run() {
     await connection();
     const {Users, Contacts} = require('./models');
 
     const user = await Users.findById('5e5acba088ebeef8a715ca43', {
-        projection: {_id: 0, created_at: 0}
+        projection: {_id: 0}
     });
 
     console.log(user);
