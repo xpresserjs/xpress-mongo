@@ -149,9 +149,17 @@ class XMongoModel {
      * @returns {this}
      */
     emptyData(replaceWith?: StringToAnyObject): this {
-        this.data = {
-            _id: this.id()
-        };
+        const _id = this.id();
+
+        /**
+         * if _id exists then add it.
+         */
+        if (_id) {
+            this.data = {_id};
+        } else {
+            this.data = {};
+        }
+
 
         if (replaceWith && typeof replaceWith === 'object') this.data = {...this.data, ...replaceWith};
 
@@ -771,7 +779,7 @@ class XMongoModel {
      * @param {{}} data
      */
     static use(data: StringToAnyObject): XMongoModel {
-        const model: typeof XMongoModel | StringToAnyObject = new this();
+        const model: XMongoModel | any = new this();
         model.emptyData();
         // Set Original Property
         model.setOriginal(data);
@@ -779,8 +787,8 @@ class XMongoModel {
 
         if (this.append) {
             for (const key of this.append) {
-                if (typeof model[key] === "function") {
-                    model.set(key, model[key]())
+                if (typeof <StringToAnyObject>model[key] === "function") {
+                    model.set(key, <StringToAnyObject>model[key]())
                 }
             }
         }
