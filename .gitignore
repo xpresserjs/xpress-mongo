@@ -4,3 +4,4 @@ node_modules
 js
 play.ts
 yarn.lock
+*.log
