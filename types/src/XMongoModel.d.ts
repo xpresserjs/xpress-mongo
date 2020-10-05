@@ -1,5 +1,5 @@
 import ObjectCollection = require('object-collection');
-import { ObjectID, Collection, UpdateWriteOpResult, InsertOneWriteOpResult, DeleteWriteOpResultObject, Cursor, FindOneOptions, UpdateOneOptions, CollectionInsertOneOptions, CollectionAggregationOptions, AggregationCursor, UpdateQuery } from 'mongodb';
+import { ObjectID, Collection, UpdateWriteOpResult, InsertOneWriteOpResult, DeleteWriteOpResultObject, Cursor, FindOneOptions, UpdateOneOptions, CollectionInsertOneOptions, CollectionAggregationOptions, AggregationCursor, UpdateQuery, FilterQuery } from 'mongodb';
 import { XMongoSchemaBuilder } from './XMongoSchemaBuilder';
 import { PaginationData, StringToAnyObject } from "./CustomTypes";
 declare type FunctionWithRawArgument = {
@@ -66,7 +66,15 @@ declare class XMongoModel {
      * The ModelAction class uses this function to access this models data.
      */
     constructor();
+    /**
+     * Use `.native()` instead
+     * @deprecated (v 0.0.40)
+     */
     static thisCollection(): Collection;
+    /**
+     * Returns native mongodb instance to run native queries
+     */
+    static native(): Collection;
     /**
      * Empties data in current model.
      * @param replaceWith
@@ -228,6 +236,7 @@ declare class XMongoModel {
      */
     hasOne(relationship: string, extend?: StringToAnyObject): Promise<any | XMongoModel>;
     /**
+     * toJSON converter.
      * @private
      * @return {*}
      */
@@ -254,14 +263,14 @@ declare class XMongoModel {
      * @param raw
      * @return {Promise<XMongoModel[]>}
      */
-    static find(query?: StringToAnyObject, options?: FindOneOptions, raw?: boolean): Promise<XMongoModel[]> | Cursor;
+    static find(query?: (StringToAnyObject | FilterQuery<any>), options?: FindOneOptions<any>, raw?: boolean): Promise<XMongoModel[]> | Cursor;
     /**
      * Fetches the first document that matches the query
      * @param query
      * @param options
      * @param raw
      */
-    static findOne<T extends XMongoModel>(query?: StringToAnyObject, options?: FindOneOptions | boolean, raw?: boolean): Promise<T | null>;
+    static findOne<T extends XMongoModel>(query?: (StringToAnyObject | FilterQuery<any>), options?: FindOneOptions<any> | boolean, raw?: boolean): Promise<T | null>;
     /**
      * Fetches the first document that matches id provided.
      * @param _id
@@ -269,14 +278,14 @@ declare class XMongoModel {
      * @param isTypeObjectId
      * @return {Promise<XMongoModel>}
      */
-    static findById(_id: any, options?: FindOneOptions, isTypeObjectId?: boolean): Promise<XMongoModel | null>;
+    static findById(_id: any, options?: FindOneOptions<any>, isTypeObjectId?: boolean): Promise<XMongoModel | null>;
     /**
      * Count All the documents that match query.
      * @param query
      * @param options
      * @return {void | * | Promise | undefined | IDBRequest<number>}
      */
-    static count(query?: StringToAnyObject, options?: FindOneOptions): Promise<number>;
+    static count(query?: (StringToAnyObject | FilterQuery<any>), options?: FindOneOptions<any>): Promise<number>;
     /**
      * Sum fields in this collection.
      * @example
@@ -312,7 +321,7 @@ declare class XMongoModel {
      * @param perPage
      * @return {Promise<{total: *, perPage: number, lastPage: number, data: [], page: number}>}
      */
-    static paginate(page?: number, perPage?: number, query?: {}, options?: FindOneOptions): Promise<PaginationData>;
+    static paginate(page?: number, perPage?: number, query?: {}, options?: FindOneOptions<any>): Promise<PaginationData>;
     /**
      * Paginate Aggregation.
      * @param {number} page
@@ -338,7 +347,7 @@ declare class XMongoModel {
      *
      * WHICH IS ===
      *
-     *      Model.thisCollection().find().limit(10).toArray((err, lists) => {
+     *      Model.native().find().limit(10).toArray((err, lists) => {
      *          Model.fromArray(lists);
      *      })
      *

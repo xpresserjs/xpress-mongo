@@ -93,7 +93,21 @@ class XMongoClient {
          * Extend XMongoModel
          */
         return <typeof XMongoModel><unknown>class extends XMongoModel {
-            static thisCollection = () => connection;
+            /**
+             * Use `.native()` instead
+             * @deprecated (v 0.0.40)
+             */
+            static thisCollection(): Collection {
+                console.error('Model.thisCollection() is deprecated, use .native() instead.')
+                return connection;
+            };
+
+            /**
+             * Returns native mongodb instance to run native queries
+             */
+            static native(): Collection {
+                return connection;
+            };
         }
     }
 }

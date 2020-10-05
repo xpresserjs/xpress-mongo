@@ -42,6 +42,7 @@ const GuestSchema = {
 
 
 class Users extends Database.model("users") {
+
     constructor() {
         super();
         this.useSchema(GuestSchema);

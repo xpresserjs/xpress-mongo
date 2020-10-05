@@ -11,7 +11,7 @@ import {
     FindOneOptions,
     UpdateOneOptions,
     CollectionInsertOneOptions,
-    CollectionAggregationOptions, AggregationCursor, UpdateQuery
+    CollectionAggregationOptions, AggregationCursor, UpdateQuery, FilterQuery
 } from 'mongodb';
 
 import {is, XMongoSchemaBuilder} from './XMongoSchemaBuilder';
@@ -126,8 +126,19 @@ class XMongoModel {
         })
     }
 
-    // @ts-ignore
+    /**
+     * Use `.native()` instead
+     * @deprecated (v 0.0.40)
+     */
     static thisCollection(): Collection {
+        // @ts-ignore
+        return null;
+    };
+
+    /**
+     * Returns native mongodb instance to run native queries
+     */
+    static native(): Collection {
         // @ts-ignore
         return null;
     };
@@ -478,7 +489,7 @@ class XMongoModel {
     updateRaw(update: UpdateQuery<any> | Partial<any>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
         if (!this.id()) throw "UPDATE_RAW_ERROR: Model does not have an _id, so we assume it is not from the database.";
         return new Promise((resolve, reject) => {
-            return (<typeof XMongoModel>this.constructor).thisCollection().updateOne(
+            return (<typeof XMongoModel>this.constructor).native().updateOne(
                 {_id: this.id()},
                 update,
                 <UpdateOneOptions>options,
@@ -507,7 +518,7 @@ class XMongoModel {
                     return reject(e)
                 }
 
-                return (<typeof XMongoModel>this.constructor).thisCollection().updateOne(
+                return (<typeof XMongoModel>this.constructor).native().updateOne(
                     {_id: this.id()},
                     {$set},
                     <UpdateOneOptions>options,
@@ -520,7 +531,7 @@ class XMongoModel {
                     return reject(e)
                 }
 
-                return (<typeof XMongoModel>this.constructor).thisCollection().insertOne(
+                return (<typeof XMongoModel>this.constructor).native().insertOne(
                     this.data,
                     <CollectionInsertOneOptions>options,
                     (error, res) => {
@@ -564,7 +575,7 @@ class XMongoModel {
 
         // Run MongoDb query and return response in Promise
         return new Promise((resolve, reject) => {
-            return (<typeof XMongoModel>this.constructor).thisCollection().updateOne(
+            return (<typeof XMongoModel>this.constructor).native().updateOne(
                 {_id: this.id()},
                 {$unset},
                 options,
@@ -731,7 +742,7 @@ class XMongoModel {
 
         if (_id) {
             this.emptyData();
-            return (<typeof XMongoModel>this.constructor).thisCollection().deleteOne({_id})
+            return (<typeof XMongoModel>this.constructor).native().deleteOne({_id})
         } else {
             throw "DELETE_ERROR: Model does not have an _id, so we assume it is not from the database.";
         }
@@ -836,7 +847,7 @@ class XMongoModel {
             if (Array.isArray(model) && typeof model[0] === "function")
                 model = model[0]();
 
-            let relatedData: StringToAnyObject | void = await (<typeof XMongoModel>model).thisCollection().findOne(where, options);
+            let relatedData: StringToAnyObject | void = await (<typeof XMongoModel>model).native().findOne(where, options);
 
             if (cast && relatedData) relatedData = (<typeof XMongoModel>model).use(relatedData);
 
@@ -858,6 +869,7 @@ class XMongoModel {
     }
 
     /**
+     * toJSON converter.
      * @private
      * @return {*}
      */
@@ -905,8 +917,8 @@ class XMongoModel {
      * @param raw
      * @return {Promise<XMongoModel[]>}
      */
-    static find(query: StringToAnyObject = {}, options: FindOneOptions = {}, raw = false): Promise<XMongoModel[]> | Cursor {
-        const result = this.thisCollection().find(query, options);
+    static find(query: (StringToAnyObject | FilterQuery<any>) = {}, options: FindOneOptions<any> = {}, raw = false): Promise<XMongoModel[]> | Cursor {
+        const result = this.native().find(query, options);
         if (raw) return result;
 
         return new Promise((resolve, reject) => {
@@ -923,7 +935,7 @@ class XMongoModel {
      * @param options
      * @param raw
      */
-    static findOne<T extends XMongoModel>(query: StringToAnyObject = {}, options: FindOneOptions | boolean = {}, raw = false): Promise<T | null> {
+    static findOne<T extends XMongoModel>(query: (StringToAnyObject | FilterQuery<any>) = {}, options: FindOneOptions<any> | boolean = {}, raw = false): Promise<T | null> {
 
         if (typeof options === "boolean") {
             raw = options;
@@ -931,7 +943,7 @@ class XMongoModel {
         }
 
         return new Promise((resolve, reject) => {
-            return this.thisCollection().findOne(query, <FindOneOptions>options, (error, data) => {
+            return this.native().findOne(query, <FindOneOptions<any>>options, (error, data) => {
                 if (error) return reject(error);
                 // Return new instance of Model
                 if (!data) return resolve(null);
@@ -950,7 +962,7 @@ class XMongoModel {
      * @param isTypeObjectId
      * @return {Promise<XMongoModel>}
      */
-    static findById(_id: any, options: FindOneOptions = {}, isTypeObjectId = true): Promise<XMongoModel | null> {
+    static findById(_id: any, options: FindOneOptions<any> = {}, isTypeObjectId = true): Promise<XMongoModel | null> {
         let where;
         if (typeof _id === "string" || !isTypeObjectId) {
             where = XMongoModel.id(_id, true);
@@ -968,8 +980,8 @@ class XMongoModel {
      * @param options
      * @return {void | * | Promise | undefined | IDBRequest<number>}
      */
-    static count(query: StringToAnyObject = {}, options?: FindOneOptions): Promise<number> {
-        return this.thisCollection().find(query, options).count()
+    static count(query: (StringToAnyObject | FilterQuery<any>) = {}, options?: FindOneOptions<any>): Promise<number> {
+        return this.native().find(query, options).count()
     }
 
 
@@ -1011,7 +1023,7 @@ class XMongoModel {
             fields = keys;
         }
 
-        let result = await this.thisCollection().aggregate([
+        let result = await this.native().aggregate([
             {$match: match},
             {$group}
         ]).toArray();
@@ -1037,7 +1049,7 @@ class XMongoModel {
         query = _.cloneDeep(query);
         query.push({$count: "count_aggregate"});
 
-        const data = await this.thisCollection().aggregate(query, options).toArray();
+        const data = await this.native().aggregate(query, options).toArray();
 
         if (data.length) {
             return data[0]['count_aggregate']
@@ -1054,14 +1066,14 @@ class XMongoModel {
      * @param perPage
      * @return {Promise<{total: *, perPage: number, lastPage: number, data: [], page: number}>}
      */
-    static async paginate(page: number = 1, perPage: number = 20, query = {}, options: FindOneOptions = {}): Promise<PaginationData> {
+    static async paginate(page: number = 1, perPage: number = 20, query = {}, options: FindOneOptions<any> = {}): Promise<PaginationData> {
         page = Number(page);
         perPage = Number(perPage);
 
         const total = await this.count(query);
         const lastPage = Math.ceil(total / perPage);
         const skips = perPage * (page - 1);
-        const data = await this.thisCollection().find(query, options).skip(skips).limit(perPage).toArray();
+        const data = await this.native().find(query, options).skip(skips).limit(perPage).toArray();
 
         return {
             total,
@@ -1093,7 +1105,7 @@ class XMongoModel {
         query.push({$skip: skips});
         query.push({$limit: perPage});
 
-        const data = await this.thisCollection().aggregate(query, options).toArray();
+        const data = await this.native().aggregate(query, options).toArray();
 
         return {
             total,
@@ -1120,7 +1132,7 @@ class XMongoModel {
      *
      * WHICH IS ===
      *
-     *      Model.thisCollection().find().limit(10).toArray((err, lists) => {
+     *      Model.native().find().limit(10).toArray((err, lists) => {
      *          Model.fromArray(lists);
      *      })
      *
@@ -1135,7 +1147,7 @@ class XMongoModel {
     static fromArray(query: FunctionWithRawArgument | any[], interceptor: boolean | { (lists: Array<any>): any } = false): XMongoModel[] | Promise<any[]> {
         if (typeof query === "function") {
             return new Promise((resolve, reject) => {
-                return (<Cursor>query(this.thisCollection())).toArray((error, lists) => {
+                return (<Cursor>query(this.native())).toArray((error, lists) => {
                     if (error) return reject(error);
 
                     /**
@@ -1165,7 +1177,7 @@ class XMongoModel {
         return new Promise((resolve, reject) => {
             if (typeof query !== "function") return reject(Error('.toArray expects a function as argument'));
 
-            (<Cursor>query(this.thisCollection())).toArray((error, data) => {
+            (<Cursor>query(this.native())).toArray((error, data) => {
                 if (error) return reject(error);
                 return resolve(data);
             });
