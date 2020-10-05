@@ -1,69 +1,14 @@
-# Xpress-Mongo
-##### ---- Still in development
+# Xpress Mongo
+A light mongodb model/helper library for nodejs, provides modeling for your documents and also keeps you very close to native mongodb syntax which is always recommended.
 
-Xpress-Mongo is a lightweight mongodb ODM both in size and in actions.
-
-Unlike other Mongodb ODM's, xpress keeps you closer to **mongodb-native** calls using the `raw` function available on all model instances
-
-```javascript
-// Using
-const User = SomeCollection();
-
-User.findOne(); // XpressMongo findOne
-User.raw.findOne(); // Mongodb findOne
-```
+**xpress-mongo** is not bond to the xpresser framework but was built by same developers, so we decided to host its docs on the xpresser website.
 
 
-
-### Setup
-Assuming you already have your client connected already..
-
-```javascript
-// Import XpressMongo
-const {Client} = require('xpress-mongo');
-// Use your already existing  client.
-const Database = Client('your_client').useDb('database_name');
-
-// Define models using collection names
-const UserModel = Database.model('users');
-const PostModel = Database.model('posts');
-
-UserModel.findOne().then(user =>  console.log(user));
-PostModel.find().then(posts =>  console.log(posts));
-
-```
-
-### Model
-```javascript
-const {is, Collection} = require('xpress-mongo');
-
-const UserSchema = {
-    _id: is.ObjectId(),
-    email: is.String().required(),
-    first_name: is.String().required(),
-    last_name: is.String().required(),
-    verified: is.Boolean(),
-    created_at: is.Date()
-};
-
-class Users extends Collection("users") {
-    constructor() {
-        super();
-        this.setSchema(UserSchema);
-    }
-}
-
-module.exports = Users;
-```
-
-### Data
-```javascript
-const user = new Users().set({
-    first_name: 'John',
-    last_name: 'Doe'
-});
+Documentation: [https://xpresserjs.com/xpress-mongo](https://xpresserjs.com/xpress-mongo/)
 
 
-console.log(user.get('created_at'));
-// Current Date
-```
+## Contribution
+We are always open to suggestions and contributions 😎, feel free to pull, modify and push.
+
+## Bugs
+Create issues whenever you come through any errors. we will do our best to reply as fast as we see the notification.
