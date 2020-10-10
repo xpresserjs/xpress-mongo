@@ -1,6 +1,7 @@
 import XMongoDataType = require("./XMongoDataType");
 import {ObjectID} from "mongodb";
 import {StringToAnyObject} from "./CustomTypes";
+import uuid = require("uuid");
 
 
 const isString = (v: any) => typeof v === 'string';
@@ -19,16 +20,31 @@ const isDate = (v: any) => {
 };
 const isNumber = (v: any) => !isBoolean(v) && !isNaN(v);
 
-type XMongoSchemaBuilder = {
-    ObjectId: () => XMongoDataType,
-    Array: { (def?: () => Array<any>): XMongoDataType },
-    Object: { (def?: () => StringToAnyObject): XMongoDataType },
-    String: { (def?: string): XMongoDataType },
-    Boolean: { (def?: boolean): XMongoDataType },
-    Date: { (def?: () => Date): XMongoDataType },
-    Number: { (def?: 0): XMongoDataType },
-    Types: { (types: XMongoDataType[]): XMongoDataType },
+type InputBuffer = ArrayLike<number>;
+type UuidOptions = {
+    name: string | InputBuffer,
+    namespace: string | InputBuffer
 };
+
+interface XMongoSchemaBuilder {
+    ObjectId(): XMongoDataType
+
+    Uuid(version: number, options?: UuidOptions): XMongoDataType
+
+    Array(def?: () => Array<any>): XMongoDataType
+
+    Object(def?: () => StringToAnyObject): XMongoDataType
+
+    String(def?: string): XMongoDataType
+
+    Boolean(def?: boolean): XMongoDataType
+
+    Date(def?: () => Date): XMongoDataType
+
+    Number(def?: 0): XMongoDataType
+
+    Types(types: XMongoDataType[]): XMongoDataType
+}
 
 const is: XMongoSchemaBuilder = {
     /**
@@ -53,6 +69,34 @@ const is: XMongoSchemaBuilder = {
                 }
             })
             .validatorError((key) => `(${key}) is not a Mongodb-ObjectID`);
+    },
+
+    /**
+     * Uuid
+     * @param version - version of uuid
+     * @param options - options of uuid version 3 or 5
+     */
+    Uuid: (version: (1 | 3 | 4 | 5 | number) = 4, options?: UuidOptions): XMongoDataType => {
+        if (![1, 3, 4, 5].includes(version)) {
+            throw Error("Uuid version argument expects 1, 3, 4 or 5!")
+        }
+
+        if ([3, 5].includes(version) && !options) {
+            throw Error(`Uuid version (${version}) requires {name, namespace} options!`)
+        }
+
+        return new XMongoDataType('Uuid').validator((value) => uuid.validate(value)).default(() => {
+            switch (version) {
+                case 1:
+                    return uuid.v1();
+                case 3:
+                    return uuid.v3((options as UuidOptions).name, (options as UuidOptions).namespace);
+                case 4:
+                    return uuid.v4()
+                case 5:
+                    return uuid.v5((options as UuidOptions).name, (options as UuidOptions).namespace)
+            }
+        })
     },
 
     /**

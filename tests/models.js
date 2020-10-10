@@ -29,6 +29,7 @@ const UserSchema = {
 };
 
 const GuestSchema = {
+    code: is.Uuid().isOptional(),
     type: is.String().required(),
     first_name: is.String().required(),
     last_name: is.String(),
@@ -39,6 +40,7 @@ const GuestSchema = {
     // guestId: is.ObjectId().required(),
     updated_at: is.Date().required()
 };
+
 
 
 class Users extends Database.model("users") {
