@@ -5,7 +5,7 @@ declare type UuidOptions = {
     name: string | InputBuffer;
     namespace: string | InputBuffer;
 };
-interface XMongoSchemaBuilder {
+declare type XMongoSchemaBuilder = {
     ObjectId(): XMongoDataType;
     Uuid(version: number, options?: UuidOptions): XMongoDataType;
     Array(def?: () => Array<any>): XMongoDataType;
@@ -15,6 +15,6 @@ interface XMongoSchemaBuilder {
     Date(def?: () => Date): XMongoDataType;
     Number(def?: 0): XMongoDataType;
     Types(types: XMongoDataType[]): XMongoDataType;
-}
+};
 declare const is: XMongoSchemaBuilder;
 export { is, XMongoSchemaBuilder };
