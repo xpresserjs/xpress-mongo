@@ -16,7 +16,7 @@ import {
 
 import {is, XMongoSchemaBuilder} from './XMongoSchemaBuilder';
 import {diff} from 'deep-object-diff';
-import {defaultValue, runOrValidation, runAndValidation} from '../fn/inbuilt';
+import {defaultValue, runOrValidation, runAndValidation, RunOnEvent} from '../fn/inbuilt';
 import {PaginationData, SchemaPropertiesType, StringToAnyObject} from "./CustomTypes";
 
 /**
@@ -56,6 +56,18 @@ class XMongoModel {
      * @type {{}}
      */
     public schema: StringToAnyObject = {};
+
+    /**
+     * Model Schema
+     * @private
+     * @type {{}}
+     */
+    public static schema: StringToAnyObject = {};
+
+    /**
+     * Model Events
+     */
+    public static events: StringToAnyObject = {};
 
     /**
      * Model Schema Store
@@ -100,6 +112,7 @@ class XMongoModel {
     constructor() {
         // Assume data is empty
         this.emptyData();
+
         Object.defineProperty(this, 'schema', {
             value: {},
             writable: true,
@@ -124,6 +137,15 @@ class XMongoModel {
             writable: true,
             enumerable: false
         })
+
+
+        /**
+         * Set Model Schema if exists
+         */
+        const thisClass = (this.constructor as typeof XMongoModel);
+        if (thisClass.schema) {
+            this.useSchema(thisClass.schema);
+        }
     }
 
     /**
@@ -192,6 +214,14 @@ class XMongoModel {
             _.set(this.data, key, value)
         }
         return this;
+    }
+
+    /**
+     * Check if field exists in data
+     * @param key
+     */
+    has(key: string): boolean {
+        return _.has(this.data, key)
     }
 
 
@@ -347,14 +377,6 @@ class XMongoModel {
      * @returns {this}
      */
     useSchema(schema: string | StringToAnyObject | { (is: XMongoSchemaBuilder): StringToAnyObject }): this {
-
-        // Redefine schema
-        Object.defineProperty(this, 'schema', {
-            value: {},
-            writable: true,
-            enumerable: false,
-            configurable: true,
-        });
 
         // Try to find schema from .schemaStore if string
         if (typeof schema === "string") {
@@ -512,13 +534,15 @@ class XMongoModel {
      * @return {Promise<UpdateWriteOpResult | InsertOneWriteOpResult<*>>}
      */
     save(options: UpdateOneOptions | CollectionInsertOneOptions = {}, create = false): Promise<boolean | UpdateWriteOpResult | InsertOneWriteOpResult<any>> {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             const id = this.id();
 
             if (id) {
-                let $set = this.changes();
+                await RunOnEvent('update', this);
 
-                if (!Object.keys($set).length) return resolve(false);
+                let $set = this.changes();
+                let $setKeys = Object.keys($set);
+                if (!$setKeys.length) return resolve(false);
 
                 // Try to validate changes
                 try {
@@ -531,8 +555,16 @@ class XMongoModel {
                     {_id: this.id()},
                     {$set},
                     <UpdateOneOptions>options,
-                    (error, res) => error ? reject(error) : resolve(res.connection))
+                    (error, res) => {
+                        if (error) {
+                            return reject(error)
+                        } else {
+                            RunOnEvent('watch', this, $setKeys);
+                            resolve(res.connection)
+                        }
+                    })
             } else {
+                await RunOnEvent('create', this);
                 // Try to validate new data.
                 try {
                     this.emptyData(this.validate());
@@ -750,7 +782,10 @@ class XMongoModel {
         const _id = this.id();
 
         if (_id) {
-            this.emptyData();
+            // Run on delete Events on background
+            RunOnEvent("delete", this).catch(console.error);
+
+            // Delete Document
             return (<typeof XMongoModel>this.constructor).native().deleteOne({_id})
         } else {
             throw "DELETE_ERROR: Model does not have an _id, so we assume it is not from the database.";
@@ -1193,7 +1228,31 @@ class XMongoModel {
         });
     }
 
+
+    /**
+     * Register Events for create, update and delete
+     * @param event
+     * @param functionOrFunctions
+     */
+    static on(
+        event: "create" | "update" | "delete" | "create.fieldName" | "update.fieldName" | "watch.fieldName" | string,
+        functionOrFunctions: onEvent
+    ) {
+        if (!this.events) this.events = {};
+
+        if (event === "delete" && typeof functionOrFunctions !== "function") {
+            throw Error("on('delete') event must be type of Function.")
+        }
+
+        if (event === "watch" && typeof functionOrFunctions !== "object") {
+            throw Error("on('watch') event must be type of Object.")
+        }
+
+        _.set(this.events, event, functionOrFunctions);
+    }
 }
 
+type FunctionWithModelInstance = (modelInstance: XMongoModel) => (void | any);
+type onEvent = FunctionWithModelInstance | { [key: string]: FunctionWithModelInstance };
 
 export = XMongoModel;

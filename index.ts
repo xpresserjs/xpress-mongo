@@ -44,6 +44,22 @@ function parseServerUrl(url: string, options: { dbname: string, password: string
     return url;
 }
 
+/**
+ * Adds an event to set a fields Timestamp to current date on update.
+ * Remove if not in use.
+ */
+function RefreshDateOnUpdate(Model: typeof XMongoModel, field: string, ifHasChanges: boolean = true) {
+    if (ifHasChanges) {
+        Model.on(`update.${field}`, (model) => {
+            if (Object.keys(model.changes()).length) {
+                return new Date()
+            }
+        });
+    } else {
+        Model.on(`update.${field}`, () => new Date());
+    }
+}
+
 export {
     // Export is schemaBuilder
     is,
@@ -63,5 +79,6 @@ export {
     omitIdAndPick,
 
     // Others
-    parseServerUrl
+    parseServerUrl,
+    RefreshDateOnUpdate
 };

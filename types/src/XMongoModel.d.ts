@@ -31,6 +31,16 @@ declare class XMongoModel {
      */
     schema: StringToAnyObject;
     /**
+     * Model Schema
+     * @private
+     * @type {{}}
+     */
+    static schema: StringToAnyObject;
+    /**
+     * Model Events
+     */
+    static events: StringToAnyObject;
+    /**
      * Model Schema Store
      * @private
      * @type {{}}
@@ -95,6 +105,11 @@ declare class XMongoModel {
      * @return {this}
      */
     set(key: string | StringToAnyObject, value?: any): this;
+    /**
+     * Check if field exists in data
+     * @param key
+     */
+    has(key: string): boolean;
     /**
      * Push element to model
      * @param key
@@ -369,5 +384,15 @@ declare class XMongoModel {
      * @returns {Promise<[]>}
      */
     static toArray(query: FunctionWithRawArgument): Promise<any[]>;
+    /**
+     * Register Events for create, update and delete
+     * @param event
+     * @param functionOrFunctions
+     */
+    static on(event: "create" | "update" | "delete" | "create.fieldName" | "update.fieldName" | "watch.fieldName" | string, functionOrFunctions: onEvent): void;
 }
+declare type FunctionWithModelInstance = (modelInstance: XMongoModel) => (void | any);
+declare type onEvent = FunctionWithModelInstance | {
+    [key: string]: FunctionWithModelInstance;
+};
 export = XMongoModel;

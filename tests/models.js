@@ -1,4 +1,4 @@
-const {is, ModelDataType} = require('../');
+const {is, RefreshDateOnUpdate} = require('../');
 const Database = global['Database'];
 
 
@@ -42,14 +42,9 @@ const GuestSchema = {
 };
 
 
-
 class Users extends Database.model("users") {
 
-    constructor() {
-        super();
-        this.useSchema(GuestSchema);
-    }
-
+    static schema = GuestSchema;
     static append = ['fullName'];
 
     fullName() {
@@ -65,6 +60,9 @@ class Users extends Database.model("users") {
         }
     };
 }
+
+RefreshDateOnUpdate(Users, 'updated_at')
+
 
 /**
  * @type {typeof Users | typeof XMongoModel}

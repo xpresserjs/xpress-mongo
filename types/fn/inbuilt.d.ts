@@ -1,4 +1,5 @@
 import { FunctionReturnsBoolean, SchemaPropertiesType, ValidatorType } from "../src/CustomTypes";
+import XMongoModel from "../src/XMongoModel";
 /**
  * Get Default value.
  *
@@ -29,3 +30,4 @@ export declare function runOrValidation(value: any, validators: ValidatorType[] 
  * @return {boolean}
  */
 export declare function runAndValidation(value: any, validators: ValidatorType[] | FunctionReturnsBoolean[]): boolean;
+export declare function RunOnEvent(event: string, modelInstance: XMongoModel, changes?: string[]): Promise<any>;

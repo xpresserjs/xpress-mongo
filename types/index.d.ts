@@ -22,4 +22,9 @@ declare function parseServerUrl(url: string, options: {
     dbname: string;
     password: string;
 }): string;
-export { is, Client, XMongoModel, XMongoDataType, XMongoSchemaBuilder, omitKeys, pickKeys, omitIdAnd, omitIdAndPick, parseServerUrl };
+/**
+ * Adds an event to set a fields Timestamp to current date on update.
+ * Remove if not in use.
+ */
+declare function RefreshDateOnUpdate(Model: typeof XMongoModel, field: string, ifHasChanges?: boolean): void;
+export { is, Client, XMongoModel, XMongoDataType, XMongoSchemaBuilder, omitKeys, pickKeys, omitIdAnd, omitIdAndPick, parseServerUrl, RefreshDateOnUpdate };

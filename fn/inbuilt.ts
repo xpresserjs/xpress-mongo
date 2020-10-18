@@ -1,4 +1,5 @@
-import {FunctionReturnsBoolean, SchemaPropertiesType, ValidatorType} from "../src/CustomTypes";
+import {FunctionReturnsBoolean, SchemaPropertiesType, StringToAnyObject, ValidatorType} from "../src/CustomTypes";
+import XMongoModel from "../src/XMongoModel";
 
 /**
  * Get Default value.
@@ -58,4 +59,39 @@ export function runAndValidation(value: any, validators: ValidatorType[] | Funct
     }
 
     return true;
+}
+
+
+export async function RunOnEvent(event: string, modelInstance: XMongoModel, changes: string[] = []): Promise<any> {
+    const Model = (modelInstance.constructor as typeof XMongoModel);
+    if (!Model.events) return false;
+
+    let events = Model.events;
+    if (!events[event]) return false;
+
+    events = events[event];
+    if (event === 'watch' && !changes.length) return false
+
+    if (typeof events === "function") {
+        await events(modelInstance);
+    } else if (typeof events === "object") {
+        const fields = Object.keys(events)
+
+        for (const field of fields) {
+            if (event === 'watch') {
+                if (changes.includes(field)) {
+                    Promise.all([
+                        events[field](modelInstance)
+                    ]).catch(console.error);
+                }
+            } else {
+                const newFieldValue = await events[field](modelInstance);
+                if (newFieldValue !== undefined) {
+                    modelInstance.set(field, newFieldValue);
+                }
+            }
+        }
+    }
+
+    return false
 }
