@@ -3,7 +3,7 @@ import {ObjectID} from "mongodb";
 import {StringToAnyObject} from "./CustomTypes";
 import uuid = require("uuid");
 
-
+// Quick Functions
 const isString = (v: any) => typeof v === 'string';
 const isBoolean = (v: any) => typeof v === 'boolean';
 const isObject = (v: any) => (v && typeof v === 'object' && !Array.isArray(v));
@@ -26,23 +26,15 @@ type UuidOptions = {
     namespace: string | InputBuffer
 };
 
-interface XMongoSchemaBuilder {
+type XMongoSchemaBuilder = {
     ObjectId(): XMongoDataType
-
     Uuid(version: number, options?: UuidOptions): XMongoDataType
-
     Array(def?: () => Array<any>): XMongoDataType
-
     Object(def?: () => StringToAnyObject): XMongoDataType
-
     String(def?: string): XMongoDataType
-
     Boolean(def?: boolean): XMongoDataType
-
     Date(def?: () => Date): XMongoDataType
-
     Number(def?: 0): XMongoDataType
-
     Types(types: XMongoDataType[]): XMongoDataType
 }
 
