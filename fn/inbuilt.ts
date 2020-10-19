@@ -1,5 +1,7 @@
 import {FunctionReturnsBoolean, SchemaPropertiesType, StringToAnyObject, ValidatorType} from "../src/CustomTypes";
 import XMongoModel from "../src/XMongoModel";
+import _ from "../src/Lodash";
+import {watch} from "fs";
 
 /**
  * Get Default value.
@@ -62,15 +64,27 @@ export function runAndValidation(value: any, validators: ValidatorType[] | Funct
 }
 
 
-export async function RunOnEvent(event: string, modelInstance: XMongoModel, changes: string[] = []): Promise<any> {
+// function eventKeys(events: StringToAnyObject){
+//     const keys = Object.keys(events);
+//     const keysList = [];
+//     for (const key of keys){
+//         if(typeof events[key] === "function"){
+//             keysList.push(key)
+//         }
+//     }
+// }
+
+
+export async function RunOnEvent(event: string, modelInstance: XMongoModel, changes?: StringToAnyObject): Promise<any> {
     const Model = (modelInstance.constructor as typeof XMongoModel);
     if (!Model.events) return false;
+
 
     let events = Model.events;
     if (!events[event]) return false;
 
     events = events[event];
-    if (event === 'watch' && !changes.length) return false
+    if (event === 'watch' && changes && !Object.keys(changes).length) return false
 
     if (typeof events === "function") {
         await events(modelInstance);
@@ -79,7 +93,7 @@ export async function RunOnEvent(event: string, modelInstance: XMongoModel, chan
 
         for (const field of fields) {
             if (event === 'watch') {
-                if (changes.includes(field)) {
+                if (_.has(changes, field)) {
                     Promise.all([
                         events[field](modelInstance)
                     ]).catch(console.error);

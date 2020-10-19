@@ -1,7 +1,7 @@
-const connection = require('./connection');
+const {connector, connection} = require('./connection');
 
 async function run() {
-    await connection();
+    await connector();
     const {Users, Contacts} = require('./models');
 
     // 5f8bb34c17793a7bb278d24f
@@ -10,9 +10,7 @@ async function run() {
     });
 
 
-    await user.update({
-        // created_at: new Date()
-    });
+    await user.set('contact.date', new Date()).save();
 
     console.log(user);
 
@@ -34,9 +32,6 @@ async function run() {
      */
 }
 
-run().then(() => {
-    process.exit();
-}).catch(e => {
-    console.log(e);
-    process.exit();
+run().catch(console.error).finally(() => {
+    connection.client.close().catch(console.error);
 });

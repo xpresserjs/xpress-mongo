@@ -29,8 +29,9 @@ declare class XMongoClient {
     /**
      * Creates a model using current connection
      * @param collection
+     * @param model
      * @return {typeof XMongoModel}
      */
-    model(collection: string): typeof XMongoModel;
+    model(collection: string, model?: typeof XMongoModel): typeof XMongoModel;
 }
 export = XMongoClient;

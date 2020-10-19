@@ -84,31 +84,41 @@ class XMongoClient {
     /**
      * Creates a model using current connection
      * @param collection
+     * @param model
      * @return {typeof XMongoModel}
      */
-    model(collection: string): typeof XMongoModel {
+    model(collection: string, model?: typeof XMongoModel): typeof XMongoModel {
         const connection: Collection = this.collection(collection);
 
-        /**
-         * Extend XMongoModel
-         */
-        return <typeof XMongoModel><unknown>class extends XMongoModel {
+        if (model) {
+            model.native = function (): Collection {
+                return connection
+            }
+            return model;
+        } else {
             /**
-             * Use `.native()` instead
-             * @deprecated (v 0.0.40)
+             * Extend XMongoModel
              */
-            static thisCollection(): Collection {
-                console.error('Model.thisCollection() is deprecated, use .native() instead.')
-                return connection;
-            };
+            return <typeof XMongoModel><unknown>class extends XMongoModel {
+                /**
+                 * Use `.native()` instead
+                 * @deprecated (v 0.0.40)
+                 */
+                static thisCollection(): Collection {
+                    console.error('Model.thisCollection() is deprecated, use .native() instead.')
+                    return connection;
+                };
 
-            /**
-             * Returns native mongodb instance to run native queries
-             */
-            static native(): Collection {
-                return connection;
-            };
+                /**
+                 * Returns native mongodb instance to run native queries
+                 */
+                static native(): Collection {
+                    return connection;
+                };
+            }
         }
+
+
     }
 }
 

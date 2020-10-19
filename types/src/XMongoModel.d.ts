@@ -196,6 +196,11 @@ declare class XMongoModel {
      */
     changes(): StringToAnyObject;
     /**
+     * Checks of current instance has changes.
+     * @return {boolean}
+     */
+    hasChanges(): boolean;
+    /**
      * Update model
      * @param set
      * @param options

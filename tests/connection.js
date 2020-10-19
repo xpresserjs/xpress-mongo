@@ -6,14 +6,15 @@ const db_options = {
     useNewUrlParser: true,
     useUnifiedTopology: true
 };
+const connection = Client(db, db_options);
+
 
 
 /**
  * Export Client
  * @type {XMongoClient}
  */
-module.exports = async (runAfterConnection = () => false) => {
-    const connection = Client(db, db_options);
+module.exports = {connection, connector:  async (runAfterConnection = () => false) => {
     let client;
     try {
         client = await connection.connect();
@@ -24,4 +25,4 @@ module.exports = async (runAfterConnection = () => false) => {
         console.log(`DB Connection Error: ${e.message}`);
         process.exit();
     }
-};
+}};

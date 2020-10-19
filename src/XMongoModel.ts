@@ -500,6 +500,15 @@ class XMongoModel {
 
 
     /**
+     * Checks of current instance has changes.
+     * @return {boolean}
+     */
+    hasChanges(): boolean {
+        return Object.keys(this.changes()).length > 0;
+    }
+
+
+    /**
      * Update model
      * @param set
      * @param options
@@ -540,13 +549,13 @@ class XMongoModel {
             if (id) {
                 await RunOnEvent('update', this);
 
-                let $set = this.changes();
-                let $setKeys = Object.keys($set);
+                let $set, changes = this.changes();
+                let $setKeys = Object.keys(changes);
                 if (!$setKeys.length) return resolve(false);
 
                 // Try to validate changes
                 try {
-                    $set = {...$set, ...this.validate($set)};
+                    $set = {...changes, ...this.validate(changes)};
                 } catch (e) {
                     return reject(e)
                 }
@@ -559,8 +568,8 @@ class XMongoModel {
                         if (error) {
                             return reject(error)
                         } else {
-                            RunOnEvent('watch', this, $setKeys);
                             resolve(res.connection)
+                            RunOnEvent('watch', this, changes);
                         }
                     })
             } else {
@@ -1248,7 +1257,20 @@ class XMongoModel {
             throw Error("on('watch') event must be type of Object.")
         }
 
-        _.set(this.events, event, functionOrFunctions);
+        const dots: string[] = event.split('.');
+
+        if (dots.length > 2) {
+            let [main, ...others]: any = dots;
+            others = others.join('.');
+
+            if (this.events[main]) {
+                this.events[main][others] = functionOrFunctions;
+            } else {
+                this.events[main] = {[others as string]: functionOrFunctions};
+            }
+        } else {
+            _.set(this.events, event, functionOrFunctions);
+        }
     }
 }
 

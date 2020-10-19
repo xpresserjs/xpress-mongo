@@ -1,6 +1,5 @@
-const {is, RefreshDateOnUpdate} = require('../');
+const {is, RefreshDateOnUpdate, XMongoModel} = require('../');
 const Database = global['Database'];
-
 
 const ContactSchema = {
     user_id: is.ObjectId().required(),
@@ -33,6 +32,10 @@ const GuestSchema = {
     type: is.String().required(),
     first_name: is.String().required(),
     last_name: is.String(),
+    contact: is.Object(() => ({
+        addy: 'Astro World',
+        number: '0816762374'
+    })).required(),
     guestId: is.Types([
         is.Number(),
         is.Array(),
