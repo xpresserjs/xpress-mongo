@@ -27,18 +27,117 @@ type UuidOptions = {
 };
 
 type XMongoSchemaBuilder = {
-    ObjectId(): XMongoDataType
-    Uuid(version: number, options?: UuidOptions): XMongoDataType
     Array(def?: () => Array<any>): XMongoDataType
-    Object(def?: () => StringToAnyObject): XMongoDataType
-    String(def?: string): XMongoDataType
     Boolean(def?: boolean): XMongoDataType
+    CustomValidator(
+        validator: (value: any) => boolean,
+        error: string | { (key: string): string }
+    ): XMongoDataType
     Date(def?: () => Date): XMongoDataType
+    InArray(list: any[], def: any): XMongoDataType
     Number(def?: 0): XMongoDataType
+    Object(def?: () => StringToAnyObject): XMongoDataType
+    ObjectId(): XMongoDataType
+    String(def?: string): XMongoDataType
     Types(types: XMongoDataType[]): XMongoDataType
+    Uuid(version: number, options?: UuidOptions): XMongoDataType
 }
 
 const is: XMongoSchemaBuilder = {
+    /**
+     * Array
+     * @param def
+     * @return {XMongoDataType}
+     */
+    Array: (def = () => []): XMongoDataType => {
+        return new XMongoDataType('Array', def)
+            .validator(isArray)
+            .validatorError((key) => `(${key}) is not an Array`);
+    },
+
+    /**
+     * Boolean
+     * @param def
+     * @return {XMongoDataType}
+     */
+    Boolean: (def = false): XMongoDataType => {
+        return new XMongoDataType('Boolean', def)
+            .validator(isBoolean)
+            .validatorError((key) => `(${key}) is not a Boolean`);
+    },
+
+
+    /**
+     * Custom validator
+     * @param validator
+     * @param error
+     * @constructor
+     */
+    CustomValidator(validator: (value: any) => boolean, error?: string | { (key: string): string }): XMongoDataType {
+        const newValidator = new XMongoDataType('CustomValidator').validator(validator);
+        if (error) {
+            if (typeof error === "string") error = () => <string>error;
+            newValidator.validatorError(error)
+        }
+        return newValidator;
+    },
+
+
+    /**
+     * Date
+     * @param def
+     * @return {XMongoDataType}
+     */
+    Date: (def = () => new Date()): XMongoDataType => {
+        return new XMongoDataType('Date', def)
+            .validator(isDate)
+            .cast((value) => {
+                if (value instanceof Date) {
+                    return value
+                } else {
+                    return new Date(value)
+                }
+            })
+            .validatorError((key) => `(${key}) is not a Date`);
+    },
+
+
+    /**
+     * InArray
+     * @param list
+     * @param def
+     * @constructor
+     */
+    InArray(list: any[], def: any): XMongoDataType {
+        return new XMongoDataType('InArray', def)
+            .validator((value) => list.includes(value))
+            .validatorError(key => `(${key}) is not included in ${JSON.stringify(list)}`)
+    },
+
+    /**
+     * Number
+     * @param def
+     * @return {XMongoDataType}
+     */
+    Number: (def = 0): XMongoDataType => {
+        return new XMongoDataType('Number', def)
+            .validator(isNumber)
+            .cast((v) => Number(v))
+            .validatorError((key) => `(${key}) is not a Number`);
+    },
+
+    /**
+     * Object
+     * @param def
+     * @return {XMongoDataType}
+     */
+    Object: (def = () => ({})): XMongoDataType => {
+        return new XMongoDataType('Object', def)
+            .validator(isObject)
+            .validatorError((key) => `(${key}) is not an Object`);
+
+    },
+
     /**
      * ObjectId
      * @return {XMongoDataType}
@@ -63,57 +162,6 @@ const is: XMongoSchemaBuilder = {
             .validatorError((key) => `(${key}) is not a Mongodb-ObjectID`);
     },
 
-    /**
-     * Uuid
-     * @param version - version of uuid
-     * @param options - options of uuid version 3 or 5
-     */
-    Uuid: (version: (1 | 3 | 4 | 5 | number) = 4, options?: UuidOptions): XMongoDataType => {
-        if (![1, 3, 4, 5].includes(version)) {
-            throw Error("Uuid version argument expects 1, 3, 4 or 5!")
-        }
-
-        if ([3, 5].includes(version) && !options) {
-            throw Error(`Uuid version (${version}) requires {name, namespace} options!`)
-        }
-
-        return new XMongoDataType('Uuid').validator((value) => uuid.validate(value)).default(() => {
-            switch (version) {
-                case 1:
-                    return uuid.v1();
-                case 3:
-                    return uuid.v3((options as UuidOptions).name, (options as UuidOptions).namespace);
-                case 4:
-                    return uuid.v4()
-                case 5:
-                    return uuid.v5((options as UuidOptions).name, (options as UuidOptions).namespace)
-            }
-        })
-    },
-
-    /**
-     * Array
-     * @param def
-     * @return {XMongoDataType}
-     */
-    Array: (def = () => []): XMongoDataType => {
-        return new XMongoDataType('Array', def)
-            .validator(isArray)
-            .validatorError((key) => `(${key}) is not an Array`);
-    },
-
-
-    /**
-     * Object
-     * @param def
-     * @return {XMongoDataType}
-     */
-    Object: (def = () => ({})): XMongoDataType => {
-        return new XMongoDataType('Object', def)
-            .validator(isObject)
-            .validatorError((key) => `(${key}) is not an Object`);
-
-    },
 
     /**
      * String
@@ -124,46 +172,6 @@ const is: XMongoSchemaBuilder = {
         return new XMongoDataType('String', def)
             .validator(isString)
             .validatorError((key) => `(${key}) is not a String`);
-    },
-
-    /**
-     * Boolean
-     * @param def
-     * @return {XMongoDataType}
-     */
-    Boolean: (def = false): XMongoDataType => {
-        return new XMongoDataType('Boolean', def)
-            .validator(isBoolean)
-            .validatorError((key) => `(${key}) is not a Boolean`);
-    },
-
-    /**
-     * Date
-     * @param def
-     * @return {XMongoDataType}
-     */
-    Date: (def = () => new Date()): XMongoDataType => {
-        return new XMongoDataType('Date', def)
-            .validator(isDate)
-            .cast((value) => {
-                if (value instanceof Date) {
-                    return value
-                } else {
-                    return new Date(value)
-                }
-            })
-            .validatorError((key) => `(${key}) is not a Date`);
-    },
-    /**
-     * Number
-     * @param def
-     * @return {XMongoDataType}
-     */
-    Number: (def = 0): XMongoDataType => {
-        return new XMongoDataType('Number', def)
-            .validator(isNumber)
-            .cast((v) => Number(v))
-            .validatorError((key) => `(${key}) is not a Number`);
     },
 
     /**
@@ -208,6 +216,34 @@ const is: XMongoSchemaBuilder = {
         multipleType.validatorError(key => `${key} failed [${typeNames}] validations`);
 
         return multipleType;
+    },
+
+    /**
+     * Uuid
+     * @param version - version of uuid
+     * @param options - options of uuid version 3 or 5
+     */
+    Uuid: (version: (1 | 3 | 4 | 5 | number) = 4, options?: UuidOptions): XMongoDataType => {
+        if (![1, 3, 4, 5].includes(version)) {
+            throw Error("Uuid version argument expects 1, 3, 4 or 5!")
+        }
+
+        if ([3, 5].includes(version) && !options) {
+            throw Error(`Uuid version (${version}) requires {name, namespace} options!`)
+        }
+
+        return new XMongoDataType('Uuid').validator((value) => uuid.validate(value)).default(() => {
+            switch (version) {
+                case 1:
+                    return uuid.v1();
+                case 3:
+                    return uuid.v3((options as UuidOptions).name, (options as UuidOptions).namespace);
+                case 4:
+                    return uuid.v4()
+                case 5:
+                    return uuid.v5((options as UuidOptions).name, (options as UuidOptions).namespace)
+            }
+        })
     },
 };
 

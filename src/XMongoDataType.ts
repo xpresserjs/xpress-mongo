@@ -20,7 +20,7 @@ class XMongoDataType {
      * Set Default value.
      * @param $default
      */
-    default($default: any) {
+    default($default: any): this {
         this.schema.default = $default;
         return this;
     }
@@ -29,7 +29,7 @@ class XMongoDataType {
      * Set if required
      * @param required
      */
-    required(required = true) {
+    required(required = true): this {
         this.schema.required = required;
         return this;
     }
@@ -38,7 +38,7 @@ class XMongoDataType {
      * Set Validator Function/Functions
      * @param validator
      */
-    validator(validator: ValidatorType) {
+    validator(validator: ValidatorType): this {
         this.schema.validator = validator;
         return this;
     }
@@ -47,7 +47,7 @@ class XMongoDataType {
      * Set Validator error
      * @param error
      */
-    validatorError(error: (key: string) => string) {
+    validatorError(error: (key: string) => string): this {
         this.schema.validationError = error;
         return this;
     }
@@ -56,7 +56,7 @@ class XMongoDataType {
      * Set Cast function
      * @param cast
      */
-    cast(cast: CastFunctionType) {
+    cast(cast: CastFunctionType): this {
         this.schema.cast = cast;
         return this;
     }
@@ -64,14 +64,14 @@ class XMongoDataType {
     /**
      * Set default value to undefined
      */
-    isUndefined() {
+    isUndefined(): this {
         return this.default(undefined);
     }
 
     /**
      * Set required to false
      */
-    isOptional() {
+    isOptional(): this {
         return this.required(false);
     }
 }

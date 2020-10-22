@@ -6,15 +6,19 @@ declare type UuidOptions = {
     namespace: string | InputBuffer;
 };
 declare type XMongoSchemaBuilder = {
-    ObjectId(): XMongoDataType;
-    Uuid(version: number, options?: UuidOptions): XMongoDataType;
     Array(def?: () => Array<any>): XMongoDataType;
-    Object(def?: () => StringToAnyObject): XMongoDataType;
-    String(def?: string): XMongoDataType;
     Boolean(def?: boolean): XMongoDataType;
+    CustomValidator(validator: (value: any) => boolean, error: string | {
+        (key: string): string;
+    }): XMongoDataType;
     Date(def?: () => Date): XMongoDataType;
+    InArray(list: any[], def: any): XMongoDataType;
     Number(def?: 0): XMongoDataType;
+    Object(def?: () => StringToAnyObject): XMongoDataType;
+    ObjectId(): XMongoDataType;
+    String(def?: string): XMongoDataType;
     Types(types: XMongoDataType[]): XMongoDataType;
+    Uuid(version: number, options?: UuidOptions): XMongoDataType;
 };
 declare const is: XMongoSchemaBuilder;
 export { is, XMongoSchemaBuilder };
