@@ -16,6 +16,15 @@ class XMongoDataType {
         this.schema.validationError = (key) => `${key} failed ${name} validation.`;
     }
 
+
+    name(name: string) {
+        if (name) {
+            this.schema.name = name;
+        }
+
+        return this
+    }
+
     /**
      * Set Default value.
      * @param $default

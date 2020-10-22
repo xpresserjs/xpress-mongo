@@ -8,15 +8,15 @@ declare type UuidOptions = {
 declare type XMongoSchemaBuilder = {
     Array(def?: () => Array<any>): XMongoDataType;
     Boolean(def?: boolean): XMongoDataType;
-    CustomValidator(validator: (value: any) => boolean, error: string | {
+    CustomValidator(validator: (value: any) => boolean, error?: string | {
         (key: string): string;
     }): XMongoDataType;
     Date(def?: () => Date): XMongoDataType;
-    InArray(list: any[], def: any): XMongoDataType;
-    Number(def?: 0): XMongoDataType;
+    InArray(list: any[], def?: any): XMongoDataType;
+    Number(def?: number | number[]): XMongoDataType;
     Object(def?: () => StringToAnyObject): XMongoDataType;
     ObjectId(): XMongoDataType;
-    String(def?: string): XMongoDataType;
+    String(def?: string | string[]): XMongoDataType;
     Types(types: XMongoDataType[]): XMongoDataType;
     Uuid(version: number, options?: UuidOptions): XMongoDataType;
 };

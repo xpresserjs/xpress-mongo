@@ -2,6 +2,7 @@ import { ValidatorType, CastFunctionType, SchemaPropertiesType } from "./CustomT
 declare class XMongoDataType {
     schema: SchemaPropertiesType;
     constructor(name: string, $default?: any);
+    name(name: string): this;
     /**
      * Set Default value.
      * @param $default

@@ -31,14 +31,14 @@ type XMongoSchemaBuilder = {
     Boolean(def?: boolean): XMongoDataType
     CustomValidator(
         validator: (value: any) => boolean,
-        error: string | { (key: string): string }
+        error?: string | { (key: string): string }
     ): XMongoDataType
     Date(def?: () => Date): XMongoDataType
-    InArray(list: any[], def: any): XMongoDataType
-    Number(def?: 0): XMongoDataType
+    InArray(list: any[], def?: any): XMongoDataType
+    Number(def?: number | number[]): XMongoDataType
     Object(def?: () => StringToAnyObject): XMongoDataType
     ObjectId(): XMongoDataType
-    String(def?: string): XMongoDataType
+    String(def?: string | string[]): XMongoDataType
     Types(types: XMongoDataType[]): XMongoDataType
     Uuid(version: number, options?: UuidOptions): XMongoDataType
 }
@@ -108,7 +108,7 @@ const is: XMongoSchemaBuilder = {
      * @param def
      * @constructor
      */
-    InArray(list: any[], def: any): XMongoDataType {
+    InArray(list: any[], def?: any): XMongoDataType {
         return new XMongoDataType('InArray', def)
             .validator((value) => list.includes(value))
             .validatorError(key => `(${key}) is not included in ${JSON.stringify(list)}`)
@@ -120,6 +120,11 @@ const is: XMongoSchemaBuilder = {
      * @return {XMongoDataType}
      */
     Number: (def = 0): XMongoDataType => {
+        // if array return inArray
+        // noinspection SuspiciousTypeOfGuard
+        if (typeof def !== "number" && Array.isArray(def))
+            return is.InArray(def).name('Number');
+
         return new XMongoDataType('Number', def)
             .validator(isNumber)
             .cast((v) => Number(v))
@@ -169,6 +174,10 @@ const is: XMongoSchemaBuilder = {
      * @return {XMongoDataType}
      */
     String: (def = undefined): XMongoDataType => {
+        // if array return inArray
+        if (def && typeof def !== "string" && Array.isArray(def))
+            return is.InArray(def).name('String');
+
         return new XMongoDataType('String', def)
             .validator(isString)
             .validatorError((key) => `(${key}) is not a String`);
