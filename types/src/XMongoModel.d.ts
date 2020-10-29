@@ -1,7 +1,6 @@
 import ObjectCollection = require('object-collection');
 import { ObjectID, Collection, UpdateWriteOpResult, InsertOneWriteOpResult, DeleteWriteOpResultObject, Cursor, FindOneOptions, UpdateOneOptions, CollectionInsertOneOptions, CollectionAggregationOptions, AggregationCursor, UpdateQuery, FilterQuery } from 'mongodb';
-import { XMongoSchemaBuilder } from './XMongoSchemaBuilder';
-import { PaginationData, StringToAnyObject } from "./CustomTypes";
+import { PaginationData, StringToAnyObject, XMongoSchemaBuilder } from "./CustomTypes";
 declare type FunctionWithRawArgument = {
     (raw: Collection): Cursor | AggregationCursor;
 };

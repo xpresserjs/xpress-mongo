@@ -1,9 +1,10 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
-import { is, XMongoSchemaBuilder } from './src/XMongoSchemaBuilder';
-import { omitIdAndPick, omitIdAnd, omitKeys, pickKeys } from './fn/projection';
+import is = require('./src/XMongoSchemaBuilder');
 import XMongoDataType = require('./src/XMongoDataType');
 import XMongoClient = require('./src/XMongoClient');
 import XMongoModel = require('./src/XMongoModel');
+import { XMongoSchemaBuilder } from "./src/CustomTypes";
+declare const omitIdAndPick: (pick?: string | string[]) => object, omitIdAnd: (omit?: string | string[]) => object, omitKeys: (keys: string | string[], returnObject?: boolean) => object, pickKeys: (keys: string | string[], returnObject?: boolean) => object;
 /**
  * Get connected to a client
  * @param {string|MongoClient} url

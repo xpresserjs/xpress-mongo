@@ -14,10 +14,10 @@ import {
     CollectionAggregationOptions, AggregationCursor, UpdateQuery, FilterQuery
 } from 'mongodb';
 
-import {is, XMongoSchemaBuilder} from './XMongoSchemaBuilder';
+import is from './XMongoSchemaBuilder';
 import {diff} from 'deep-object-diff';
 import {defaultValue, runOrValidation, runAndValidation, RunOnEvent} from '../fn/inbuilt';
-import {PaginationData, SchemaPropertiesType, StringToAnyObject} from "./CustomTypes";
+import {PaginationData, SchemaPropertiesType, StringToAnyObject, XMongoSchemaBuilder} from "./CustomTypes";
 
 /**
  * Get Lodash

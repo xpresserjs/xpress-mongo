@@ -1,6 +1,7 @@
 import XMongoDataType = require("./XMongoDataType");
 import {ObjectID} from "mongodb";
-import {StringToAnyObject} from "./CustomTypes";
+import {UuidOptions, XMongoSchemaBuilder} from "./CustomTypes";
+// @ts-ignore
 import uuid = require("uuid");
 
 // Quick Functions
@@ -19,29 +20,6 @@ const isDate = (v: any) => {
     }
 };
 const isNumber = (v: any) => !isBoolean(v) && !isNaN(v);
-
-type InputBuffer = ArrayLike<number>;
-type UuidOptions = {
-    name: string | InputBuffer,
-    namespace: string | InputBuffer
-};
-
-type XMongoSchemaBuilder = {
-    Array(def?: () => Array<any>): XMongoDataType
-    Boolean(def?: boolean): XMongoDataType
-    CustomValidator(
-        validator: (value: any) => boolean,
-        error?: string | { (key: string): string }
-    ): XMongoDataType
-    Date(def?: () => Date): XMongoDataType
-    InArray(list: any[], def?: any): XMongoDataType
-    Number(def?: number | number[]): XMongoDataType
-    Object(def?: () => StringToAnyObject): XMongoDataType
-    ObjectId(): XMongoDataType
-    String(def?: string | string[]): XMongoDataType
-    Types(types: XMongoDataType[]): XMongoDataType
-    Uuid(version: number, options?: UuidOptions): XMongoDataType
-}
 
 const is: XMongoSchemaBuilder = {
     /**
@@ -257,4 +235,4 @@ const is: XMongoSchemaBuilder = {
 };
 
 
-export {is, XMongoSchemaBuilder}
+export = is;
