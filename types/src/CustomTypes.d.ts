@@ -1,4 +1,4 @@
-import XMongoDataType from "./XMongoDataType";
+import XMongoDataType = require("./XMongoDataType");
 export declare type FunctionReturnsBoolean = (...args: any[]) => boolean;
 export declare type FunctionReturnsVoidOrBoolean = (...args: any[]) => (boolean | void);
 export declare type CastFunctionType = (value: any, key?: string) => any;

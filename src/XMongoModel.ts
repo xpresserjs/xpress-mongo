@@ -14,7 +14,7 @@ import {
     CollectionAggregationOptions, AggregationCursor, UpdateQuery, FilterQuery
 } from 'mongodb';
 
-import is from './XMongoSchemaBuilder';
+import is from './SchemaBuilder';
 import {diff} from 'deep-object-diff';
 import {defaultValue, runOrValidation, runAndValidation, RunOnEvent} from '../fn/inbuilt';
 import {PaginationData, SchemaPropertiesType, StringToAnyObject, XMongoSchemaBuilder} from "./CustomTypes";

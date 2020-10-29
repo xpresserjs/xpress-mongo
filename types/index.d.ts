@@ -1,5 +1,5 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
-import is = require('./src/XMongoSchemaBuilder');
+import is = require('./src/SchemaBuilder');
 import XMongoDataType = require('./src/XMongoDataType');
 import XMongoClient = require('./src/XMongoClient');
 import XMongoModel = require('./src/XMongoModel');
