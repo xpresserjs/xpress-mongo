@@ -90,13 +90,6 @@ class XMongoModel {
 
     /**
      * Direct mongodb access
-     * @type {Collection|null}
-     * @deprecated - use thisCollection()
-     */
-    static raw: Collection;
-
-    /**
-     * Direct mongodb access
      * @type {string[]}
      */
     static append: string[];
@@ -150,7 +143,8 @@ class XMongoModel {
 
     /**
      * Use `.native()` instead
-     * @deprecated (v 0.0.40)
+     * @deprecated since (v 0.0.40)
+     * @remove at (v 1.0.0)
      */
     static thisCollection(): Collection {
         // @ts-ignore
@@ -357,12 +351,12 @@ class XMongoModel {
 
     /**
      * Set Model Schema
-     *
-     * if `schema` is undefined then `this.data` is used as schema object
      * @param {Object|string} schema
      * @returns {this}
      *
      * @deprecated
+     * since (v 0.0.42)
+     * @remove at (v 1.0.0)
      */
     setSchema(schema: any): this {
         console.log(`.setSchema is deprecated use .useSchema`);

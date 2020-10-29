@@ -10,9 +10,9 @@ async function run() {
     });
 
 
-    await user.set('contact.date', new Date()).save();
+    // user.set('contact.date', new Date());
 
-    console.log(user);
+    console.log(await user.save());
 
     /**
      * Async Space

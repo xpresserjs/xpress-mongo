@@ -30,11 +30,35 @@ declare class XMongoDataType {
     cast(cast: CastFunctionType): this;
     /**
      * Set default value to undefined
+     *
+     * @example
+     *  // Deprecated
+     *  is.Number().isUndefined()
+     *  // use instead
+     *  is.Number().undefined()
+     * @deprecated since (v 0.0.52)
+     * @removed at (v1.0.0)
      */
     isUndefined(): this;
     /**
-     * Set required to false
+     * Set default value to undefined
+     */
+    undefined(): this;
+    /**
+     * Set required to false (use `.optional()`)
+     *
+     * @example
+     *  // Deprecated
+     *  is.String().isOptional()
+     *  // use instead
+     *  is.String().optional()
+     * @deprecated since (v 0.0.52)
+     * @removed at (v1.0.0)
      */
     isOptional(): this;
+    /**
+     * Set required to false
+     */
+    optional(): this;
 }
 export = XMongoDataType;

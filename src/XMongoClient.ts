@@ -102,7 +102,8 @@ class XMongoClient {
             return <typeof XMongoModel><unknown>class extends XMongoModel {
                 /**
                  * Use `.native()` instead
-                 * @deprecated (v 0.0.40)
+                 * @deprecated since (v 0.0.40)
+                 * @remove at (v 1.0.0)
                  */
                 static thisCollection(): Collection {
                     console.error('Model.thisCollection() is deprecated, use .native() instead.')
