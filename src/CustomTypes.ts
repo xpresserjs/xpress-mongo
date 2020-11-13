@@ -37,17 +37,17 @@ export type UuidOptions = {
 
 export type XMongoSchemaBuilder = {
     Array(def?: () => Array<any>): XMongoDataType
-    Boolean(def?: boolean): XMongoDataType
+    Boolean(def?: boolean | (() => boolean)): XMongoDataType
     CustomValidator(
         validator: (value: any) => boolean,
         error?: string | { (key: string): string }
     ): XMongoDataType
     Date(def?: () => Date): XMongoDataType
     InArray(list: any[], def?: any): XMongoDataType
-    Number(def?: number | number[]): XMongoDataType
+    Number(def?: number | number[] | (() => number | number[])): XMongoDataType
     Object(def?: () => StringToAnyObject): XMongoDataType
     ObjectId(): XMongoDataType
-    String(def?: string | string[]): XMongoDataType
+    String(def?: string | string[] | (() => string | string[])): XMongoDataType
     Types(types: XMongoDataType[]): XMongoDataType
     Uuid(version: number, options?: UuidOptions): XMongoDataType
 }
