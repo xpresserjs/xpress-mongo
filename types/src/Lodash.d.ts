@@ -1,5 +1,4 @@
-/// <reference types="lodash" />
-declare const _default: import("lodash").LoDashStatic;
+declare const _default;
 /**
  * Get Lodash
  */

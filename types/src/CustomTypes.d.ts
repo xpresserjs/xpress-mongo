@@ -30,6 +30,7 @@ export declare type UuidOptions = {
     namespace: string | InputBuffer;
 };
 export declare type XMongoSchemaBuilder = {
+    Any(def?: any | (() => any)): XMongoDataType;
     Array(def?: () => Array<any>): XMongoDataType;
     Boolean(def?: boolean | (() => boolean)): XMongoDataType;
     CustomValidator(validator: (value: any) => boolean, error?: string | {
