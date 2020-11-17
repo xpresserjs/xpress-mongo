@@ -22,6 +22,17 @@ const isDate = (v: any) => {
 const isNumber = (v: any) => !isBoolean(v) && !isNaN(v);
 
 const is: XMongoSchemaBuilder = {
+
+    /**
+     * Accept any value passed through
+     * @param def
+     * @constructor
+     */
+    Any: (def: any): XMongoDataType => {
+        return new XMongoDataType('Any', def)
+            .validator(() => true)
+    },
+
     /**
      * Array
      * @param def

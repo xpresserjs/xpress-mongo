@@ -36,6 +36,7 @@ export type UuidOptions = {
 };
 
 export type XMongoSchemaBuilder = {
+    Any(def?: any | (() => any)): XMongoDataType
     Array(def?: () => Array<any>): XMongoDataType
     Boolean(def?: boolean | (() => boolean)): XMongoDataType
     CustomValidator(
