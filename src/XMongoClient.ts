@@ -88,38 +88,43 @@ class XMongoClient {
      * @return {typeof XMongoModel}
      */
     model(collection: string, model?: typeof XMongoModel): typeof XMongoModel {
-        const connection: Collection = this.collection(collection);
+        try {
+            const connection: Collection = this.collection(collection);
 
-        if (model) {
-            model.native = function (): Collection {
-                return connection
+            if (model) {
+                model.native = function (): Collection {
+                    return connection
+                }
+                return model;
+            } else {
+                /**
+                 * Extend XMongoModel
+                 */
+                return <typeof XMongoModel><unknown>class extends XMongoModel {
+                    /**
+                     * Use `.native()` instead
+                     * @deprecated since (v 0.0.40)
+                     * @remove at (v 1.0.0)
+                     */
+                    static thisCollection(): Collection {
+                        console.error('Model.thisCollection() is deprecated, use .native() instead.')
+                        return connection;
+                    };
+
+                    /**
+                     * Returns native mongodb instance to run native queries
+                     */
+                    static native(): Collection {
+                        return connection;
+                    };
+                }
             }
-            return model;
-        } else {
+        } catch (e) {
             /**
              * Extend XMongoModel
              */
-            return <typeof XMongoModel><unknown>class extends XMongoModel {
-                /**
-                 * Use `.native()` instead
-                 * @deprecated since (v 0.0.40)
-                 * @remove at (v 1.0.0)
-                 */
-                static thisCollection(): Collection {
-                    console.error('Model.thisCollection() is deprecated, use .native() instead.')
-                    return connection;
-                };
-
-                /**
-                 * Returns native mongodb instance to run native queries
-                 */
-                static native(): Collection {
-                    return connection;
-                };
-            }
+            return <typeof XMongoModel><unknown>class extends XMongoModel {}
         }
-
-
     }
 }
 
