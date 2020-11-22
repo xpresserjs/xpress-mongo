@@ -124,7 +124,7 @@ declare class XMongoModel {
      * @param save - Save new date, default = true
      * @return {Promise<this|*>}
      */
-    static new<T extends XMongoModel>(data: StringToAnyObject, save?: boolean): Promise<T>;
+    static new<T extends typeof XMongoModel>(this: T, data: StringToAnyObject, save?: boolean): Promise<InstanceType<T>>;
     /**
      * Creates instance.
      * @desc
@@ -132,7 +132,7 @@ declare class XMongoModel {
      * @param data - new record data.
      * @return {Promise<this|*>}
      */
-    static make<T extends XMongoModel>(data: StringToAnyObject): T;
+    static make<T extends typeof XMongoModel>(this: T, data: StringToAnyObject): InstanceType<T>;
     /**
      * Check if id is a valid id
      * @param id
@@ -243,7 +243,7 @@ declare class XMongoModel {
      * Use data provided to model instance.
      * @param {{}} data
      */
-    static use(data: StringToAnyObject): XMongoModel;
+    static use<T extends typeof XMongoModel>(this: T, data: StringToAnyObject): InstanceType<T>;
     /**
      * Has One relationship
      * @param relationship
@@ -285,7 +285,7 @@ declare class XMongoModel {
      * @param options
      * @param raw
      */
-    static findOne<T extends XMongoModel>(query?: (StringToAnyObject | FilterQuery<any>), options?: FindOneOptions<any> | boolean, raw?: boolean): Promise<T | null>;
+    static findOne<T extends typeof XMongoModel>(this: T, query?: (StringToAnyObject | FilterQuery<any>), options?: FindOneOptions<any> | boolean, raw?: boolean): Promise<InstanceType<T> | null>;
     /**
      * Fetches the first document that matches id provided.
      * @param _id
@@ -293,7 +293,7 @@ declare class XMongoModel {
      * @param isTypeObjectId
      * @return {Promise<XMongoModel>}
      */
-    static findById(_id: any, options?: FindOneOptions<any>, isTypeObjectId?: boolean): Promise<XMongoModel | null>;
+    static findById<T extends typeof XMongoModel>(this: T, _id: any, options?: FindOneOptions<any>, isTypeObjectId?: boolean): Promise<InstanceType<T> | null>;
     /**
      * Count All the documents that match query.
      * @param query
@@ -374,9 +374,9 @@ declare class XMongoModel {
      *
      * @return {Promise<this[]>|this[]} returns - Array of model instances
      */
-    static fromArray(query: FunctionWithRawArgument | any[], interceptor?: boolean | {
+    static fromArray<T extends typeof XMongoModel>(this: T, query: FunctionWithRawArgument | any[], interceptor?: boolean | {
         (lists: Array<any>): any;
-    }): XMongoModel[] | Promise<any[]>;
+    }): InstanceType<T>[] | Promise<any[]>;
     /**
      * A helper to fetch result as array.
      * @param query - a function

@@ -277,10 +277,10 @@ class XMongoModel {
      * @param save - Save new date, default = true
      * @return {Promise<this|*>}
      */
-    static async new<T extends XMongoModel>(data: StringToAnyObject, save = true): Promise<T> {
+    static async new<T extends typeof XMongoModel>(this: T, data: StringToAnyObject, save = true): Promise<InstanceType<T>> {
         const record = this.make(data);
         if (save) await record.save();
-        return <T>record;
+        return record;
     }
 
     /**
@@ -290,8 +290,8 @@ class XMongoModel {
      * @param data - new record data.
      * @return {Promise<this|*>}
      */
-    static make<T extends XMongoModel>(data: StringToAnyObject): T {
-        return <T>(new this()).set(data);
+    static make<T extends typeof XMongoModel>(this: T, data: StringToAnyObject): InstanceType<T> {
+        return (new this()).set(data) as InstanceType<T>;
     }
 
     /**
@@ -817,8 +817,8 @@ class XMongoModel {
      * Use data provided to model instance.
      * @param {{}} data
      */
-    static use(data: StringToAnyObject): XMongoModel {
-        const model: XMongoModel | any = new this();
+    static use<T extends typeof XMongoModel>(this: T, data: StringToAnyObject): InstanceType<T> {
+        const model = new this();
         model.emptyData();
         // Set Original Property
         model.setOriginal(data);
@@ -826,13 +826,13 @@ class XMongoModel {
 
         if (this.append) {
             for (const key of this.append) {
-                if (typeof <StringToAnyObject>model[key] === "function") {
-                    model.set(key, <StringToAnyObject>model[key]())
+                if (typeof (model as StringToAnyObject)[key] === "function") {
+                    model.set(key, (model as StringToAnyObject)[key]())
                 }
             }
         }
 
-        return <XMongoModel>model;
+        return model as InstanceType<T>;
     }
 
     /**
@@ -982,7 +982,7 @@ class XMongoModel {
      * @param options
      * @param raw
      */
-    static findOne<T extends XMongoModel>(query: (StringToAnyObject | FilterQuery<any>) = {}, options: FindOneOptions<any> | boolean = {}, raw = false): Promise<T | null> {
+    static findOne<T extends typeof XMongoModel>(this: T, query: (StringToAnyObject | FilterQuery<any>) = {}, options: FindOneOptions<any> | boolean = {}, raw = false): Promise<InstanceType<T> | null> {
 
         if (typeof options === "boolean") {
             raw = options;
@@ -996,7 +996,7 @@ class XMongoModel {
                 if (!data) return resolve(null);
                 if (raw) return resolve(data);
 
-                return resolve(this.use(data) as T);
+                return resolve(this.use(data) as InstanceType<T>);
             });
         });
     }
@@ -1009,7 +1009,7 @@ class XMongoModel {
      * @param isTypeObjectId
      * @return {Promise<XMongoModel>}
      */
-    static findById(_id: any, options: FindOneOptions<any> = {}, isTypeObjectId = true): Promise<XMongoModel | null> {
+    static findById<T extends typeof XMongoModel>(this: T, _id: any, options: FindOneOptions<any> = {}, isTypeObjectId = true): Promise<InstanceType<T> | null> {
         let where;
         if (typeof _id === "string" || !isTypeObjectId) {
             where = XMongoModel.id(_id, true);
@@ -1191,7 +1191,7 @@ class XMongoModel {
      *
      * @return {Promise<this[]>|this[]} returns - Array of model instances
      */
-    static fromArray(query: FunctionWithRawArgument | any[], interceptor: boolean | { (lists: Array<any>): any } = false): XMongoModel[] | Promise<any[]> {
+    static fromArray<T extends typeof XMongoModel>(this: T, query: FunctionWithRawArgument | any[], interceptor: boolean | { (lists: Array<any>): any } = false): InstanceType<T>[] | Promise<any[]> {
         if (typeof query === "function") {
             return new Promise((resolve, reject) => {
                 return (<Cursor>query(this.native())).toArray((error, lists) => {

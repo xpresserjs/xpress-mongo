@@ -17,7 +17,7 @@ async function run() {
     /**
      * Async Space
      */
-    const guest = new Users().set({
+    const guest = Users.use({
         type: 'guest',
         first_name: 'Hello',
         last_name: 'World',
