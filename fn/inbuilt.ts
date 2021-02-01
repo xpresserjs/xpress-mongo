@@ -64,17 +64,6 @@ export function runAndValidation(value: any, validators: ValidatorType[] | Funct
 }
 
 
-// function eventKeys(events: StringToAnyObject){
-//     const keys = Object.keys(events);
-//     const keysList = [];
-//     for (const key of keys){
-//         if(typeof events[key] === "function"){
-//             keysList.push(key)
-//         }
-//     }
-// }
-
-
 export async function RunOnEvent(event: string, modelInstance: XMongoModel, changes?: StringToAnyObject): Promise<any> {
     const Model = (modelInstance.constructor as typeof XMongoModel);
     if (!Model.events) return false;

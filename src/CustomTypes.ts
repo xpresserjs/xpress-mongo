@@ -19,7 +19,7 @@ export type SchemaPropertiesType = {
     cast: CastFunctionType | null
 }
 
-export type StringToAnyObject = { [key: string]: any }
+export type StringToAnyObject = Record<string, any>
 
 export type PaginationData = {
     total: number,

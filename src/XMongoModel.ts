@@ -26,11 +26,11 @@ const _ = ObjectCollection.getLodash();
 
 type FunctionWithRawArgument = { (raw: Collection): Cursor | AggregationCursor };
 
-
+// type ModelRelationships  = {;
 /**
  * @class
  */
-class XMongoModel {
+class XMongoModel<ModelDataType = Record<string, any>> {
 
     /**
      * Model Data
@@ -80,7 +80,14 @@ class XMongoModel {
      * Defined relationships
      * @type {{}}
      */
-    static relationships: StringToAnyObject = {};
+    static relationships: {
+        [relationship: string]: {
+            type: string,
+            model: typeof XMongoModel | [(() => typeof XMongoModel)],
+            options: Record<string, any>,
+            where: Record<string, any>
+        }
+    } = {};
 
     /** Model Loaded Relationships
      * @private
@@ -840,11 +847,11 @@ class XMongoModel {
      * @param relationship
      * @param extend
      */
-    async hasOne(relationship: string, extend: StringToAnyObject = {}): Promise<any | XMongoModel> {
-        let config = (<typeof XMongoModel>this.constructor).relationships;
+    async hasOne(relationship: string, extend: { as?: boolean | string, options?: Record<string, any>, cast?: boolean } = {}): Promise<any | XMongoModel> {
+        let relationships = (<typeof XMongoModel>this.constructor).relationships;
 
-        if (config && typeof config === "object" && config.hasOwnProperty(relationship)) {
-            config = config[relationship];
+        if (relationships && typeof relationships === "object" && relationships.hasOwnProperty(relationship)) {
+            const config = relationships[relationship];
             if (config.type !== "hasOne") {
                 throw Error(`Relationship: (${relationship}) is not of type "hasOne"`)
             }
@@ -859,8 +866,8 @@ class XMongoModel {
              * Get query option
              * @type {*|{}}
              */
-            let options = _.cloneDeep(config['options'] || {});
-            if (extend.hasOwnProperty('options')) options = _.cloneDeep(extend.options);
+            let options = _.cloneDeep(config.options || {});
+            if (extend.hasOwnProperty('options')) options = _.cloneDeep(extend.options) as any;
 
 
             /**
@@ -887,14 +894,13 @@ class XMongoModel {
 
             /**
              * Get hasOne Model.
-             * @type {typeof XMongoModel}
              */
-            let model: typeof XMongoModel | any[] = config.model;
+            let model = config.model;
 
             if (Array.isArray(model) && typeof model[0] === "function")
                 model = model[0]();
 
-            let relatedData: StringToAnyObject | void = await (<typeof XMongoModel>model).native().findOne(where, options);
+            let relatedData = await (<typeof XMongoModel>model).native().findOne(where, options);
 
             if (cast && relatedData) relatedData = (<typeof XMongoModel>model).use(relatedData);
 
