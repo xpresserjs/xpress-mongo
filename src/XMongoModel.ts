@@ -83,9 +83,9 @@ class XMongoModel {
     static relationships: {
         [relationship: string]: {
             type: string,
-            model: typeof XMongoModel | [(() => typeof XMongoModel)],
-            options: Record<string, any>,
+            model: any,
             where: Record<string, any>
+            options?: Record<string, any>,
         }
     } = {};
 
