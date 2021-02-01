@@ -30,7 +30,7 @@ type FunctionWithRawArgument = { (raw: Collection): Cursor | AggregationCursor }
 /**
  * @class
  */
-class XMongoModel<ModelDataType = Record<string, any>> {
+class XMongoModel {
 
     /**
      * Model Data
