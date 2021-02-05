@@ -26,12 +26,12 @@
   },
   "homepage": "https://github.com/xpresserjs/xpress-mongo#readme",
   "dependencies": {
-    "@types/mongodb": "^3.6.3",
-    "@types/node": "^14.14.22",
+    "@types/mongodb": "^3.6.5",
+    "@types/node": "^14.14.25",
     "@types/uuid": "^8.3.0",
     "axios": "^0.21.1",
     "deep-object-diff": "^1.1.0",
-    "mongodb": "^3.6.3",
+    "mongodb": "^3.6.4",
     "object-collection": "^1.0.31",
     "uuid": "^8.3.2"
   },
