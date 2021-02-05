@@ -2,6 +2,7 @@ const {connector, connection} = require('./connection');
 
 async function run() {
     await connector();
+    
     const {Users, Contacts} = require('./models');
 
     // // 5f8bb34c17793a7bb278d24f
