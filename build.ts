@@ -16,6 +16,8 @@ async function main() {
     fs.writeFileSync(`${__dirname}/dist/package.json`, JSON.stringify(PackageDotJson, null, 2));
     // Copy readme.md
     fs.copyFileSync(`${__dirname}/readme.md`, `${__dirname}/dist/readme.md`);
+
+    console.log('npm publish ./dist');
 }
 
 main().then(() => process.exit())

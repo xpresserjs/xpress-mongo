@@ -971,7 +971,12 @@ class XMongoModel {
      * @return {Promise<XMongoModel[]>}
      */
     static find(query: (StringToAnyObject | FilterQuery<any>) = {}, options: FindOneOptions<any> = {}, raw = false): Promise<XMongoModel[]> | Cursor {
-        const result = this.native().find(query, options);
+
+        /**
+         * options as any is used here because mongodb did not make its new
+         * WithoutProjection type exportable so we can't make reference to it.
+         */
+        const result = this.native().find(query, options as any);
         if (raw) return result;
 
         return new Promise((resolve, reject) => {
@@ -996,7 +1001,11 @@ class XMongoModel {
         }
 
         return new Promise((resolve, reject) => {
-            return this.native().findOne(query, <FindOneOptions<any>>options, (error, data) => {
+            /**
+             * options as any is used here because mongodb did not make its new
+             * WithoutProjection type exportable so we can't make reference to it.
+             */
+            return this.native().findOne(query, options as any, (error, data) => {
                 if (error) return reject(error);
                 // Return new instance of Model
                 if (!data) return resolve(null);
@@ -1034,7 +1043,11 @@ class XMongoModel {
      * @return {void | * | Promise | undefined | IDBRequest<number>}
      */
     static count(query: (StringToAnyObject | FilterQuery<any>) = {}, options?: FindOneOptions<any>): Promise<number> {
-        return this.native().find(query, options).count()
+        /**
+         * options as any is used here because mongodb did not make its new
+         * WithoutProjection type exportable so we can't make reference to it.
+         */
+        return this.native().find(query, options as any).count()
     }
 
 
@@ -1126,7 +1139,12 @@ class XMongoModel {
         const total = await this.count(query);
         const lastPage = Math.ceil(total / perPage);
         const skips = perPage * (page - 1);
-        const data = await this.native().find(query, options).skip(skips).limit(perPage).toArray();
+
+        /**
+         * options as any is used here because mongodb did not make its new
+         * WithoutProjection<FindOneOptions<TsSchema>> type exportable so we can't make reference to it.
+         */
+        const data = await this.native().find(query, options as any).skip(skips).limit(perPage).toArray();
 
         return {
             total,
