@@ -8,7 +8,7 @@
     "test": "tests"
   },
   "scripts": {
-    "bp": "tsc && ts-node build",
+    "bp": "tsc && ts-node build && npm publish dist",
     "test": "nodemon tests/test.js",
     "watch": "tsc --watch"
   },
