@@ -1215,7 +1215,7 @@ class XMongoModel {
      *
      * @return {Promise<this[]>|this[]} returns - Array of model instances
      */
-    static fromArray<T extends typeof XMongoModel>(this: T, query: FunctionWithRawArgument | any[], interceptor: boolean | { (lists: Array<any>): any } = false): InstanceType<T>[] | Promise<any[]> {
+    static fromArray<T extends typeof XMongoModel>(this: T, query: FunctionWithRawArgument | any[], interceptor: boolean | { (lists: Array<any>): any } = false): InstanceType<T>[] | Promise<InstanceType<T>[]> {
         if (typeof query === "function") {
             return new Promise((resolve, reject) => {
                 return (<Cursor>query(this.native())).toArray((error, lists) => {
