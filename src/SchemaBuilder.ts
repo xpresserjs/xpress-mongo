@@ -63,13 +63,13 @@ const is: XMongoSchemaBuilder = {
         validator: (value: any) => boolean,
         error?: string | { (key: string): string }
     ): XMongoDataType {
-        const newValidator = new XMongoDataType("CustomValidator").validator(
-            validator
-        );
+        const newValidator = new XMongoDataType("CustomValidator").validator(validator);
+
         if (error) {
             if (typeof error === "string") error = () => <string>error;
             newValidator.validatorError(error);
         }
+
         return newValidator;
     },
 
@@ -100,9 +100,7 @@ const is: XMongoSchemaBuilder = {
     InArray(list: any[], def?: any): XMongoDataType {
         return new XMongoDataType("InArray", def)
             .validator((value) => list.includes(value))
-            .validatorError(
-                (key) => `(${key}) is not included in ${JSON.stringify(list)}`
-            );
+            .validatorError((key) => `(${key}) is not included in ${JSON.stringify(list)}`);
     },
 
     /**
@@ -113,8 +111,7 @@ const is: XMongoSchemaBuilder = {
     Number: (def = 0): XMongoDataType => {
         // if array return inArray
         // noinspection SuspiciousTypeOfGuard
-        if (typeof def !== "number" && Array.isArray(def))
-            return is.InArray(def).name("Number");
+        if (typeof def !== "number" && Array.isArray(def)) return is.InArray(def).name("Number");
 
         return new XMongoDataType("Number", def)
             .validator(isNumber)
@@ -210,9 +207,7 @@ const is: XMongoSchemaBuilder = {
         typeNames = typeNames.join(", ");
 
         // Set Validation Error
-        multipleType.validatorError(
-            (key) => `${key} failed [${typeNames}] validations`
-        );
+        multipleType.validatorError((key) => `${key} failed [${typeNames}] validations`);
 
         return multipleType;
     },
@@ -222,18 +217,13 @@ const is: XMongoSchemaBuilder = {
      * @param version - version of uuid
      * @param options - options of uuid version 3 or 5
      */
-    Uuid: (
-        version: 1 | 3 | 4 | 5 | number = 4,
-        options?: UuidOptions
-    ): XMongoDataType => {
+    Uuid: (version: 1 | 3 | 4 | 5 | number = 4, options?: UuidOptions): XMongoDataType => {
         if (![1, 3, 4, 5].includes(version)) {
             throw Error("Uuid version argument expects 1, 3, 4 or 5!");
         }
 
         if ([3, 5].includes(version) && !options) {
-            throw Error(
-                `Uuid version (${version}) requires {name, namespace} options!`
-            );
+            throw Error(`Uuid version (${version}) requires {name, namespace} options!`);
         }
 
         return new XMongoDataType("Uuid")

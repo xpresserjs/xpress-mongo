@@ -4,10 +4,7 @@
  * @param returnObject
  * @returns {*}
  */
-export const omitKeys = (
-    keys: string | string[],
-    returnObject = false
-): object => {
+export const omitKeys = (keys: string | string[], returnObject = false): object => {
     // Turn keys to array if not array.
     if (!Array.isArray(keys)) keys = [keys];
 
@@ -26,10 +23,7 @@ export const omitKeys = (
  * @param returnObject
  * @returns {*}
  */
-export const pickKeys = (
-    keys: string | string[],
-    returnObject = false
-): object => {
+export const pickKeys = (keys: string | string[], returnObject = false): object => {
     // Turn keys to array if not array.
     if (!Array.isArray(keys)) keys = [keys];
 

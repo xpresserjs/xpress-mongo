@@ -45,16 +45,8 @@ export function runOrValidation(
     for (const validator of validators) {
         if (typeof validator === "function" && validator(value) === true) {
             return true;
-        } else if (
-            typeof validator === "object" &&
-            validator.hasOwnProperty("or")
-        ) {
-            if (
-                runOrValidation(
-                    value,
-                    <FunctionReturnsBoolean[]>validator["or"]
-                )
-            ) {
+        } else if (typeof validator === "object" && validator.hasOwnProperty("or")) {
+            if (runOrValidation(value, <FunctionReturnsBoolean[]>validator["or"])) {
                 return true;
             }
         }
@@ -76,8 +68,7 @@ export function runAndValidation(
     validators: ValidatorType[] | FunctionReturnsBoolean[]
 ): boolean {
     for (const validator of validators) {
-        if (typeof validator === "function" && validator(value) === true)
-            return false;
+        if (typeof validator === "function" && validator(value) === true) return false;
     }
 
     return true;
@@ -95,8 +86,7 @@ export async function RunOnEvent(
     if (!events[event]) return false;
 
     events = events[event];
-    if (event === "watch" && changes && !Object.keys(changes).length)
-        return false;
+    if (event === "watch" && changes && !Object.keys(changes).length) return false;
 
     if (typeof events === "function") {
         await events(modelInstance);
@@ -106,9 +96,7 @@ export async function RunOnEvent(
         for (const field of fields) {
             if (event === "watch") {
                 if (_.has(changes, field)) {
-                    Promise.all([events[field](modelInstance)]).catch(
-                        console.error
-                    );
+                    Promise.all([events[field](modelInstance)]).catch(console.error);
                 }
             } else {
                 const newFieldValue = await events[field](modelInstance);

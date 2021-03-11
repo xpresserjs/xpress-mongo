@@ -12,10 +12,7 @@ async function main() {
     PackageDotJson.types = "index.d.ts";
 
     // Copy Package.json
-    fs.writeFileSync(
-        `${__dirname}/dist/package.json`,
-        JSON.stringify(PackageDotJson, null, 2)
-    );
+    fs.writeFileSync(`${__dirname}/dist/package.json`, JSON.stringify(PackageDotJson, null, 2));
     // Copy readme.md
     fs.copyFileSync(`${__dirname}/readme.md`, `${__dirname}/dist/readme.md`);
 

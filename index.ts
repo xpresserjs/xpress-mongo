@@ -15,10 +15,7 @@ const { omitIdAndPick, omitIdAnd, omitKeys, pickKeys } = Projectors;
  * @return {XMongoClient}
  * @constructor
  */
-function Client(
-    url: string | MongoClient,
-    options: MongoClientOptions = {}
-): XMongoClient {
+function Client(url: string | MongoClient, options: MongoClientOptions = {}): XMongoClient {
     /**
      * If first argument i.e url is an instance of MongoClient
      * We use it instead
@@ -37,10 +34,7 @@ function Client(
  * @param url
  * @param options
  */
-function parseServerUrl(
-    url: string,
-    options: { dbname: string; password: string }
-) {
+function parseServerUrl(url: string, options: { dbname: string; password: string }) {
     if (options.dbname) {
         url = url.replace("<dbname>", options.dbname);
     }

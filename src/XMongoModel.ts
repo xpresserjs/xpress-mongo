@@ -19,12 +19,7 @@ import {
 
 import is from "./SchemaBuilder";
 import { diff } from "deep-object-diff";
-import {
-    defaultValue,
-    runOrValidation,
-    runAndValidation,
-    RunOnEvent
-} from "../fn/inbuilt";
+import { defaultValue, runOrValidation, runAndValidation, RunOnEvent } from "../fn/inbuilt";
 import {
     PaginationData,
     SchemaPropertiesType,
@@ -324,10 +319,7 @@ class XMongoModel {
      * @param data - new record data.
      * @return {Promise<this|*>}
      */
-    static make<T extends typeof XMongoModel>(
-        this: T,
-        data: StringToAnyObject
-    ): InstanceType<T> {
+    static make<T extends typeof XMongoModel>(this: T, data: StringToAnyObject): InstanceType<T> {
         return new this().set(data) as InstanceType<T>;
     }
 
@@ -406,17 +398,12 @@ class XMongoModel {
      * @returns {this}
      */
     useSchema(
-        schema:
-            | string
-            | StringToAnyObject
-            | { (is: XMongoSchemaBuilder): StringToAnyObject }
+        schema: string | StringToAnyObject | { (is: XMongoSchemaBuilder): StringToAnyObject }
     ): this {
         // Try to find schema from .schemaStore if string
         if (typeof schema === "string") {
             if (!this.schemaStore.hasOwnProperty(schema)) {
-                throw Error(
-                    `schemaStore does not have schema named: ${schema}`
-                );
+                throw Error(`schemaStore does not have schema named: ${schema}`);
             }
 
             // Empty Data to remove any predefined schemas
@@ -543,10 +530,7 @@ class XMongoModel {
      * @param options
      * @return {Promise<UpdateWriteOpResult>}
      */
-    update(
-        set: StringToAnyObject,
-        options?: UpdateOneOptions
-    ): Promise<UpdateWriteOpResult> {
+    update(set: StringToAnyObject, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
         if (!this.id())
             throw Error(
                 "UPDATE_ERROR: Model does not have an _id, so we assume it is not from the database."
@@ -571,12 +555,8 @@ class XMongoModel {
         return new Promise((resolve, reject) => {
             return (<typeof XMongoModel>this.constructor)
                 .native()
-                .updateOne(
-                    { _id: this.id() },
-                    update,
-                    <UpdateOneOptions>options,
-                    (error, res) =>
-                        error ? reject(error) : resolve(res.connection)
+                .updateOne({ _id: this.id() }, update, <UpdateOneOptions>options, (error, res) =>
+                    error ? reject(error) : resolve(res.connection)
                 );
         });
     }
@@ -635,19 +615,15 @@ class XMongoModel {
 
                 return (<typeof XMongoModel>this.constructor)
                     .native()
-                    .insertOne(
-                        this.data,
-                        <CollectionInsertOneOptions>options,
-                        (error, res) => {
-                            if (error) return reject(error);
-                            const { insertedId } = res;
+                    .insertOne(this.data, <CollectionInsertOneOptions>options, (error, res) => {
+                        if (error) return reject(error);
+                        const { insertedId } = res;
 
-                            this.set("_id", insertedId);
-                            this.setOriginal(this.data);
+                        this.set("_id", insertedId);
+                        this.setOriginal(this.data);
 
-                            return resolve(res);
-                        }
-                    );
+                        return resolve(res);
+                    });
             }
         });
     }
@@ -657,10 +633,7 @@ class XMongoModel {
      * @param {string|[]} keys - Key or Keys to unset from collection
      * @param {Object} options - Update options
      */
-    unset(
-        keys: string | string[],
-        options: UpdateOneOptions = {}
-    ): Promise<UpdateWriteOpResult> {
+    unset(keys: string | string[], options: UpdateOneOptions = {}): Promise<UpdateWriteOpResult> {
         // Throw Error if keys is undefined
         if (!keys) throw Error("Unset key or keys is required.");
 
@@ -683,21 +656,16 @@ class XMongoModel {
         return new Promise((resolve, reject) => {
             return (<typeof XMongoModel>this.constructor)
                 .native()
-                .updateOne(
-                    { _id: this.id() },
-                    { $unset },
-                    options,
-                    (error, res) => {
-                        if (error) return reject(error);
+                .updateOne({ _id: this.id() }, { $unset }, options, (error, res) => {
+                    if (error) return reject(error);
 
-                        // Remove keys from current data
-                        for (const key of keys) {
-                            this.toCollection().unset(key);
-                        }
-
-                        return resolve(res);
+                    // Remove keys from current data
+                    for (const key of keys) {
+                        this.toCollection().unset(key);
                     }
-                );
+
+                    return resolve(res);
+                });
         });
     }
 
@@ -781,10 +749,7 @@ class XMongoModel {
                      * Else if validatorType is 'object'
                      * validate the object received.
                      */
-                    if (
-                        validatorType === "function" &&
-                        !schema.validator(dataValue)
-                    ) {
+                    if (validatorType === "function" && !schema.validator(dataValue)) {
                         throw new TypeError(validatorError);
                     } else if (validatorType === "object") {
                         // Get first key of object
@@ -801,10 +766,7 @@ class XMongoModel {
                             throw new TypeError(validatorError);
                         } else if (
                             validatorType === "and" &&
-                            !runAndValidation(
-                                dataValue,
-                                schema.validator["and"]
-                            )
+                            !runAndValidation(dataValue, schema.validator["and"])
                         ) {
                             throw new TypeError(validatorError);
                         }
@@ -837,10 +799,7 @@ class XMongoModel {
         for (const dataKey in data) {
             const dataValue = data[dataKey];
 
-            if (
-                !this.schema.hasOwnProperty(dataKey) &&
-                dataValue !== undefined
-            ) {
+            if (!this.schema.hasOwnProperty(dataKey) && dataValue !== undefined) {
                 validated[dataKey] = dataValue;
             }
 
@@ -865,9 +824,7 @@ class XMongoModel {
             RunOnEvent("delete", this).catch(console.error);
 
             // Delete Document
-            return (<typeof XMongoModel>this.constructor)
-                .native()
-                .deleteOne({ _id });
+            return (<typeof XMongoModel>this.constructor).native().deleteOne({ _id });
         } else {
             throw "DELETE_ERROR: Model does not have an _id, so we assume it is not from the database.";
         }
@@ -895,10 +852,7 @@ class XMongoModel {
      * Use data provided to model instance.
      * @param {{}} data
      */
-    static use<T extends typeof XMongoModel>(
-        this: T,
-        data: StringToAnyObject
-    ): InstanceType<T> {
+    static use<T extends typeof XMongoModel>(this: T, data: StringToAnyObject): InstanceType<T> {
         const model = new this();
         model.emptyData();
         // Set Original Property
@@ -929,8 +883,7 @@ class XMongoModel {
             cast?: boolean;
         } = {}
     ): Promise<any | XMongoModel> {
-        let relationships = (<typeof XMongoModel>this.constructor)
-            .relationships;
+        let relationships = (<typeof XMongoModel>this.constructor).relationships;
 
         if (
             relationships &&
@@ -939,9 +892,7 @@ class XMongoModel {
         ) {
             const config = relationships[relationship];
             if (config.type !== "hasOne") {
-                throw Error(
-                    `Relationship: (${relationship}) is not of type "hasOne"`
-                );
+                throw Error(`Relationship: (${relationship}) is not of type "hasOne"`);
             }
 
             /**
@@ -955,8 +906,7 @@ class XMongoModel {
              * @type {*|{}}
              */
             let options = _.cloneDeep(config.options || {});
-            if (extend.hasOwnProperty("options"))
-                options = _.cloneDeep(extend.options) as any;
+            if (extend.hasOwnProperty("options")) options = _.cloneDeep(extend.options) as any;
 
             /**
              * Get Relationship where query.
@@ -984,15 +934,11 @@ class XMongoModel {
              */
             let model = config.model;
 
-            if (Array.isArray(model) && typeof model[0] === "function")
-                model = model[0]();
+            if (Array.isArray(model) && typeof model[0] === "function") model = model[0]();
 
-            let relatedData = await (<typeof XMongoModel>model)
-                .native()
-                .findOne(where, options);
+            let relatedData = await (<typeof XMongoModel>model).native().findOne(where, options);
 
-            if (cast && relatedData)
-                relatedData = (<typeof XMongoModel>model).use(relatedData);
+            if (cast && relatedData) relatedData = (<typeof XMongoModel>model).use(relatedData);
 
             /**
              * Set relationship to value provided in the extend.as config.
@@ -1037,10 +983,7 @@ class XMongoModel {
      * @param returnObject
      * @return {*}
      */
-    static id(
-        str: any,
-        returnObject = false
-    ): (ObjectID | string) | { _id: ObjectID | string } {
+    static id(str: any, returnObject = false): (ObjectID | string) | { _id: ObjectID | string } {
         let _id: ObjectID | string = str;
 
         if (typeof str === "string") {
@@ -1107,18 +1050,14 @@ class XMongoModel {
              * options as any is used here because mongodb did not make its new
              * WithoutProjection type exportable so we can't make reference to it.
              */
-            return this.native().findOne(
-                query,
-                options as any,
-                (error, data) => {
-                    if (error) return reject(error);
-                    // Return new instance of Model
-                    if (!data) return resolve(null);
-                    if (raw) return resolve(data);
+            return this.native().findOne(query, options as any, (error, data) => {
+                if (error) return reject(error);
+                // Return new instance of Model
+                if (!data) return resolve(null);
+                if (raw) return resolve(data);
 
-                    return resolve(this.use(data) as InstanceType<T>);
-                }
-            );
+                return resolve(this.use(data) as InstanceType<T>);
+            });
         });
     }
 
@@ -1353,23 +1292,21 @@ class XMongoModel {
     ): InstanceType<T>[] | Promise<InstanceType<T>[]> {
         if (typeof query === "function") {
             return new Promise((resolve, reject) => {
-                return (<Cursor>query(this.native())).toArray(
-                    (error, lists) => {
-                        if (error) return reject(error);
+                return (<Cursor>query(this.native())).toArray((error, lists) => {
+                    if (error) return reject(error);
 
-                        /**
-                         * Check if interceptor is a function
-                         * if it is we pass list to the function
-                         *
-                         * else we pass it to self (fromArray)
-                         */
-                        return resolve(
-                            typeof interceptor === "function"
-                                ? interceptor(lists)
-                                : this.fromArray(lists)
-                        );
-                    }
-                );
+                    /**
+                     * Check if interceptor is a function
+                     * if it is we pass list to the function
+                     *
+                     * else we pass it to self (fromArray)
+                     */
+                    return resolve(
+                        typeof interceptor === "function"
+                            ? interceptor(lists)
+                            : this.fromArray(lists)
+                    );
+                });
             });
         } else {
             const data = [];
@@ -1441,8 +1378,6 @@ class XMongoModel {
 }
 
 type FunctionWithModelInstance = (modelInstance: XMongoModel) => void | any;
-type onEvent =
-    | FunctionWithModelInstance
-    | { [key: string]: FunctionWithModelInstance };
+type onEvent = FunctionWithModelInstance | { [key: string]: FunctionWithModelInstance };
 
 export = XMongoModel;
