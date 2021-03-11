@@ -1,11 +1,12 @@
-import {MongoClient, MongoClientOptions} from "mongodb";
-import is = require('./src/SchemaBuilder');
-import Projectors = require('./fn/projection');
-import XMongoDataType = require('./src/XMongoDataType');
-import XMongoClient = require('./src/XMongoClient');
-import XMongoModel = require('./src/XMongoModel');
+import { MongoClient, MongoClientOptions } from "mongodb";
+import is = require("./src/SchemaBuilder");
+import Projectors = require("./fn/projection");
+import XMongoDataType = require("./src/XMongoDataType");
+import XMongoClient = require("./src/XMongoClient");
+import XMongoModel = require("./src/XMongoModel");
 import { XMongoSchemaBuilder } from "./src/CustomTypes";
-const {omitIdAndPick, omitIdAnd, omitKeys, pickKeys} = Projectors;
+
+const { omitIdAndPick, omitIdAnd, omitKeys, pickKeys } = Projectors;
 
 /**
  * Get connected to a client
@@ -14,7 +15,10 @@ const {omitIdAndPick, omitIdAnd, omitKeys, pickKeys} = Projectors;
  * @return {XMongoClient}
  * @constructor
  */
-function Client(url: string | MongoClient, options: MongoClientOptions = {}): XMongoClient {
+function Client(
+    url: string | MongoClient,
+    options: MongoClientOptions = {}
+): XMongoClient {
     /**
      * If first argument i.e url is an instance of MongoClient
      * We use it instead
@@ -33,14 +37,17 @@ function Client(url: string | MongoClient, options: MongoClientOptions = {}): XM
  * @param url
  * @param options
  */
-function parseServerUrl(url: string, options: { dbname: string, password: string }) {
+function parseServerUrl(
+    url: string,
+    options: { dbname: string; password: string }
+) {
     if (options.dbname) {
-        url = url.replace('<dbname>', options.dbname)
+        url = url.replace("<dbname>", options.dbname);
     }
 
     if (options.password) {
         options.password = encodeURI(options.password);
-        url = url.replace('<password>', options.password);
+        url = url.replace("<password>", options.password);
     }
 
     return url;
@@ -50,11 +57,15 @@ function parseServerUrl(url: string, options: { dbname: string, password: string
  * Adds an event to set a fields Timestamp to current date on update.
  * Remove if not in use.
  */
-function RefreshDateOnUpdate(Model: typeof XMongoModel, field: string, ifHasChanges: boolean = true) {
+function RefreshDateOnUpdate(
+    Model: typeof XMongoModel,
+    field: string,
+    ifHasChanges: boolean = true
+) {
     if (ifHasChanges) {
         Model.on(`update.${field}`, (model) => {
             if (Object.keys(model.changes()).length) {
-                return new Date()
+                return new Date();
             }
         });
     } else {
@@ -65,21 +76,17 @@ function RefreshDateOnUpdate(Model: typeof XMongoModel, field: string, ifHasChan
 export {
     // Export is schemaBuilder
     is,
-
     // Export Client
     Client,
-
     // Export Model Class and Helpers
     XMongoModel,
     XMongoDataType,
     XMongoSchemaBuilder,
-
     // Export Projectors for quicker requirement
     omitKeys,
     pickKeys,
     omitIdAnd,
     omitIdAndPick,
-
     // Others
     parseServerUrl,
     RefreshDateOnUpdate

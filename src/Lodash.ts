@@ -1,4 +1,4 @@
-import ObjectCollection = require('object-collection');
+import ObjectCollection = require("object-collection");
 
 /**
  * Get Lodash

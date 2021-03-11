@@ -4,7 +4,10 @@
  * @param returnObject
  * @returns {*}
  */
-export const omitKeys = (keys: string | string[], returnObject = false): object => {
+export const omitKeys = (
+    keys: string | string[],
+    returnObject = false
+): object => {
     // Turn keys to array if not array.
     if (!Array.isArray(keys)) keys = [keys];
 
@@ -14,9 +17,8 @@ export const omitKeys = (keys: string | string[], returnObject = false): object 
         data[key] = 0;
     }
 
-    return returnObject ? {projection: data} : data;
+    return returnObject ? { projection: data } : data;
 };
-
 
 /**
  * Pick keys
@@ -24,7 +26,10 @@ export const omitKeys = (keys: string | string[], returnObject = false): object 
  * @param returnObject
  * @returns {*}
  */
-export const pickKeys = (keys: string | string[], returnObject = false): object => {
+export const pickKeys = (
+    keys: string | string[],
+    returnObject = false
+): object => {
     // Turn keys to array if not array.
     if (!Array.isArray(keys)) keys = [keys];
 
@@ -34,7 +39,7 @@ export const pickKeys = (keys: string | string[], returnObject = false): object 
         data[key] = 1;
     }
 
-    return returnObject ? {projection: data} : data;
+    return returnObject ? { projection: data } : data;
 };
 
 /**
@@ -47,7 +52,7 @@ export const pickKeys = (keys: string | string[], returnObject = false): object 
  * @returns {{}}
  */
 export const omitIdAnd = (omit: string | string[] = []): object => {
-    return {_id: 0, ...omitKeys(omit)};
+    return { _id: 0, ...omitKeys(omit) };
 };
 
 /**
@@ -61,5 +66,5 @@ export const omitIdAnd = (omit: string | string[] = []): object => {
  * @returns {{}}
  */
 export const omitIdAndPick = (pick: string | string[] = []): object => {
-    return {_id: 0, ...pickKeys(pick)};
+    return { _id: 0, ...pickKeys(pick) };
 };

@@ -1,28 +1,31 @@
-import {ValidatorType, CastFunctionType, SchemaPropertiesType} from "./CustomTypes";
-
+import {
+    ValidatorType,
+    CastFunctionType,
+    SchemaPropertiesType
+} from "./CustomTypes";
 
 class XMongoDataType {
     public schema: SchemaPropertiesType = {
-        name: '',
+        name: "",
         required: false,
         validator: () => true,
-        validationError: () => 'Validation Error',
-        cast: null,
+        validationError: () => "Validation Error",
+        cast: null
     };
 
     constructor(name: string, $default?: any) {
         this.schema.name = name;
         this.schema.default = $default;
-        this.schema.validationError = (key) => `${key} failed ${name} validation.`;
+        this.schema.validationError = (key) =>
+            `${key} failed ${name} validation.`;
     }
-
 
     name(name: string) {
         if (name) {
             this.schema.name = name;
         }
 
-        return this
+        return this;
     }
 
     /**

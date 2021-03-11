@@ -1,5 +1,5 @@
-const {Users} = require('./models');
-const Chance = require('chance');
+const { Users } = require("./models");
+const Chance = require("chance");
 const chance = new Chance();
 
 async function run() {
@@ -11,7 +11,7 @@ async function run() {
 
     let i = 0;
     let amount = Number(process.argv[2] | 0);
-    console.time('Total Time');
+    console.time("Total Time");
 
     while (i < amount) {
         const user = new Users();
@@ -29,8 +29,7 @@ async function run() {
         i++;
     }
 
-    console.timeLog('Total Time');
-
+    console.timeLog("Total Time");
 
     /**
      * End Async Space

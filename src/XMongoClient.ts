@@ -1,6 +1,5 @@
-import XMongoModel = require('./XMongoModel');
-import {Collection, Db, MongoClient} from "mongodb";
-
+import XMongoModel = require("./XMongoModel");
+import { Collection, Db, MongoClient } from "mongodb";
 
 /**
  * States
@@ -26,7 +25,7 @@ class XMongoClient {
 
     constructor(client: MongoClient) {
         // Save instance client.
-        this.client = client
+        this.client = client;
     }
 
     /**
@@ -38,17 +37,15 @@ class XMongoClient {
         this._connection = this.client.connect();
 
         return new Promise((resolve, reject) => {
-            (<Promise<MongoClient>>this._connection).then(() => {
-
-                this.state = STATES.connected;
-                return resolve(this);
-
-            }).catch(err => {
-
-                this.state = STATES.disconnected;
-                return reject(err)
-
-            });
+            (<Promise<MongoClient>>this._connection)
+                .then(() => {
+                    this.state = STATES.connected;
+                    return resolve(this);
+                })
+                .catch((err) => {
+                    this.state = STATES.disconnected;
+                    return reject(err);
+                });
         });
     }
 
@@ -67,7 +64,7 @@ class XMongoClient {
      */
     connection(): Promise<MongoClient | undefined> | void {
         if (this.state === STATES.null) {
-            throw new Error(`No connection found yet.`)
+            throw new Error(`No connection found yet.`);
         } else if (this.state === STATES.connecting) {
             return Promise.resolve(this._connection);
         }
@@ -78,7 +75,7 @@ class XMongoClient {
      * @param name
      */
     collection(name: string): Collection {
-        return (<Db>this.db).collection(name)
+        return (<Db>this.db).collection(name);
     }
 
     /**
@@ -93,40 +90,41 @@ class XMongoClient {
 
             if (model) {
                 model.native = function (): Collection {
-                    return connection
-                }
+                    return connection;
+                };
                 return model;
             } else {
                 /**
                  * Extend XMongoModel
                  */
-                return <typeof XMongoModel><unknown>class extends XMongoModel {
+                return <typeof XMongoModel>(<unknown>class extends XMongoModel {
                     /**
                      * Use `.native()` instead
                      * @deprecated since (v 0.0.40)
                      * @remove at (v 1.0.0)
                      */
                     static thisCollection(): Collection {
-                        console.error('Model.thisCollection() is deprecated, use .native() instead.')
+                        console.error(
+                            "Model.thisCollection() is deprecated, use .native() instead."
+                        );
                         return connection;
-                    };
+                    }
 
                     /**
                      * Returns native mongodb instance to run native queries
                      */
                     static native(): Collection {
                         return connection;
-                    };
-                }
+                    }
+                });
             }
         } catch (e) {
             /**
              * Extend XMongoModel
              */
-            return <typeof XMongoModel><unknown>class extends XMongoModel {}
+            return <typeof XMongoModel>(<unknown>class extends XMongoModel {});
         }
     }
 }
-
 
 export = XMongoClient;

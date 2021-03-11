@@ -1,5 +1,5 @@
-const {is, RefreshDateOnUpdate, XMongoModel} = require('../');
-const Database = global['Database'];
+const { is, RefreshDateOnUpdate, XMongoModel } = require("../");
+const Database = global["Database"];
 
 const ContactSchema = {
     user_id: is.ObjectId().required(),
@@ -32,40 +32,39 @@ const GuestSchema = {
     type: is.String().required(),
     first_name: is.String().required(),
     last_name: is.String(),
-    contact: is.Object(() => ({
-        addy: 'Astro World',
-        number: '0816762374'
-    })).required(),
-    guestId: is.Types([
-        is.Number(),
-        is.Array(),
-    ]).default(() => ['en']).required(),
+    contact: is
+        .Object(() => ({
+            addy: "Astro World",
+            number: "0816762374"
+        }))
+        .required(),
+    guestId: is
+        .Types([is.Number(), is.Array()])
+        .default(() => ["en"])
+        .required(),
     // guestId: is.ObjectId().required(),
     updated_at: is.Date().required()
 };
 
-
 class Users extends Database.model("users") {
-
     static schema = GuestSchema;
-    static append = ['fullName'];
+    static append = ["fullName"];
 
     fullName() {
-        return `${this.data.first_name} ${this.data.last_name}`
+        return `${this.data.first_name} ${this.data.last_name}`;
     }
 
     static relationships = {
         contact: {
-            type: 'hasOne',
+            type: "hasOne",
             model: Contacts,
-            where: {user_id: '_id'},
-            options: {projection: {_id: 1}}
+            where: { user_id: "_id" },
+            options: { projection: { _id: 1 } }
         }
     };
 }
 
-RefreshDateOnUpdate(Users, 'updated_at')
-
+RefreshDateOnUpdate(Users, "updated_at");
 
 /**
  * @type {typeof Users | typeof XMongoModel}
