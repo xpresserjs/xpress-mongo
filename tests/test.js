@@ -15,9 +15,6 @@ async function run() {
     //
     // console.log(await user.save());
 
-    /**
-     * Async Space
-     */
     const guest = Users.use({
         type: "guest",
         first_name: "Hello",
@@ -26,7 +23,7 @@ async function run() {
         updated_at: "Fri, 03 Apr 2020 00:00:00 GMT"
     });
 
-    console.log(guest);
+    console.log(guest.has("guestId", "678"));
 
     /**
      * End Async Space

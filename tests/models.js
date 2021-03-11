@@ -1,5 +1,13 @@
 const { is, RefreshDateOnUpdate, XMongoModel } = require("../");
 const Database = global["Database"];
+/**
+ * @param collection
+ * @returns {XMongoModel}
+ * @constructor
+ */
+const Model = (collection) => Database.model(collection);
+const UsersModel = Model("users");
+const ContactsModel = Model("contacts");
 
 const ContactSchema = {
     user_id: is.ObjectId().required(),
@@ -9,7 +17,7 @@ const ContactSchema = {
     created_at: is.Date().required()
 };
 
-class Contacts extends Database.model("contacts") {
+class Contacts extends ContactsModel {
     constructor() {
         super();
         this.useSchema(ContactSchema);
@@ -46,7 +54,7 @@ const GuestSchema = {
     updated_at: is.Date().required()
 };
 
-class Users extends Database.model("users") {
+class Users extends UsersModel {
     static schema = GuestSchema;
     static append = ["fullName"];
 
@@ -66,11 +74,4 @@ class Users extends Database.model("users") {
 
 RefreshDateOnUpdate(Users, "updated_at");
 
-/**
- * @type {typeof Users | typeof XMongoModel}
- */
-exports.Users = Users;
-/**
- * @type {typeof Contacts | typeof XMongoModel}
- */
-exports.Contacts = Contacts;
+module.exports = { Users, Contacts };

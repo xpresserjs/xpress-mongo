@@ -1339,7 +1339,8 @@ class XMongoModel {
      * @param event
      * @param functionOrFunctions
      */
-    static on(
+    static on<T extends typeof XMongoModel>(
+        this: T,
         event:
             | "create"
             | "update"
@@ -1348,7 +1349,9 @@ class XMongoModel {
             | "update.fieldName"
             | "watch.fieldName"
             | string,
-        functionOrFunctions: onEvent
+        functionOrFunctions:
+            | ((modelInstance: InstanceType<T>) => void | any)
+            | Record<string, (modelInstance: InstanceType<T>) => void | any>
     ) {
         if (!this.events) this.events = {};
 
@@ -1376,8 +1379,5 @@ class XMongoModel {
         }
     }
 }
-
-type FunctionWithModelInstance = (modelInstance: XMongoModel) => void | any;
-type onEvent = FunctionWithModelInstance | { [key: string]: FunctionWithModelInstance };
 
 export = XMongoModel;
