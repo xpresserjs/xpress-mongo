@@ -1010,22 +1010,31 @@ class XMongoModel {
      */
     static find(
         query: StringToAnyObject | FilterQuery<any> = {},
-        options: FindOneOptions<any> = {},
-        raw = false
-    ): Promise<XMongoModel[]> | Cursor {
+        options: FindOneOptions<any> = {}
+    ): Promise<Record<string, any>[]> | Cursor {
         /**
          * options as any is used here because mongodb did not make its new
          * WithoutProjection type exportable so we can't make reference to it.
          */
-        const result = this.native().find(query, options as any);
-        if (raw) return result;
-
         return new Promise((resolve, reject) => {
-            return result.toArray((error, data) => {
-                if (error) return reject(error);
-                return resolve(data);
-            });
+            return this.native()
+                .find(query, options as any)
+                .toArray((error, data) => {
+                    if (error) return reject(error);
+                    return resolve(data);
+                });
         });
+    }
+
+    static findRaw(
+        query: StringToAnyObject | FilterQuery<any> = {},
+        options: FindOneOptions<any> = {}
+    ): Cursor {
+        /**
+         * options as any is used here because mongodb did not make its new
+         * WithoutProjection type exportable so we can't make reference to it.
+         */
+        return this.native().find(query, options as any);
     }
 
     /**
@@ -1377,6 +1386,25 @@ class XMongoModel {
         } else {
             _.set(this.events, event, functionOrFunctions);
         }
+    }
+
+    /**
+     * Refresh Current Model Data using model id
+     * @param options
+     */
+    $refreshData<T extends typeof XMongoModel>(options?: FindOneOptions<any>) {
+        const Model = this.constructor as T;
+        return Model.findById(this.id(), options);
+    }
+
+    /**
+     * Refresh Current Model Data using the specified fields value.
+     * @param field
+     * @param options
+     */
+    $refreshDataUsing<T extends typeof XMongoModel>(field: string, options?: FindOneOptions<any>) {
+        const Model = this.constructor as T;
+        return Model.findOne({ [field]: this.get(field) }, options);
     }
 }
 
