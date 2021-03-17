@@ -152,7 +152,7 @@ class XMongoModel {
          */
         const thisClass = this.constructor as typeof XMongoModel;
         if (thisClass.schema) {
-            this.useSchema(thisClass.schema);
+            this.$useSchema(thisClass.schema);
         }
     }
 
@@ -352,7 +352,7 @@ class XMongoModel {
      * @param data
      * @return {this}
      */
-    setOriginal(data: StringToAnyObject): this {
+    private $setOriginal(data: StringToAnyObject): this {
         data = _.cloneDeep(data);
 
         Object.defineProperty(this, "original", {
@@ -370,24 +370,10 @@ class XMongoModel {
      * @param {Object} schema
      * @return {this}
      */
-    addSchema(name: string, schema: StringToAnyObject): this {
+    $addSchema(name: string, schema: StringToAnyObject): this {
         // Save to schemaStore
         this.schemaStore[name] = schema;
         return this;
-    }
-
-    /**
-     * Set Model Schema
-     * @param {Object|string} schema
-     * @returns {this}
-     *
-     * @deprecated
-     * since (v 0.0.42)
-     * @remove at (v 1.0.0)
-     */
-    setSchema(schema: any): this {
-        console.log(`.setSchema is deprecated use .useSchema`);
-        return this.useSchema(schema);
     }
 
     /**
@@ -397,7 +383,7 @@ class XMongoModel {
      * @param {Object|String} schema
      * @returns {this}
      */
-    useSchema(
+    $useSchema(
         schema: string | StringToAnyObject | { (is: XMongoSchemaBuilder): StringToAnyObject }
     ): this {
         // Try to find schema from .schemaStore if string
@@ -620,7 +606,7 @@ class XMongoModel {
                         const { insertedId } = res;
 
                         this.set("_id", insertedId);
-                        this.setOriginal(this.data);
+                        this.$setOriginal(this.data);
 
                         return resolve(res);
                     });
@@ -854,19 +840,10 @@ class XMongoModel {
      */
     static use<T extends typeof XMongoModel>(this: T, data: StringToAnyObject): InstanceType<T> {
         const model = new this();
-        model.emptyData();
-        // Set Original Property
-        model.setOriginal(data);
-        model.set(data);
+        // Replace defaults with new data
+        model.$replaceData(data);
 
-        if (this.append) {
-            for (const key of this.append) {
-                if (typeof (model as StringToAnyObject)[key] === "function") {
-                    model.set(key, (model as StringToAnyObject)[key]());
-                }
-            }
-        }
-
+        // return model
         return model as InstanceType<T>;
     }
 
@@ -1389,12 +1366,47 @@ class XMongoModel {
     }
 
     /**
+     * Replace Current Model Instance Data
+     * @param data
+     * @param append
+     */
+    $replaceData(data: any, append?: string[]) {
+        // First Empty Data
+        this.emptyData();
+        // Set Original Property
+        this.$setOriginal(data);
+        // Set Normal Data
+        this.set(data);
+
+        // Get Append
+        if (!append) append = (this.constructor as any).append;
+
+        // If append then run append functions
+        if (append) {
+            for (const key of append) {
+                if (typeof (this as StringToAnyObject)[key] === "function") {
+                    this.set(key, (this as StringToAnyObject)[key]());
+                }
+            }
+        }
+
+        return this;
+    }
+
+    /**
      * Refresh Current Model Data using model id
      * @param options
      */
-    $refreshData<T extends typeof XMongoModel>(options?: FindOneOptions<any>) {
+    async $refreshData<T extends typeof XMongoModel>(options?: FindOneOptions<any>) {
+        if (!this.id()) throw Error("Error refreshing data, _id not found in current model.");
+
         const Model = this.constructor as T;
-        return Model.findById(this.id(), options);
+        const value = await Model.findById(this.id(), options);
+
+        if (!value) throw Error("Error refreshing data, Refresh result is null");
+
+        this.$replaceData(value.data);
+        return this;
     }
 
     /**
@@ -1402,9 +1414,20 @@ class XMongoModel {
      * @param field
      * @param options
      */
-    $refreshDataUsing<T extends typeof XMongoModel>(field: string, options?: FindOneOptions<any>) {
+    async $refreshDataUsing<T extends typeof XMongoModel>(
+        field: string,
+        options?: FindOneOptions<any>
+    ) {
+        const fieldValue = this.get(field);
+        if (!fieldValue) throw Error(`Error refreshing data, ${field} not found in current model.`);
+
         const Model = this.constructor as T;
-        return Model.findOne({ [field]: this.get(field) }, options);
+        const value = await Model.findOne({ [field]: this.get(field) }, options);
+
+        if (!value) throw Error("Error refreshing data, Refresh result is null");
+
+        this.$replaceData(value.data);
+        return this;
     }
 }
 
