@@ -1370,7 +1370,7 @@ class XMongoModel {
      * @param data
      * @param append
      */
-    $replaceData(data: any, append?: string[]) {
+    $replaceData(data: any, append?: string[]): this {
         // First Empty Data
         this.emptyData();
         // Set Original Property
@@ -1397,7 +1397,10 @@ class XMongoModel {
      * Refresh Current Model Data using model id
      * @param options
      */
-    async $refreshData<T extends typeof XMongoModel>(options?: FindOneOptions<any>) {
+    async $refreshData<T extends typeof XMongoModel>(
+        this: InstanceType<T>,
+        options?: FindOneOptions<any>
+    ) {
         if (!this.id()) throw Error("Error refreshing data, _id not found in current model.");
 
         const Model = this.constructor as T;
@@ -1406,6 +1409,7 @@ class XMongoModel {
         if (!value) throw Error("Error refreshing data, Refresh result is null");
 
         this.$replaceData(value.data);
+
         return this;
     }
 
@@ -1415,6 +1419,7 @@ class XMongoModel {
      * @param options
      */
     async $refreshDataUsing<T extends typeof XMongoModel>(
+        this: InstanceType<T>,
         field: string,
         options?: FindOneOptions<any>
     ) {
@@ -1427,6 +1432,7 @@ class XMongoModel {
         if (!value) throw Error("Error refreshing data, Refresh result is null");
 
         this.$replaceData(value.data);
+
         return this;
     }
 }
