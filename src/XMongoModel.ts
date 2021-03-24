@@ -422,7 +422,7 @@ class XMongoModel {
                      * This removes not required keys with undefined values.
                      */
                     if (value === undefined) {
-                        if (schemaVal.schema.required === true) {
+                        if (schemaVal.schema.required) {
                             newData[key] = value;
                         }
                     } else {
