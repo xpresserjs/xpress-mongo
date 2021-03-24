@@ -1,4 +1,4 @@
-import { ValidatorType, CastFunctionType, SchemaPropertiesType } from "./CustomTypes";
+import { ValidatorType, CastFunctionType, SchemaPropertiesType, RequiredIf } from "./CustomTypes";
 
 class XMongoDataType {
     public schema: SchemaPropertiesType = {
@@ -36,8 +36,17 @@ class XMongoDataType {
      * Set if required
      * @param required
      */
-    required(required = true): this {
+    required(required: boolean = true): this {
         this.schema.required = required;
+        return this;
+    }
+
+    /**
+     * Set conditional Required if
+     * @param fn
+     */
+    requiredIf(fn: RequiredIf) {
+        this.schema.required = fn;
         return this;
     }
 

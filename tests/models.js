@@ -1,4 +1,4 @@
-const { is, RefreshDateOnUpdate, XMongoModel } = require("../");
+const { is, RefreshDateOnUpdate, XMongoModel } = require("../dist");
 const Database = global["Database"];
 /**
  * @param collection
@@ -18,10 +18,7 @@ const ContactSchema = {
 };
 
 class Contacts extends ContactsModel {
-    constructor() {
-        super();
-        this.useSchema(ContactSchema);
-    }
+    static schema = ContactSchema;
 }
 
 const UserSchema = {
@@ -36,22 +33,24 @@ const UserSchema = {
 };
 
 const GuestSchema = {
-    code: is.Uuid().isOptional(),
-    type: is.String().required(),
+    code: is.String().optional(),
+    type: is.String().requiredIf((r) => {
+        return r.has("code");
+    }),
     first_name: is.String().required(),
-    last_name: is.String(),
-    contact: is
-        .Object(() => ({
-            addy: "Astro World",
-            number: "0816762374"
-        }))
-        .required(),
-    guestId: is
-        .Types([is.Number(), is.Array()])
-        .default(() => ["en"])
-        .required(),
-    // guestId: is.ObjectId().required(),
-    updated_at: is.Date().required()
+    last_name: is.String()
+    // contact: is
+    //     .Object(() => ({
+    //         addy: "Astro World",
+    //         number: "0816762374"
+    //     }))
+    //     .required(),
+    // guestId: is
+    //     .Types([is.Number(), is.Array()])
+    //     .default(() => ["en"])
+    //     .required(),
+    // // guestId: is.ObjectId().required(),
+    // updated_at: is.Date().required()
 };
 
 class Users extends UsersModel {

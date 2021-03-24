@@ -1,8 +1,10 @@
 import XMongoDataType = require("./XMongoDataType");
+import XMongoModel from "./XMongoModel";
 
 export type FunctionReturnsBoolean = (...args: any[]) => boolean;
 export type FunctionReturnsVoidOrBoolean = (...args: any[]) => boolean | void;
 export type CastFunctionType = (value: any, key?: string) => any;
+export type RequiredIf = <T extends XMongoModel>(modelInstance: T) => boolean;
 
 export type ValidatorType =
     | FunctionReturnsVoidOrBoolean
@@ -16,7 +18,7 @@ export type SchemaPropertiesType = {
     default?: any;
     validator: ValidatorType;
     validationError: (key: string) => string;
-    required: boolean;
+    required: boolean | RequiredIf;
     cast: CastFunctionType | null;
 };
 

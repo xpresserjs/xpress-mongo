@@ -16,14 +16,15 @@ async function run() {
     // console.log(await user.save());
 
     const guest = Users.use({
-        type: "guest",
+        code: "yes",
+        // type: "guest",
         first_name: "Hello",
         last_name: "World",
         guestId: "678",
         updated_at: "Fri, 03 Apr 2020 00:00:00 GMT"
     });
 
-    console.log(guest.has("guestId", "678"));
+    console.log(guest.validate());
 
     /**
      * End Async Space

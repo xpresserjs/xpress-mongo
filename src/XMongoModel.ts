@@ -694,12 +694,13 @@ class XMongoModel {
              *
              * i.e else if data === this.data
              */
+
             if (data.hasOwnProperty(schemaKey)) {
                 /**
-                 * Schema Definition of current schema
+                 * Schema Definition of current Model instance
                  * @type {*|XMongoDataType}
                  */
-                const schema = this.schema[schemaKey];
+                const schema = this.schema[schemaKey] as SchemaPropertiesType;
 
                 /**
                  * Current value of key being validated.
@@ -707,11 +708,15 @@ class XMongoModel {
                  */
                 let dataValue = data[schemaKey];
 
+                if (typeof schema.required === "function") {
+                    schema.required = schema.required(this);
+                }
+
                 /**
                  * If schema is required and dataValue is undefined
                  * Throw required error
                  */
-                if (dataValue === undefined && schema["required"] === true) {
+                if (dataValue === undefined && schema.required) {
                     throw new TypeError(`(${schemaKey}) is required.`);
                 }
 
@@ -735,9 +740,9 @@ class XMongoModel {
                      * Else if validatorType is 'object'
                      * validate the object received.
                      */
-                    if (validatorType === "function" && !schema.validator(dataValue)) {
+                    if (typeof schema.validator === "function" && !schema.validator(dataValue)) {
                         throw new TypeError(validatorError);
-                    } else if (validatorType === "object") {
+                    } else if (typeof schema.validator === "object") {
                         // Get first key of object
                         validatorType = Object.keys(schema.validator)[0];
 
@@ -747,12 +752,12 @@ class XMongoModel {
                          */
                         if (
                             validatorType === "or" &&
-                            !runOrValidation(dataValue, schema.validator["or"])
+                            !runOrValidation(dataValue, (schema.validator as any)["or"])
                         ) {
                             throw new TypeError(validatorError);
                         } else if (
                             validatorType === "and" &&
-                            !runAndValidation(dataValue, schema.validator["and"])
+                            !runAndValidation(dataValue, (schema.validator as any)["and"])
                         ) {
                             throw new TypeError(validatorError);
                         }
@@ -773,9 +778,13 @@ class XMongoModel {
                 if (!customData) {
                     const schema: SchemaPropertiesType = this.schema[schemaKey];
 
+                    if (schema && typeof schema.required === "function") {
+                        schema.required = schema.required(this);
+                    }
+
                     if (schema && schema.required)
                         throw new TypeError(
-                            `${schemaKey} is missing in data but defined in schema`
+                            `${schemaKey} is missing in data but required in schema`
                         );
                 }
             }
