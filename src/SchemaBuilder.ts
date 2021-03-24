@@ -189,7 +189,7 @@ const is: XMongoSchemaBuilder = {
             validators.push(type.schema.validator);
             typeNames.push(type.schema.name);
 
-            if (type.schema.required) isRequired = true;
+            if (type.schema.required === true) isRequired = true;
         }
 
         // Set required if any type has required(true)
