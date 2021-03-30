@@ -511,6 +511,24 @@ class XMongoModel {
     }
 
     /**
+     * Check if a field or fields has changed
+     * @param keys
+     */
+    hasChanged(keys: string | string[]): boolean {
+        const changed = Object.keys(this.changes());
+
+        if (!changed.length) return false;
+
+        if (typeof keys === "string") {
+            return changed.includes(keys);
+        } else if (Array.isArray(keys)) {
+            return keys.every((key) => changed.includes(key));
+        }
+
+        return false;
+    }
+
+    /**
      * Update model
      * @param set
      * @param options

@@ -15,16 +15,25 @@ async function run() {
     //
     // console.log(await user.save());
 
-    const guest = Users.use({
-        code: "yes",
-        // type: "guest",
-        first_name: "Hello",
-        last_name: "World",
-        guestId: "678",
-        updated_at: "Fri, 03 Apr 2020 00:00:00 GMT"
-    });
+    // const guest = Users.use({
+    //     code: "yes",
+    //     type: "guest",
+    //     first_name: "Hello",
+    //     last_name: "World",
+    //     guestId: "678",
+    //     updated_at: "Fri, 03 Apr 2020 00:00:00 GMT"
+    // });
+    //
+    // console.log(guest.validate());
 
-    console.log(guest.validate());
+    const user = await Users.findOne({});
+
+    if (!user) return false;
+
+    user.set("code", "OAT");
+
+    console.log(user.hasChanged(["code", "goat"]));
+    // await user.save();
 
     /**
      * End Async Space
