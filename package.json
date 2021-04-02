@@ -10,7 +10,7 @@
   "scripts": {
     "bp": "tsc && ts-node build",
     "test": "ts-node-dev --respawn tests/index.ts",
-    "seed/users": "ts-node-dev --respawn tests/seed/users.ts 50",
+    "test/seed/users": "ts-node-dev --respawn tests/seed/users.ts 50",
     "watch": "tsc --watch"
   },
   "repository": {
