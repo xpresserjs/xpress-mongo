@@ -71,12 +71,12 @@ class XMongoModel {
      * @private
      * @type {{}}
      */
-    public static schema: StringToAnyObject = {};
+    public static schema: StringToAnyObject;
 
     /**
      * Model Events
      */
-    public static events: StringToAnyObject = {};
+    public static events: StringToAnyObject;
 
     /**
      * Model Schema Store
@@ -96,7 +96,7 @@ class XMongoModel {
             where: Record<string, any>;
             options?: Record<string, any>;
         };
-    } = {};
+    };
 
     /** Model Loaded Relationships
      * @private
