@@ -74,32 +74,70 @@ export function runAndValidation(
     return true;
 }
 
+export function RunInBackground<T = any>(fn: () => void) {
+    /**
+     * The `then` of promises are always asynchronous.
+     * This above with setTimout & setImmediate, we are sure this will run in background.
+     * without interfering the current process.
+     */
+    return (
+        new Promise<void>((resolve) => setImmediate(resolve))
+            // Run function in setImmediate
+            .then(fn)
+            // catch Errors
+            .catch(console.log)
+    );
+}
+
 export async function RunOnEvent(
     event: string,
     modelInstance: XMongoModel,
     changes?: StringToAnyObject
 ): Promise<any> {
+    // Get Model
     const Model = modelInstance.constructor as typeof XMongoModel;
+
+    // if model does not have events defined, return false.
     if (!Model.events) return false;
 
+    // Get events from Model
     let events = Model.events;
+    // Check if events has defined 'event'
     if (!events[event]) return false;
 
-    events = events[event];
+    // Get Event
+    let thisEvent = events[event];
+
+    /**
+     * if event is watch and no fields in 'changes' object, return false.
+     */
     if (event === "watch" && changes && !Object.keys(changes).length) return false;
 
-    if (typeof events === "function") {
-        await events(modelInstance);
-    } else if (typeof events === "object") {
-        const fields = Object.keys(events);
+    /**
+     * if type of event === function
+     *
+     * Function: All
+     * Object: events that targets fields
+     */
+    if (typeof thisEvent === "function") {
+        if (["watch", "created", "deleted"].includes(event)) {
+            // noinspection ES6MissingAwait
+            RunInBackground(() => thisEvent(modelInstance));
+        } else {
+            await thisEvent(modelInstance);
+        }
+    } else if (typeof thisEvent === "object") {
+        const fields = Object.keys(thisEvent);
 
         for (const field of fields) {
             if (event === "watch") {
                 if (_.has(changes, field)) {
-                    Promise.all([events[field](modelInstance)]).catch(console.error);
+                    // noinspection ES6MissingAwait
+                    RunInBackground(() => thisEvent[field](modelInstance));
                 }
             } else {
-                const newFieldValue = await events[field](modelInstance);
+                // else it is `update` or `create`
+                const newFieldValue = await thisEvent[field](modelInstance);
                 if (newFieldValue !== undefined) {
                     modelInstance.set(field, newFieldValue);
                 }

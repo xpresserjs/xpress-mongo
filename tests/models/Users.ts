@@ -23,7 +23,7 @@ Users.on("update", (user) => {
     console.log("Wrong update function called!");
 });
 
-Users.on("delete", (user) => {
+Users.on("deleted", (user) => {
     // console.log("Supposed User:", user);
     console.log("Wrong delete function called!");
 });

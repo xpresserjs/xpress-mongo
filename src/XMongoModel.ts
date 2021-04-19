@@ -626,6 +626,8 @@ class XMongoModel {
                         this.set("_id", insertedId);
                         this.$setOriginal(this.data);
 
+                        RunOnEvent("created", this);
+
                         return resolve(res);
                     });
             }
@@ -829,15 +831,16 @@ class XMongoModel {
      * Delete this
      * @returns {Promise}
      */
-    delete(): Promise<DeleteWriteOpResultObject> {
+    async delete(): Promise<DeleteWriteOpResultObject> {
         const _id = this.id();
 
         if (_id) {
-            // Run on delete Events on background
-            RunOnEvent("delete", this).catch(console.error);
-
             // Delete Document
-            return (<typeof XMongoModel>this.constructor).native().deleteOne({ _id });
+            const result = await (<typeof XMongoModel>this.constructor).native().deleteOne({ _id });
+
+            RunOnEvent("deleted", this).finally(() => {});
+
+            return result;
         } else {
             throw "DELETE_ERROR: Model does not have an _id, so we assume it is not from the database.";
         }
@@ -1357,7 +1360,7 @@ class XMongoModel {
         event:
             | "create"
             | "update"
-            | "delete"
+            | "deleted"
             | "create.fieldName"
             | "update.fieldName"
             | "watch.fieldName"
@@ -1366,30 +1369,51 @@ class XMongoModel {
             | ((modelInstance: InstanceType<T>) => void | any)
             | Record<string, (modelInstance: InstanceType<T>) => void | any>
     ) {
-        if (!this.events) this.events = {};
+        // Get Current Model Name
+        const modelName = this.name || "Model";
 
-        if (event === "delete" && typeof functionOrFunctions !== "function") {
-            throw Error("on('delete') event must be type of Function.");
+        // Throw error if deprecated `delete` command is used.
+        if (event === "delete")
+            throw Error(`${modelName}.on("${event}") is deprecated. Use "deleted" instead.`);
+
+        // Validate events that must be a function
+        if (["deleted", "created"].includes(event) && typeof functionOrFunctions !== "function") {
+            throw Error(`${modelName}.on("${event}") event must be type of Function.`);
         }
 
+        // watch when not using dot notation must be an object
         if (event === "watch" && typeof functionOrFunctions !== "object") {
-            throw Error("on('watch') event must be type of Object.");
+            throw Error(`${modelName}.on("watch") event must be type of Object.`);
         }
 
-        const dots: string[] = event.split(".");
+        /**
+         * Parse Dot Notation "event.field"
+         */
+        if (event.includes(".")) {
+            // Split .
+            const dots: string[] = event.split(".");
 
-        if (dots.length > 2) {
-            let [main, ...others]: any = dots;
-            others = others.join(".");
+            // Throw error if more than dots
+            if (dots.length > 2) {
+                throw Error(
+                    `Model events supports only first level Field names when using dot notation. {event:"${event}"}`
+                );
+            } else if (dots.length === 2) {
+                // Check if event supports the dot notation
+                let [main] = dots;
 
-            if (this.events[main]) {
-                this.events[main][others] = functionOrFunctions;
-            } else {
-                this.events[main] = { [others as string]: functionOrFunctions };
+                if (!["create", "update", "watch"].includes(main)) {
+                    throw Error(
+                        `${modelName}.on("${main}") does not support dot notation. {event:"${event}"}`
+                    );
+                }
             }
-        } else {
-            _.set(this.events, event, functionOrFunctions);
         }
+
+        // Set to default if not.
+        if (!this.events) this.events = {};
+        // Merge to events
+        _.merge(this.events, _.set({}, event, functionOrFunctions));
     }
 
     /**
