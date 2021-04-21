@@ -11,19 +11,26 @@ class Songs extends XMongoModel {
     };
 }
 
-Songs.on("created", (song) => {
+Songs.on("create.name", (song) => {
     // await sleep();
-    console.log("Slug Created:", song.data.name);
+    return song.data.name.toUpperCase();
 });
 
-Songs.on("watch.slug", (song) => {
+Songs.on("watch.name", (song) => {
     // await sleep();
-    console.log("Fetched Song:", song);
+    return song.data.name.toUpperCase();
 });
 
-Songs.on("deleted", (song) => {
-    // await sleep();
-    console.log("Slug Delete:", song);
-});
+console.log(Songs.events);
+
+// Songs.on("watch.slug", (song) => {
+//     // await sleep();
+//     console.log("Fetched Song:", song);
+// });
+//
+// Songs.on("deleted", (song) => {
+//     // await sleep();
+//     console.log("Slug Delete:", song);
+// });
 
 export = Songs;

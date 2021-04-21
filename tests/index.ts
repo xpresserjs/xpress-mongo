@@ -27,7 +27,7 @@ async function Main() {
         .set({ userId: user.id(), name: chance.animal() })
         .saveAndReturn();
 
-    console.log("01.....");
+    console.log("01.....", song);
     // const song = (await Songs.findOne({}))!;
 
     // console.log("before watch".toUpperCase());

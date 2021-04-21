@@ -603,7 +603,10 @@ class XMongoModel {
                             if (error) {
                                 return reject(error);
                             } else {
+                                // Resolve
                                 resolve(res.connection);
+
+                                // Run Watch Event
                                 RunOnEvent("watch", this, changes);
                             }
                         }
@@ -626,9 +629,11 @@ class XMongoModel {
                         this.set("_id", insertedId);
                         this.$setOriginal(this.data);
 
-                        RunOnEvent("created", this);
+                        // resolve
+                        resolve(res);
 
-                        return resolve(res);
+                        // Run on created event
+                        RunOnEvent("created", this);
                     });
             }
         });
@@ -1385,13 +1390,15 @@ class XMongoModel {
         if (event === "delete")
             throw Error(`${modelName}.on("${event}") is deprecated. Use "deleted" instead.`);
 
+        const handlerIsFunction = typeof functionOrFunctions === "function";
         // Validate events that must be a function
-        if (["deleted", "created"].includes(event) && typeof functionOrFunctions !== "function") {
+        if (["deleted", "created"].includes(event) && !handlerIsFunction) {
             throw Error(`${modelName}.on("${event}") event must be type of Function.`);
         }
 
+        const handlerIsObject = typeof functionOrFunctions === "object";
         // watch when not using dot notation must be an object
-        if (event === "watch" && typeof functionOrFunctions !== "object") {
+        if (event === "watch" && !handlerIsObject) {
             throw Error(`${modelName}.on("watch") event must be type of Object.`);
         }
 
@@ -1399,13 +1406,18 @@ class XMongoModel {
          * Parse Dot Notation "event.field"
          */
         if (event.includes(".")) {
+            if (!handlerIsFunction) {
+                throw Error(
+                    `Event handler for DOT notated events must be a function.  {event:"${event}"}`
+                );
+            }
             // Split .
             const dots: string[] = event.split(".");
 
             // Throw error if more than dots
             if (dots.length > 2) {
                 throw Error(
-                    `Model events supports only first level Field names when using dot notation. {event:"${event}"}`
+                    `Model events supports only first level Field names when using DOT notation. {event:"${event}"}`
                 );
             } else if (dots.length === 2) {
                 // Check if event supports the dot notation
@@ -1413,7 +1425,7 @@ class XMongoModel {
 
                 if (!["create", "update", "watch"].includes(main)) {
                     throw Error(
-                        `${modelName}.on("${main}") does not support dot notation. {event:"${event}"}`
+                        `${modelName}.on("${main}") does not support DOT notation. {event:"${event}"}`
                     );
                 }
             }
@@ -1421,8 +1433,13 @@ class XMongoModel {
 
         // Set to default if not.
         if (!this.events) this.events = {};
+
         // Merge to events
-        _.merge(this.events, _.set({}, event, functionOrFunctions));
+        if (handlerIsObject) {
+            _.merge(this.events, _.extend({}, { [event]: functionOrFunctions }));
+        } else {
+            _.merge(this.events, _.set({}, event, functionOrFunctions));
+        }
     }
 
     /**
