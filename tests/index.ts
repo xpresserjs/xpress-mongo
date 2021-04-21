@@ -23,9 +23,10 @@ async function Main() {
     // console.log("Users Count:", usersCount);
 
     const user = (await Users.findOne({}))!;
-    const song = Songs.make({ userId: user.id(), name: chance.animal() });
+    const song = await new Songs()
+        .set({ userId: user.id(), name: chance.animal() })
+        .saveAndReturn();
 
-    await song.save();
     console.log("01.....");
     // const song = (await Songs.findOne({}))!;
 

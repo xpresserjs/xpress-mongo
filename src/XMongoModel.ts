@@ -635,6 +635,15 @@ class XMongoModel {
     }
 
     /**
+     * Save and return current
+     * @param options
+     */
+    async saveAndReturn(options: UpdateOneOptions | CollectionInsertOneOptions = {}) {
+        await this.save(options);
+        return this;
+    }
+
+    /**
      * Unset a key or keys from this collection
      * @param {string|[]} keys - Key or Keys to unset from collection
      * @param {Object} options - Update options
