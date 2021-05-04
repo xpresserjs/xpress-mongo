@@ -19,13 +19,22 @@ import {
 
 import is from "./SchemaBuilder";
 import { diff } from "deep-object-diff";
-import { defaultValue, runOrValidation, runAndValidation, RunOnEvent } from "../fn/inbuilt";
+import {
+    defaultValue,
+    runOrValidation,
+    runAndValidation,
+    RunOnEvent,
+    processSchema
+} from "../fn/inbuilt";
 import {
     PaginationData,
     SchemaPropertiesType,
     StringToAnyObject,
-    XMongoSchemaBuilder
+    XMongoSchema,
+    XMongoSchemaFn,
+    XMongoStrictConfig
 } from "./CustomTypes";
+import Joi from "joi";
 
 /**
  * Get Lodash
@@ -71,12 +80,17 @@ class XMongoModel {
      * @private
      * @type {{}}
      */
-    public static schema: StringToAnyObject;
+    public static schema: XMongoSchema;
 
     /**
      * Model Events
      */
     public static events: StringToAnyObject;
+
+    /**
+     * Strict
+     */
+    public static strict: XMongoStrictConfig;
 
     /**
      * Model Schema Store
@@ -214,6 +228,8 @@ class XMongoModel {
      * @return {this}
      */
     set(key: string | StringToAnyObject, value?: any): this {
+        const isStrict = this.$isStrict();
+
         if (typeof key === "object" && value === undefined) {
             for (const property in key) {
                 _.set(this.data, property, key[property]);
@@ -383,9 +399,7 @@ class XMongoModel {
      * @param {Object|String} schema
      * @returns {this}
      */
-    $useSchema(
-        schema: string | StringToAnyObject | { (is: XMongoSchemaBuilder): StringToAnyObject }
-    ): this {
+    $useSchema(schema: string | StringToAnyObject | XMongoSchemaFn): this {
         // Try to find schema from .schemaStore if string
         if (typeof schema === "string") {
             if (!this.schemaStore.hasOwnProperty(schema)) {
@@ -396,6 +410,7 @@ class XMongoModel {
             if (!Object.keys(this.original).length) {
                 this.emptyData();
             }
+
             schema = this.schemaStore[schema] || {};
         }
 
@@ -403,30 +418,30 @@ class XMongoModel {
 
         // If schema is a function then call it and pass is.
         if (typeof schema === "function") {
-            schema = schema(is);
+            schema = schema(is, Joi);
         }
 
         if (typeof schema === "object") {
-            for (const key in schema) {
-                if (schema.hasOwnProperty(key)) {
-                    let schemaVal: XMongoDataType = schema[key];
-                    this.schema[key] = schemaVal["schema"];
+            for (const field in schema) {
+                if (schema.hasOwnProperty(field)) {
+                    let schemaVal: XMongoDataType = processSchema(schema[field], field);
+                    this.schema[field] = schemaVal["schema"];
 
                     // Attach default values
-                    const value = defaultValue(this.schema[key]);
+                    const value = defaultValue(this.schema[field]);
 
                     /**
-                     * If default value is undefined and schema is required set key to undefined.
-                     * else set key to value.
+                     * If default value is undefined and schema is required set field to undefined.
+                     * else set field to value.
                      *
                      * This removes not required keys with undefined values.
                      */
                     if (value === undefined) {
                         if (schemaVal.schema.required) {
-                            newData[key] = value;
+                            newData[field] = value;
                         }
                     } else {
-                        newData[key] = value;
+                        newData[field] = value;
                     }
                 }
             }
@@ -615,7 +630,7 @@ class XMongoModel {
                 await RunOnEvent("create", this);
                 // Try to validate new data.
                 try {
-                    this.emptyData(this.validate());
+                    this.emptyData(this.validate(undefined, true));
                 } catch (e) {
                     return reject(e);
                 }
@@ -694,9 +709,12 @@ class XMongoModel {
      * @description
      * Runs validation on this.data if data is undefined.
      * @param data
+     * @param creating
      * @return {{}}
      */
-    validate(data?: StringToAnyObject): StringToAnyObject {
+    validate(data?: StringToAnyObject, creating: boolean = false): StringToAnyObject {
+        const isStrict = this.$isStrict();
+
         /**
          * Checks if data was defined or not.
          * @type {boolean}
@@ -717,6 +735,14 @@ class XMongoModel {
          * @type {{}}
          */
         const validated: StringToAnyObject = {};
+
+        if (isStrict) {
+            // Add keys not in schema but in data and removed undefined values
+            for (const field in data) {
+                // If not defined in schema
+                this.$throwErrorIfNotDefinedInSchema(field, isStrict);
+            }
+        }
 
         /**
          * Loop through all defined schemas and validate.
@@ -768,13 +794,26 @@ class XMongoModel {
                     const validatorError = schema.validationError(schemaKey);
 
                     /**
+                     * If schema isJoi then run joi.
+                     *
                      * If validatorType is 'function', run validator
                      * Throw error if validator returns false.
                      *
                      * Else if validatorType is 'object'
                      * validate the object received.
                      */
-                    if (typeof schema.validator === "function" && !schema.validator(dataValue)) {
+                    if (schema.isJoi) {
+                        if (!Joi.isSchema(schema.validator))
+                            throw new Error(`Invalid Joi Schema provided for: ${schemaKey}`);
+
+                        /**
+                         * Validate using Joi
+                         */
+                        dataValue = Joi.attempt(dataValue, schema.validator as Joi.Schema);
+                    } else if (
+                        typeof schema.validator === "function" &&
+                        !schema.validator(dataValue)
+                    ) {
                         throw new TypeError(validatorError);
                     } else if (typeof schema.validator === "object") {
                         // Get first key of object
@@ -872,10 +911,10 @@ class XMongoModel {
                 enumerable: false
             });
 
-            return <ObjectCollection>this.$data;
+            return this.$data as ObjectCollection;
         }
 
-        return <ObjectCollection>this.$data;
+        return this.$data as ObjectCollection;
     }
 
     /**
@@ -1474,13 +1513,10 @@ class XMongoModel {
      * Refresh Current Model Data using model id
      * @param options
      */
-    async $refreshData<T extends typeof XMongoModel>(
-        this: InstanceType<T>,
-        options?: FindOneOptions<any>
-    ) {
+    async $refreshData(options?: FindOneOptions<any>) {
         if (!this.id()) throw Error("Error refreshing data, _id not found in current model.");
 
-        const Model = this.constructor as T;
+        const Model = this.$static();
         const value = await Model.findById(this.id(), options);
 
         if (!value) throw Error("Error refreshing data, Refresh result is null");
@@ -1495,15 +1531,11 @@ class XMongoModel {
      * @param field
      * @param options
      */
-    async $refreshDataUsing<T extends typeof XMongoModel>(
-        this: InstanceType<T>,
-        field: string,
-        options?: FindOneOptions<any>
-    ) {
+    async $refreshDataUsing(field: string, options?: FindOneOptions<any>) {
         const fieldValue = this.get(field);
         if (!fieldValue) throw Error(`Error refreshing data, ${field} not found in current model.`);
 
-        const Model = this.constructor as T;
+        const Model = this.$static();
         const value = await Model.findOne({ [field]: this.get(field) }, options);
 
         if (!value) throw Error("Error refreshing data, Refresh result is null");
@@ -1511,6 +1543,48 @@ class XMongoModel {
         this.$replaceData(value.data);
 
         return this;
+    }
+
+    /**
+     * Get Static Class from Instance
+     */
+    $static<S extends typeof XMongoModel>() {
+        return this.constructor as S;
+    }
+
+    /**
+     * Check if strict is set to true.
+     */
+    $isStrict() {
+        const isStrict = this.$static().strict;
+        return isStrict === true || typeof isStrict === "object" ? isStrict : false;
+    }
+
+    /**
+     * Throw Error is a field is not defined in Schema
+     * @param field
+     * @param isStrict
+     * @private
+     */
+    private $throwErrorIfNotDefinedInSchema(field: string, isStrict?: XMongoStrictConfig) {
+        if (isStrict === undefined) isStrict = this.$isStrict();
+
+        if (
+            // if is strict
+            isStrict &&
+            // not defined in schema
+            !this.schema.hasOwnProperty(field) &&
+            // and not '_id'
+            field !== "_id" &&
+            // And does not include a dot notation
+            field.indexOf(".") < 0
+        ) {
+            if (typeof isStrict === "object" && isStrict.removeNonSchemaFields) {
+                delete this.data[field];
+            } else {
+                throw new Error(`STRICT: "${field}" is not defined in schema.`);
+            }
+        }
     }
 }
 

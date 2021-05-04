@@ -1,36 +1,27 @@
-import { is, XMongoModel } from "../../index";
-import { sleep } from "../functions";
+import { is, joi, XMongoModel } from "../../index";
 
 class Songs extends XMongoModel {
+    /**
+     * Enable Strict Schema
+     */
+    static strict = { removeNonSchemaFields: true };
+
+    /**
+     * Model Schema
+     */
     static schema = {
         userId: is.ObjectId().required(),
-        name: is.String().required(),
+        name: joi.string().min(3).default("John Doe").required(),
+        social: joi
+            .object({
+                email: joi.string().required().label("social.email")
+            })
+            .default({ email: "hss" })
+            .required(),
         size: is.Number().required(),
         saved: is.Boolean().required(),
         createdAt: is.Date()
     };
 }
-
-Songs.on("create.name", (song) => {
-    // await sleep();
-    return song.data.name.toUpperCase();
-});
-
-Songs.on("watch.name", (song) => {
-    // await sleep();
-    return song.data.name.toUpperCase();
-});
-
-console.log(Songs.events);
-
-// Songs.on("watch.slug", (song) => {
-//     // await sleep();
-//     console.log("Fetched Song:", song);
-// });
-//
-// Songs.on("deleted", (song) => {
-//     // await sleep();
-//     console.log("Slug Delete:", song);
-// });
 
 export = Songs;

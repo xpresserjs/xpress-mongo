@@ -30,7 +30,7 @@ async function SeedUsers() {
 
         await user.save();
 
-        // console.log(`Users (${user.fullName()}) created!`);
+        // console.log(`User (${user.fullName()}) created!`);
 
         i++;
     }

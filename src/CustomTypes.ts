@@ -1,5 +1,6 @@
 import XMongoDataType = require("./XMongoDataType");
 import XMongoModel from "./XMongoModel";
+import Joi from "joi";
 
 export type FunctionReturnsBoolean = (...args: any[]) => boolean;
 export type FunctionReturnsVoidOrBoolean = (...args: any[]) => boolean | void;
@@ -13,13 +14,16 @@ export type ValidatorType =
           and?: Array<FunctionReturnsBoolean>;
       };
 
+export type UseJoi = (joi: Joi.Root) => Joi.Schema;
+
 export type SchemaPropertiesType = {
     name: string;
     default?: any;
-    validator: ValidatorType;
+    validator: ValidatorType | Joi.Schema;
     validationError: (key: string) => string;
     required: boolean | RequiredIf;
     cast: CastFunctionType | null;
+    isJoi?: boolean;
 };
 
 export type StringToAnyObject = Record<string, any>;
@@ -55,3 +59,7 @@ export type XMongoSchemaBuilder = {
     Types(types: XMongoDataType[]): XMongoDataType;
     Uuid(version: number, options?: UuidOptions): XMongoDataType;
 };
+
+export type XMongoSchema = Record<string, XMongoDataType | Joi.Schema>;
+export type XMongoSchemaFn = (is: XMongoSchemaBuilder, Joi: Joi.Root) => XMongoSchema;
+export type XMongoStrictConfig = undefined | boolean | { removeNonSchemaFields?: boolean };

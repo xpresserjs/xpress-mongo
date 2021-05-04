@@ -1,4 +1,11 @@
-import { ValidatorType, CastFunctionType, SchemaPropertiesType, RequiredIf } from "./CustomTypes";
+import {
+    ValidatorType,
+    CastFunctionType,
+    SchemaPropertiesType,
+    RequiredIf,
+    UseJoi
+} from "./CustomTypes";
+import Joi from "joi";
 
 class XMongoDataType {
     public schema: SchemaPropertiesType = {
@@ -6,7 +13,8 @@ class XMongoDataType {
         required: false,
         validator: () => true,
         validationError: () => "Validation Error",
-        cast: null
+        cast: null,
+        isJoi: false
     };
 
     constructor(name: string, $default?: any) {
@@ -56,6 +64,28 @@ class XMongoDataType {
      */
     validator(validator: ValidatorType): this {
         this.schema.validator = validator;
+        // if isJoi, set to false
+        if (this.schema.isJoi) this.schema.isJoi = false;
+        return this;
+    }
+
+    /**
+     * Set Validator to joi schema
+     * @param schema
+     */
+    joi(schema: Joi.Schema | UseJoi) {
+        // Run if function
+        if (typeof schema === "function") {
+            schema = schema(Joi);
+        }
+
+        // Set Validator
+        this.schema.validator = schema;
+        this.schema.isJoi = true;
+
+        this.default(schema.$_getFlag("default"));
+        this.required(schema.$_getFlag("presence") === "required");
+
         return this;
     }
 

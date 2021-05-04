@@ -5,6 +5,7 @@ import XMongoDataType = require("./src/XMongoDataType");
 import XMongoClient = require("./src/XMongoClient");
 import XMongoModel = require("./src/XMongoModel");
 import { XMongoSchemaBuilder } from "./src/CustomTypes";
+import Joi = require("joi");
 
 const { omitIdAndPick, omitIdAnd, omitKeys, pickKeys } = Projectors;
 
@@ -70,6 +71,8 @@ function RefreshDateOnUpdate(
 export {
     // Export is schemaBuilder
     is,
+    // Export Joi
+    Joi as joi,
     // Export Client
     Client,
     // Export Model Class and Helpers

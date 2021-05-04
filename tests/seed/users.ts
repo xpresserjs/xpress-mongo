@@ -1,10 +1,10 @@
 import Connector from "../connection";
-import Users from "../models/Users";
+import User from "../models/User";
 
 async function SeedUsers() {
     const connection = await Connector();
     // Link Model
-    connection.model("users", Users);
+    connection.model("users", User);
 
     const Chance = require("chance");
     const chance = new Chance();
@@ -13,14 +13,14 @@ async function SeedUsers() {
      * Async Space
      */
 
-    await Users.native().deleteMany({});
+    await User.native().deleteMany({});
 
     let i = 0;
     let amount = Number((process.argv[2] as any) || 1);
     console.time("Total Time");
 
     while (i < amount) {
-        const user = new Users();
+        const user = new User();
 
         user.set({
             email: chance.email(),
@@ -30,7 +30,7 @@ async function SeedUsers() {
 
         await user.save();
 
-        // console.log(`Users (${user.fullName()}) created!`);
+        // console.log(`User (${user.fullName()}) created!`);
 
         i++;
     }

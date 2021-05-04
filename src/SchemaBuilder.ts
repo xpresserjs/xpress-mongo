@@ -99,7 +99,7 @@ const is: XMongoSchemaBuilder = {
      */
     InArray(list: any[], def?: any): XMongoDataType {
         return new XMongoDataType("InArray", def)
-            .validator((value) => list.includes(value))
+            .validator((value: any) => list.includes(value))
             .validatorError((key) => `(${key}) is not included in ${JSON.stringify(list)}`);
     },
 

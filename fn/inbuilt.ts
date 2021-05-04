@@ -7,6 +7,8 @@ import {
 import XMongoModel from "../src/XMongoModel";
 import _ from "../src/Lodash";
 import { watch } from "fs";
+import Joi from "joi";
+import { XMongoDataType } from "../index";
 
 /**
  * Get Default value.
@@ -146,4 +148,24 @@ export async function RunOnEvent(
     }
 
     return false;
+}
+
+/**
+ * Process schema
+ * @param schema
+ * @param fieldName
+ */
+export function processSchema(
+    schema: XMongoDataType | Joi.Schema,
+    fieldName: string
+): XMongoDataType {
+    if (schema instanceof XMongoDataType) {
+        return schema;
+    } else if (Joi.isSchema(schema)) {
+        // Covert Joi to XMongoDataType
+        schema = schema.label(fieldName);
+        schema = new XMongoDataType("Joi").joi(schema);
+    }
+
+    return schema as XMongoDataType;
 }
