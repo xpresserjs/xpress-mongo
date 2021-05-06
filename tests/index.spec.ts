@@ -146,13 +146,19 @@ test.group("Read/Update User", () => {
     });
 });
 
-test("Delete User", async (assert) => {
-    const user = await User.findOne({ username: "paulsmith2" });
-    // Throw error if null.
-    assert.isNotNull(user);
+test.group("Delete User", async () => {
+    test(`Fetch and Delete`, async (assert) => {
+        const user = await User.findOne({ username: "paulsmith2" });
+        // Throw error if null.
+        assert.isNotNull(user);
+        // delete
+        await user!.delete();
+    });
 
-    await user!.delete();
-
-    // test.failing(("user n") => {})
+    test("Confirm Delete", async (assert) => {
+        const user = await User.findOne({ username: "paulsmith2" });
+        // Throw error if user exists
+        if (user) throw Error("paulsmith2 still exists in database!");
+    });
 });
 // });

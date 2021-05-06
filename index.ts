@@ -71,7 +71,7 @@ function RefreshDateOnUpdate(
 export {
     // Export is schemaBuilder
     is,
-    // Export Joi
+    // Export Joi as joi to avoid conflict with consumer's own Joi version.
     Joi as joi,
     // Export Client
     Client,

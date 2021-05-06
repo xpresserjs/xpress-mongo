@@ -9,8 +9,8 @@
   },
   "scripts": {
     "bp": "tsc && ts-node build",
-    "test": "nodemon JapaFile.js --watch \"tests/**\" --ext \"ts\"",
-    "test/seed/users": "ts-node-dev --respawn tests/seed/users.ts 50",
+    "test": "node JapaFile.js",
+    "test-dev": "nodemon JapaFile.js --watch 'tests/**' --ext 'ts'",
     "watch": "tsc --watch"
   },
   "repository": {
