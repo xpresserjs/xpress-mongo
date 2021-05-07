@@ -10,6 +10,12 @@ class User extends XMongoModel {
         createdAt: is.Date().required()
     };
 
+    public data!: {
+        username: string;
+        firstName: string;
+        lastName: string;
+    };
+
     // static events = {};
 
     /**

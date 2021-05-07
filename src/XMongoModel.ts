@@ -1071,7 +1071,7 @@ class XMongoModel {
     static find(
         query: StringToAnyObject | FilterQuery<any> = {},
         options: FindOneOptions<any> = {}
-    ): Promise<Record<string, any>[]> | Cursor {
+    ): Promise<Record<string, any>[]> {
         /**
          * options as any is used here because mongodb did not make its new
          * WithoutProjection type exportable so we can't make reference to it.

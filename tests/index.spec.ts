@@ -98,21 +98,7 @@ test.group("Read/Update User", () => {
         assert.isNotNull(user);
 
         //Check Data returned
-        Joi.attempt(
-            // Pick only modified data
-            user.data,
-
-            // Schema
-            Joi.object({
-                _id: Joi.object(),
-                email: Joi.string().required().email(),
-                username: Joi.string().required(),
-                firstName: Joi.string().required(),
-                lastName: Joi.string().required(),
-                updatedAt: Joi.date().less("now"),
-                createdAt: Joi.date().less("now")
-            })
-        );
+        validateUserData(user);
     });
 
     test(`Update using ".update()"`, async (assert) => {
@@ -146,6 +132,15 @@ test.group("Read/Update User", () => {
     });
 });
 
+test.group("Find Many", () => {
+    test("Fetch", async ({ isArray }) => {
+        const results = User.fromArray(await User.find({}));
+        isArray(results);
+
+        validateUserData((results as any[])[0]);
+    });
+});
+
 test.group("Delete User", async () => {
     test(`Fetch and Delete`, async (assert) => {
         const user = await User.findOne({ username: "paulsmith2" });
@@ -161,4 +156,22 @@ test.group("Delete User", async () => {
         if (user) throw Error("paulsmith2 still exists in database!");
     });
 });
+
+function validateUserData(user: User) {
+    Joi.attempt(
+        // Pick only modified data
+        user.data || {},
+
+        // Schema
+        Joi.object({
+            _id: Joi.object(),
+            email: Joi.string().required().email(),
+            username: Joi.string().required(),
+            firstName: Joi.string().required(),
+            lastName: Joi.string().required(),
+            updatedAt: Joi.date().less("now"),
+            createdAt: Joi.date().less("now")
+        })
+    );
+}
 // });
