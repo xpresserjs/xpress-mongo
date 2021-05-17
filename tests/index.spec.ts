@@ -2,9 +2,9 @@ import test from "japa";
 import Connector from "./connection";
 // import { Obj } from "object-collection/exports";
 import XMongoClient = require("../src/XMongoClient");
-import User = require("./models/User");
 import Songs = require("./models/Songs");
 import Joi from "joi";
+import User from "./models/User";
 
 /**
  * Set State using object collection;
@@ -18,8 +18,8 @@ test.group("Initialize DB", () => {
 
     test("Link models to collections", async () => {
         // Link Models To Database
-        connection.model("users", User);
-        connection.model("songs", Songs);
+        connection.link(User, "users");
+        connection.link(Songs, "songs");
     });
 
     test("Delete all data (native)", async () => {
@@ -157,6 +157,10 @@ test.group("Delete User", async () => {
     });
 });
 
+test("Strict", async () => {
+    // console.log()
+});
+
 function validateUserData(user: User) {
     Joi.attempt(
         // Pick only modified data
@@ -174,4 +178,5 @@ function validateUserData(user: User) {
         })
     );
 }
+
 // });

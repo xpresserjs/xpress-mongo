@@ -45,7 +45,6 @@ type FunctionWithRawArgument = {
     (raw: Collection): Cursor | AggregationCursor;
 };
 
-// type ModelRelationships  = {;
 /**
  * @class
  */
@@ -134,7 +133,7 @@ class XMongoModel {
      */
     constructor() {
         // Assume data is empty
-        this.emptyData();
+        this.$emptyData();
 
         Object.defineProperty(this, "schema", {
             value: {},
@@ -181,11 +180,14 @@ class XMongoModel {
     }
 
     /**
-     * Returns native mongodb instance to run native queries
+     * Returns native mongodb instance to run native queries.
+     *
+     * Because this is
      */
     static native(): Collection {
+        const part = this.name ? `Model: {${this.name}}` : "Model";
         // @ts-ignore
-        return null;
+        throw new Error(`Cannot access .native(), Link ${part} to a collection first.`);
     }
 
     /**
@@ -193,7 +195,7 @@ class XMongoModel {
      * @param replaceWith
      * @returns {this}
      */
-    emptyData(replaceWith?: StringToAnyObject): this {
+    $emptyData(replaceWith?: StringToAnyObject): this {
         const _id = this.id();
 
         /**
@@ -227,9 +229,7 @@ class XMongoModel {
      * @param value
      * @return {this}
      */
-    set(key: string | StringToAnyObject, value?: any): this {
-        const isStrict = this.$isStrict();
-
+    set(key: string | Record<string, any>, value?: any): this {
         if (typeof key === "object" && value === undefined) {
             for (const property in key) {
                 _.set(this.data, property, key[property]);
@@ -408,7 +408,7 @@ class XMongoModel {
 
             // Empty Data to remove any predefined schemas
             if (!Object.keys(this.original).length) {
-                this.emptyData();
+                this.$emptyData();
             }
 
             schema = this.schemaStore[schema] || {};
@@ -630,7 +630,7 @@ class XMongoModel {
                 await RunOnEvent("create", this);
                 // Try to validate new data.
                 try {
-                    this.emptyData(this.validate(undefined, true));
+                    this.$emptyData(this.validate(undefined, true));
                 } catch (e) {
                     return reject(e);
                 }
@@ -1065,7 +1065,6 @@ class XMongoModel {
      * Find many in collection
      * @param query
      * @param options
-     * @param raw
      * @return {Promise<XMongoModel[]>}
      */
     static find(
@@ -1488,7 +1487,7 @@ class XMongoModel {
      */
     $replaceData(data: any, append?: string[]): this {
         // First Empty Data
-        this.emptyData();
+        this.$emptyData();
         // Set Original Property
         this.$setOriginal(data);
         // Set Normal Data

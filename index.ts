@@ -4,7 +4,7 @@ import Projectors = require("./fn/projection");
 import XMongoDataType = require("./src/XMongoDataType");
 import XMongoClient = require("./src/XMongoClient");
 import XMongoModel = require("./src/XMongoModel");
-import { XMongoSchemaBuilder } from "./src/CustomTypes";
+import { XMongoSchemaBuilder, XMongoSchema, XMongoSchemaFn } from "./src/CustomTypes";
 import Joi = require("joi");
 
 const { omitIdAndPick, omitIdAnd, omitKeys, pickKeys } = Projectors;
@@ -78,7 +78,10 @@ export {
     // Export Model Class and Helpers
     XMongoModel,
     XMongoDataType,
+    // Export Most Used Types
     XMongoSchemaBuilder,
+    XMongoSchema,
+    XMongoSchemaFn,
     // Export Projectors for quicker requirement
     omitKeys,
     pickKeys,

@@ -1,7 +1,18 @@
 import { is, joi, XMongoModel } from "../../index";
+import { XMongoSchema } from "../../src/CustomTypes";
+import XMongoModelTyped = require("../../src/XMongoTypedModel");
 
-class User extends XMongoModel {
-    static schema = {
+interface UserDataType {
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    updatedAt: string;
+    createdAt: string;
+}
+
+class User extends XMongoModelTyped<UserDataType> {
+    static schema: XMongoSchema<UserDataType> = {
         username: joi.string().required().lowercase().alphanum(),
         email: joi.string().required().lowercase().email(),
         firstName: is.String().required(),
@@ -9,14 +20,6 @@ class User extends XMongoModel {
         updatedAt: is.Date().required(),
         createdAt: is.Date().required()
     };
-
-    public data!: {
-        username: string;
-        firstName: string;
-        lastName: string;
-    };
-
-    // static events = {};
 
     /**
      * Returns the full name of the user.
@@ -27,4 +30,4 @@ class User extends XMongoModel {
     }
 }
 
-export = User;
+export default User;

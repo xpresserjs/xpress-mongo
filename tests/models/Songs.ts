@@ -5,12 +5,11 @@ class Songs extends XMongoModel {
      * Enable Strict Schema
      */
     static strict = { removeNonSchemaFields: true };
-
+    // static strict = true;
     /**
      * Model Schema
      */
     static schema = {
-        userId: is.ObjectId().required(),
         name: joi.string().min(3).default("John Doe").required(),
         social: joi
             .object({
@@ -20,8 +19,10 @@ class Songs extends XMongoModel {
             .required(),
         size: is.Number().required(),
         saved: is.Boolean().required(),
-        createdAt: is.Date()
+        createdAt: is.Date().required()
     };
+
+    data!: { username: string };
 }
 
 export = Songs;
