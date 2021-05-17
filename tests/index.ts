@@ -1,7 +1,7 @@
 import Connector from "./connection";
 import User from "./models/User";
 import Songs from "./models/Songs";
-import XMongoModelTyped = require("../src/XMongoTypedModel");
+import XMongoTypedModel = require("../src/XMongoTypedModel");
 
 const Chance = require("chance");
 const chance = new Chance();
@@ -25,7 +25,7 @@ async function Main() {
 
 Main().catch(console.error);
 
-class TV extends XMongoModelTyped<{
+class TV extends XMongoTypedModel<{
     volume: number;
     channel: number;
     channelName: string;
@@ -41,6 +41,6 @@ class TV extends XMongoModelTyped<{
 // class Bar extends Foo {}
 
 const tv = new TV();
-tv.set("volume");
+tv.set("channelNamed");
 
 // tv.set("volume")

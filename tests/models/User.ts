@@ -1,6 +1,6 @@
 import { is, joi, XMongoModel } from "../../index";
 import { XMongoSchema } from "../../src/CustomTypes";
-import XMongoModelTyped = require("../../src/XMongoTypedModel");
+import XMongoTypedModel = require("../../src/XMongoTypedModel");
 
 interface UserDataType {
     username: string;
@@ -11,7 +11,8 @@ interface UserDataType {
     createdAt: string;
 }
 
-class User extends XMongoModelTyped<UserDataType> {
+class User extends XMongoTypedModel<UserDataType> {
+    // Schema
     static schema: XMongoSchema<UserDataType> = {
         username: joi.string().required().lowercase().alphanum(),
         email: joi.string().required().lowercase().email(),
