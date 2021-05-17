@@ -1,10 +1,12 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
+import { XMongoSchemaBuilder, XMongoSchema, XMongoSchemaFn } from "./src/CustomTypes";
+// Require libs
 import is = require("./src/SchemaBuilder");
 import Projectors = require("./fn/projection");
 import XMongoDataType = require("./src/XMongoDataType");
 import XMongoClient = require("./src/XMongoClient");
 import XMongoModel = require("./src/XMongoModel");
-import { XMongoSchemaBuilder, XMongoSchema, XMongoSchemaFn } from "./src/CustomTypes";
+import XMongoTypedModel = require("./src/XMongoTypedModel");
 import Joi = require("joi");
 
 const { omitIdAndPick, omitIdAnd, omitKeys, pickKeys } = Projectors;
@@ -77,6 +79,7 @@ export {
     Client,
     // Export Model Class and Helpers
     XMongoModel,
+    XMongoTypedModel,
     XMongoDataType,
     // Export Most Used Types
     XMongoSchemaBuilder,
