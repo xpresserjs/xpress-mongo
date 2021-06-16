@@ -1380,7 +1380,7 @@ class XMongoModel {
     static fromQuery<T extends typeof XMongoModel>(
         this: T,
         query: FunctionWithRawArgument,
-        interceptor: boolean | { (lists: Array<any>): any } = false
+        interceptor: false | { (lists: Array<any>): any } = false
     ): Promise<InstanceType<T>[]> {
         return new Promise((resolve, reject) => {
             return (<Cursor>query(this.native())).toArray((error, lists) => {
