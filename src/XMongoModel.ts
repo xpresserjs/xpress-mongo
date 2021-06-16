@@ -131,7 +131,7 @@ class XMongoModel {
      *
      * The ModelAction class uses this function to access this models data.
      */
-    constructor() {
+    constructor(setUpSchema = true) {
         // Assume data is empty
         this.$emptyData();
 
@@ -160,12 +160,14 @@ class XMongoModel {
             enumerable: false
         });
 
-        /**
-         * Set Model Schema if exists
-         */
-        const thisClass = this.constructor as typeof XMongoModel;
-        if (thisClass.schema) {
-            this.$useSchema(thisClass.schema);
+        if (setUpSchema) {
+            /**
+             * Set Model Schema if exists
+             */
+            const thisClass = this.$static();
+            if (thisClass.schema) {
+                this.$useSchema(thisClass.schema);
+            }
         }
     }
 
@@ -572,7 +574,7 @@ class XMongoModel {
                 "UPDATE_RAW_ERROR: Model does not have an _id, so we assume it is not from the database."
             );
         return new Promise((resolve, reject) => {
-            return (<typeof XMongoModel>this.constructor)
+            return this.$static()
                 .native()
                 .updateOne({ _id: this.id() }, update, <UpdateOneOptions>options, (error, res) =>
                     error ? reject(error) : resolve(res.connection)
@@ -608,7 +610,7 @@ class XMongoModel {
                     return reject(e);
                 }
 
-                return (<typeof XMongoModel>this.constructor)
+                return this.$static()
                     .native()
                     .updateOne(
                         { _id: this.id() },
@@ -635,7 +637,7 @@ class XMongoModel {
                     return reject(e);
                 }
 
-                return (<typeof XMongoModel>this.constructor)
+                return this.$static()
                     .native()
                     .insertOne(this.data, <CollectionInsertOneOptions>options, (error, res) => {
                         if (error) return reject(error);
@@ -689,7 +691,7 @@ class XMongoModel {
 
         // Run MongoDb query and return response in Promise
         return new Promise((resolve, reject) => {
-            return (<typeof XMongoModel>this.constructor)
+            return this.$static()
                 .native()
                 .updateOne({ _id: this.id() }, { $unset }, options, (error, res) => {
                     if (error) return reject(error);
@@ -889,7 +891,7 @@ class XMongoModel {
 
         if (_id) {
             // Delete Document
-            const result = await (<typeof XMongoModel>this.constructor).native().deleteOne({ _id });
+            const result = await this.$static().native().deleteOne({ _id });
 
             RunOnEvent("deleted", this).finally(() => {});
 
@@ -922,7 +924,8 @@ class XMongoModel {
      * @param {{}} data
      */
     static use<T extends typeof XMongoModel>(this: T, data: StringToAnyObject): InstanceType<T> {
-        const model = new this();
+        const model = new this(false);
+
         // Replace defaults with new data
         model.$replaceData(data);
 
@@ -943,7 +946,7 @@ class XMongoModel {
             cast?: boolean;
         } = {}
     ): Promise<any | XMongoModel> {
-        let relationships = (<typeof XMongoModel>this.constructor).relationships;
+        let relationships = this.$static().relationships;
 
         if (
             relationships &&
@@ -1328,16 +1331,39 @@ class XMongoModel {
     /**
      * Turn array provided to model instances.
      *
-     * if function is passed instead of the array
-     * xpress-mongo will assume you want to provide a raw query
-     * that it will append mongodb `.toArray` function to.
-     *
      * @example
      * E.G
      *      contact = ContactModel.fromArray([...SomeAlreadyFetchedData])
      *
-     * OR
-     *      contact = ContactModel.fromArray(raw => raw.find().limit(10));
+     *
+     * @static
+     * @method
+     * @param data
+     * @param mutate
+     *
+     * @return {Promise<this[]>|this[]} returns - Array of model instances
+     */
+    static fromArray<T extends typeof XMongoModel>(
+        this: T,
+        data: any[],
+        mutate = false
+    ): InstanceType<T>[] {
+        if (mutate) {
+            for (const index in data) {
+                data[index] = this.use<T>(data[index]);
+            }
+            return data;
+        } else {
+            return data.map((i) => this.use<T>(i));
+        }
+    }
+
+    /**
+     * Turn query result array provided to model instances.
+
+     * @example
+     * E.G
+     *      contact = ContactModel.fromArray(native => native.find().limit(10));
      *
      * WHICH IS ===
      *
@@ -1350,39 +1376,27 @@ class XMongoModel {
      * @method
      * @param {Object[]} query - Data as array or query as function.
      * @param {function|boolean} interceptor - Intercepts raw database array if not false.
-     *
-     * @return {Promise<this[]>|this[]} returns - Array of model instances
      */
-    static fromArray<T extends typeof XMongoModel>(
+    static fromQuery<T extends typeof XMongoModel>(
         this: T,
-        query: FunctionWithRawArgument | any[],
+        query: FunctionWithRawArgument,
         interceptor: boolean | { (lists: Array<any>): any } = false
-    ): InstanceType<T>[] | Promise<InstanceType<T>[]> {
-        if (typeof query === "function") {
-            return new Promise((resolve, reject) => {
-                return (<Cursor>query(this.native())).toArray((error, lists) => {
-                    if (error) return reject(error);
+    ): Promise<InstanceType<T>[]> {
+        return new Promise((resolve, reject) => {
+            return (<Cursor>query(this.native())).toArray((error, lists) => {
+                if (error) return reject(error);
 
-                    /**
-                     * Check if interceptor is a function
-                     * if it is we pass list to the function
-                     *
-                     * else we pass it to self (fromArray)
-                     */
-                    return resolve(
-                        typeof interceptor === "function"
-                            ? interceptor(lists)
-                            : this.fromArray(lists)
-                    );
-                });
+                /**
+                 * Check if interceptor is a function
+                 * if it is we pass list to the function
+                 *
+                 * else we pass it to self (fromArray)
+                 */
+                return resolve(
+                    typeof interceptor === "function" ? interceptor(lists) : this.fromArray(lists)
+                );
             });
-        } else {
-            const data = [];
-            for (const list of query) {
-                data.push(this.use(list));
-            }
-            return data;
-        }
+        });
     }
 
     /**
@@ -1494,7 +1508,7 @@ class XMongoModel {
         this.set(data);
 
         // Get Append
-        if (!append) append = (this.constructor as any).append;
+        if (!append) append = this.$static().append;
 
         // If append then run append functions
         if (append) {

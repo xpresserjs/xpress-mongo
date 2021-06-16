@@ -4,7 +4,7 @@ class Songs extends XMongoModel {
     /**
      * Enable Strict Schema
      */
-    static strict = { removeNonSchemaFields: true };
+    static strict = true;
     // static strict = true;
     /**
      * Model Schema
