@@ -99,6 +99,11 @@ class XMongoModel {
     public schemaStore: StringToAnyObject = {};
 
     /**
+     * Source of truth to check if schema was loaded
+     */
+    private hasLoadedSchema: string | boolean = false;
+
+    /**
      * Defined relationships
      * @type {{}}
      */
@@ -140,6 +145,12 @@ class XMongoModel {
             writable: true,
             enumerable: false,
             configurable: true
+        });
+
+        Object.defineProperty(this, "hasLoadedSchema", {
+            value: false,
+            writable: true,
+            enumerable: false
         });
 
         Object.defineProperty(this, "original", {
@@ -399,9 +410,14 @@ class XMongoModel {
      *
      * if `schema` is undefined then `this.data` is used as schema object
      * @param {Object|String} schema
+     * @param modifyData
      * @returns {this}
      */
-    $useSchema(schema: string | StringToAnyObject | XMongoSchemaFn): this {
+    $useSchema(
+        schema?: string | StringToAnyObject | XMongoSchemaFn,
+        modifyData: boolean = true
+    ): this {
+        if (!schema) schema = this.$static().schema;
         // Try to find schema from .schemaStore if string
         if (typeof schema === "string") {
             if (!this.schemaStore.hasOwnProperty(schema)) {
@@ -429,38 +445,43 @@ class XMongoModel {
                     let schemaVal: XMongoDataType = processSchema(schema[field], field);
                     this.schema[field] = schemaVal["schema"];
 
-                    // Attach default values
-                    const value = defaultValue(this.schema[field]);
-
-                    /**
-                     * If default value is undefined and schema is required set field to undefined.
-                     * else set field to value.
-                     *
-                     * This removes not required keys with undefined values.
-                     */
-                    if (value === undefined) {
-                        if (schemaVal.schema.required) {
+                    if (modifyData) {
+                        // Attach default values
+                        const value = this.data[field] || defaultValue(this.schema[field]);
+                        /**
+                         * If default value is undefined and schema is required set field to undefined.
+                         * else set field to value.
+                         *
+                         * This removes not required keys with undefined values.
+                         */
+                        if (value === undefined) {
+                            if (schemaVal.schema.required) {
+                                newData[field] = value;
+                            }
+                        } else {
                             newData[field] = value;
                         }
-                    } else {
-                        newData[field] = value;
                     }
                 }
             }
         }
 
-        /**
-         * Fill up keys defined in data but not in schema
-         */
-        for (const key in this.data) {
-            // noinspection JSUnfilteredForInLoop
-            if (!newData.hasOwnProperty(key)) {
+        if (modifyData) {
+            /**
+             * Fill up keys defined in data but not in schema
+             */
+            for (const key in this.data) {
                 // noinspection JSUnfilteredForInLoop
-                newData[key] = this.data[key];
+                if (!newData.hasOwnProperty(key)) {
+                    // noinspection JSUnfilteredForInLoop
+                    newData[key] = this.data[key];
+                }
             }
+
+            this.data = newData;
         }
 
-        this.data = newData;
+        this.hasLoadedSchema = true;
 
         return this;
     }
@@ -596,6 +617,8 @@ class XMongoModel {
             const id = this.id();
 
             if (id) {
+                if (!this.hasLoadedSchema) this.$useSchema(undefined, false);
+
                 await RunOnEvent("update", this);
 
                 let $set,
@@ -632,7 +655,7 @@ class XMongoModel {
                 await RunOnEvent("create", this);
                 // Try to validate new data.
                 try {
-                    this.$emptyData(this.validate(undefined, true));
+                    this.$emptyData(this.validate(undefined));
                 } catch (e) {
                     return reject(e);
                 }
@@ -711,10 +734,9 @@ class XMongoModel {
      * @description
      * Runs validation on this.data if data is undefined.
      * @param data
-     * @param creating
      * @return {{}}
      */
-    validate(data?: StringToAnyObject, creating: boolean = false): StringToAnyObject {
+    validate(data?: StringToAnyObject): StringToAnyObject {
         const isStrict = this.$isStrict();
 
         /**
@@ -739,7 +761,7 @@ class XMongoModel {
         const validated: StringToAnyObject = {};
 
         if (isStrict) {
-            // Add keys not in schema but in data and removed undefined values
+            // find keys not defined in data
             for (const field in data) {
                 // If not defined in schema
                 this.$throwErrorIfNotDefinedInSchema(field, isStrict);

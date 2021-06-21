@@ -5,6 +5,7 @@ import XMongoTypedModel = require("../../src/XMongoTypedModel");
 interface UserDataType {
     username: string;
     email: string;
+    status: string;
     firstName: string;
     lastName: string;
     updatedAt: string;
@@ -12,12 +13,14 @@ interface UserDataType {
 }
 
 class User extends XMongoTypedModel<UserDataType> {
+    static strict = true;
     // Schema
     static schema: XMongoSchema<UserDataType> = {
         username: joi.string().required().lowercase().alphanum(),
         email: joi.string().required().lowercase().email(),
         firstName: is.String().required(),
         lastName: is.String().required(),
+        status: is.String("created").required(),
         updatedAt: is.Date().required(),
         createdAt: is.Date().required()
     };

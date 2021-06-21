@@ -19,31 +19,16 @@ async function Main() {
      * Playground for dev test.
      */
 
-    const songs = await Songs.find({}, { projection: omitIdAndPick(["name"]) });
+    // await User.new({
+    //     username: "John",
+    //     email: "hello@good.com",
+    //     firstName: "John",
+    //     lastName: "Smith"
+    // });
 
-    Songs.fromArray(songs);
+    const song = (await User.findOne({}))!;
 
-    console.log(songs);
+    console.log(song);
 }
 
 Main().catch(console.error);
-
-// class TV extends XMongoTypedModel<{
-//     volume: number;
-//     channel: number;
-//     channelName: string;
-// }> {
-//     // public data!: Data;
-//     // public set!: (key: keyof Data, value?: any) => this;
-//
-//     getData() {
-//         return this.data;
-//     }
-// }
-//
-// // class Bar extends Foo {}
-//
-// const tv = new TV();
-// tv.set("channelNamed");
-
-// tv.set("volume")
