@@ -5,7 +5,6 @@ import XMongoTypedModel = require("../../src/XMongoTypedModel");
 interface UserDataType {
     username: string;
     email: string;
-    status: string;
     firstName: string;
     lastName: string;
     updatedAt: string;
@@ -20,7 +19,6 @@ class User extends XMongoTypedModel<UserDataType> {
         email: joi.string().required().lowercase().email(),
         firstName: is.String().required(),
         lastName: is.String().required(),
-        status: is.String("created").required(),
         updatedAt: is.Date().required(),
         createdAt: is.Date().required()
     };
