@@ -35,6 +35,7 @@ import {
     XMongoStrictConfig
 } from "./CustomTypes";
 import Joi from "joi";
+import { Obj } from "object-collection/exports";
 
 /**
  * Get Lodash
@@ -582,6 +583,8 @@ class XMongoModel {
 
     /**
      * Update model using raw updateQuery
+     *
+     * Note: No Validation for raw queries
      * @param update
      * @param options
      * @return {Promise<UpdateWriteOpResult>}
@@ -629,6 +632,9 @@ class XMongoModel {
                 // Try to validate changes
                 try {
                     $set = { ...changes, ...this.validate(changes) };
+
+                    // Set original to this.
+                    Obj(this.original).merge($set);
                 } catch (e) {
                     return reject(e);
                 }

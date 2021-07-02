@@ -3,8 +3,7 @@ import User from "./models/User";
 import Songs from "./models/Songs";
 import XMongoTypedModel = require("../src/XMongoTypedModel");
 import { omitIdAndPick } from "../index";
-
-const Chance = require("chance");
+import Chance from "chance";
 const chance = new Chance();
 
 async function Main() {
@@ -28,7 +27,8 @@ async function Main() {
 
     const song = (await User.findOne({}))!;
 
-    console.log(song);
+    await song.update({ firstName: chance.name() });
+    console.log({ data: song.data, original: song.original });
 }
 
 Main().catch(console.error);
