@@ -1656,6 +1656,11 @@ class XMongoModel {
         return this.$static().schema || {};
     }
 
+    /**
+     * Validates unique schemas
+     * @param data
+     * @private
+     */
     private $checkUniqueSchema(data?: StringToAnyObject): Promise<boolean | Error> {
         return new Promise(async (resolve, reject) => {
             if (!this.meta.hasUniqueSchema) return resolve(true);
