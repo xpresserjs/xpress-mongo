@@ -3,9 +3,11 @@ import {
     CastFunctionType,
     SchemaPropertiesType,
     RequiredIf,
-    UseJoi
+    UseJoi,
+    FnWithArg
 } from "./CustomTypes";
 import Joi from "joi";
+import XMongoModel from "./XMongoModel";
 
 class XMongoDataType {
     public schema: SchemaPropertiesType = {
@@ -23,6 +25,10 @@ class XMongoDataType {
         this.schema.validationError = (key) => `${key} failed ${name} validation.`;
     }
 
+    /**
+     * Set Schema Name
+     * @param name
+     */
     name(name: string) {
         if (name) {
             this.schema.name = name;
@@ -149,6 +155,15 @@ class XMongoDataType {
      */
     optional(): this {
         return this.required(false);
+    }
+
+    unique<c = XMongoModel>(options?: {
+        query?: FnWithArg<c, Record<string, any>>;
+        // replaceWith?: FnWithArg<c>;
+    }): this {
+        this.schema.isUnique = true;
+        this.schema.uniqueQuery = options;
+        return this;
     }
 }
 

@@ -18,17 +18,26 @@ async function Main() {
      * Playground for dev test.
      */
 
-    // await User.new({
+    // const song = await User.new({
     //     username: "John",
     //     email: "hello@good.com",
     //     firstName: "John",
     //     lastName: "Smith"
     // });
+    //
+    // console.log(song);
+    const song = await User.findOne({});
 
-    const song = (await User.findOne({}))!;
+    if (!song) throw Error("No Song found");
 
-    await song.update({ firstName: chance.name() });
-    console.log({ data: song.data, original: song.original });
+    console.log(await song.update({ email: "hi@good.com" }));
+    // song.validate();
+    // console.log(song.schema["email"]);
+
+    // await song.set({ firstName: chance.name() }).save();
+    // song.set({ email: chance.name() });
+
+    // console.log(song.validate());
 }
 
 Main().catch(console.error);

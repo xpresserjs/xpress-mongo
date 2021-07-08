@@ -100,9 +100,16 @@ class XMongoModel {
     public schemaStore: StringToAnyObject = {};
 
     /**
-     * Source of truth to check if schema was loaded
+     * Model meta
+     * @private
      */
-    private hasLoadedSchema: string | boolean = false;
+    private meta!: {
+        /**
+         * Source of truth to check if schema was loaded
+         */
+        hasLoadedSchema?: string | boolean;
+        hasUniqueSchema?: false | string[];
+    };
 
     /**
      * Defined relationships
@@ -141,17 +148,17 @@ class XMongoModel {
         // Assume data is empty
         this.$emptyData();
 
+        Object.defineProperty(this, "meta", {
+            value: {},
+            writable: true,
+            enumerable: false
+        });
+
         Object.defineProperty(this, "schema", {
             value: {},
             writable: true,
             enumerable: false,
             configurable: true
-        });
-
-        Object.defineProperty(this, "hasLoadedSchema", {
-            value: false,
-            writable: true,
-            enumerable: false
         });
 
         Object.defineProperty(this, "original", {
@@ -463,6 +470,14 @@ class XMongoModel {
                             newData[field] = value;
                         }
                     }
+
+                    if (schemaVal.schema.isUnique) {
+                        if (this.meta.hasUniqueSchema) {
+                            this.meta.hasUniqueSchema.push(field);
+                        } else {
+                            this.meta.hasUniqueSchema = [field];
+                        }
+                    }
                 }
             }
         }
@@ -482,7 +497,7 @@ class XMongoModel {
             this.data = newData;
         }
 
-        this.hasLoadedSchema = true;
+        this.meta.hasLoadedSchema = true;
 
         return this;
     }
@@ -620,8 +635,6 @@ class XMongoModel {
             const id = this.id();
 
             if (id) {
-                if (!this.hasLoadedSchema) this.$useSchema(undefined, false);
-
                 await RunOnEvent("update", this);
 
                 let $set,
@@ -632,6 +645,10 @@ class XMongoModel {
                 // Try to validate changes
                 try {
                     $set = { ...changes, ...this.validate(changes) };
+
+                    if (this.meta.hasUniqueSchema) {
+                        await this.$checkUniqueSchema($set);
+                    }
 
                     // Set original to this.
                     Obj(this.original).merge($set);
@@ -662,6 +679,10 @@ class XMongoModel {
                 // Try to validate new data.
                 try {
                     this.$emptyData(this.validate(undefined));
+
+                    if (this.meta.hasUniqueSchema) {
+                        await this.$checkUniqueSchema();
+                    }
                 } catch (e) {
                     return reject(e);
                 }
@@ -743,6 +764,8 @@ class XMongoModel {
      * @return {{}}
      */
     validate(data?: StringToAnyObject): StringToAnyObject {
+        if (!this.meta.hasLoadedSchema) this.$useSchema(undefined, false);
+
         const isStrict = this.$isStrict();
 
         /**
@@ -1596,7 +1619,7 @@ class XMongoModel {
     /**
      * Check if strict is set to true.
      */
-    $isStrict() {
+    protected $isStrict() {
         const isStrict = this.$static().strict;
         return isStrict === true || typeof isStrict === "object" ? isStrict : false;
     }
@@ -1605,6 +1628,7 @@ class XMongoModel {
      * Throw Error is a field is not defined in Schema
      * @param field
      * @param isStrict
+     * @param schema
      * @private
      */
     private $throwErrorIfNotDefinedInSchema(field: string, isStrict?: XMongoStrictConfig) {
@@ -1626,6 +1650,44 @@ class XMongoModel {
                 throw new Error(`STRICT: "${field}" is not defined in schema.`);
             }
         }
+    }
+
+    protected $definedSchema() {
+        return this.$static().schema || {};
+    }
+
+    private $checkUniqueSchema(data?: StringToAnyObject): Promise<boolean | Error> {
+        return new Promise(async (resolve, reject) => {
+            if (!this.meta.hasUniqueSchema) return resolve(true);
+            if (!data) data = this.data;
+
+            for (const field of this.meta.hasUniqueSchema) {
+                if (!data[field]) continue;
+
+                const schema: SchemaPropertiesType = this.schema[field];
+                if (!schema) continue;
+
+                try {
+                    const uniqueQuery = schema.uniqueQuery || {};
+
+                    let findQuery: any = uniqueQuery.query;
+                    if (!findQuery) findQuery = { [field]: data[field] };
+
+                    if (typeof findQuery === "function") {
+                        findQuery = findQuery(this);
+                    }
+
+                    const findField = await this.$static().findOne(findQuery);
+
+                    if (findField)
+                        return reject(Error(`Field: (${field}) expects a unique value!`));
+                } catch (e) {
+                    return reject(e);
+                }
+            }
+
+            return resolve(true);
+        });
     }
 }
 

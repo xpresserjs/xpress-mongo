@@ -159,11 +159,9 @@ export function processSchema(
     schema: XMongoDataType | Joi.Schema,
     fieldName: string
 ): XMongoDataType {
-    if (schema instanceof XMongoDataType) {
-        return schema;
-    } else if (Joi.isSchema(schema)) {
+    if (Joi.isSchema(schema)) {
         // Covert Joi to XMongoDataType
-        schema = schema.label(fieldName);
+        schema = (schema as Joi.Schema).label(fieldName);
         schema = new XMongoDataType("Joi").joi(schema);
     }
 

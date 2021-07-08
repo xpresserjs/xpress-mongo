@@ -24,6 +24,11 @@ export type SchemaPropertiesType = {
     required: boolean | RequiredIf;
     cast: CastFunctionType | null;
     isJoi?: boolean;
+    isUnique?: boolean;
+    uniqueQuery?: {
+        query?: FnWithArg<any, Record<string, any>>;
+        // replaceWith?: FnWithArg;
+    };
 };
 
 export type StringToAnyObject = Record<string, any>;
@@ -63,3 +68,5 @@ export type XMongoSchemaBuilder = {
 export type XMongoSchema<DataType = any> = Record<keyof DataType, XMongoDataType | Joi.Schema>;
 export type XMongoSchemaFn = (is: XMongoSchemaBuilder, Joi: Joi.Root) => XMongoSchema;
 export type XMongoStrictConfig = undefined | boolean | { removeNonSchemaFields?: boolean };
+
+export type FnWithArg<arg = any, result = any> = (c: arg) => result;
