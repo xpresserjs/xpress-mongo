@@ -1682,7 +1682,7 @@ class XMongoModel {
                         findQuery = findQuery(this);
                     }
 
-                    const findField = await this.$static().findOne(findQuery);
+                    const findField = await this.$static().native().findOne(findQuery);
 
                     if (findField)
                         return reject(Error(`Field: (${field}) expects a unique value!`));
