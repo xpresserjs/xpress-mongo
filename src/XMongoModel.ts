@@ -985,6 +985,23 @@ class XMongoModel {
     }
 
     /**
+     * Check if a document exists.
+     * Projects only Id and returns boolean.
+     */
+    static async exists(query: StringToAnyObject | Object) {
+        let where = query;
+        if (this.isValidId(query)) {
+            where = { _id: query };
+        }
+
+        /**
+         * Project only ID so that mongodb doesn't have to read disk.
+         * only relevant if query is ID
+         */
+        return (await this.findOne(where, { projection: { _id: 1 } })) !== null;
+    }
+
+    /**
      * Has One relationship
      * @param relationship
      * @param extend
@@ -1652,6 +1669,10 @@ class XMongoModel {
         }
     }
 
+    /**
+     * Define Schema
+     * @protected
+     */
     protected $definedSchema() {
         return this.$static().schema || {};
     }

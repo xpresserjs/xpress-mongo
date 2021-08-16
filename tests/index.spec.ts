@@ -91,6 +91,12 @@ test.group("Create User", () => {
 test.group("Read/Update User", () => {
     let user: User;
 
+    test("User exists", async (assert) => {
+        const exists = await User.exists({ username: "johndoe" });
+
+        assert.isNotFalse(exists);
+    });
+
     test("Fetch user from db", async (assert) => {
         user = (await User.findOne({ username: "johndoe" }))!;
 
