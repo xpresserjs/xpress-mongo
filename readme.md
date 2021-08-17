@@ -1,5 +1,8 @@
 # Xpress Mongo
 
+Note: **Version 2, uses mongodb new v4 which includes breaking changes**. 
+See mongodb change log for more details. [Mongodb Native Client 4.0 Change Log](https://github.com/mongodb/node-mongodb-native/blob/4.0/docs/CHANGES_4.0.0.md)
+
 A light mongodb model/helper library for nodejs, provides modeling for your documents while keeping you very close to
 mongodb native syntax which is always recommended.
 
