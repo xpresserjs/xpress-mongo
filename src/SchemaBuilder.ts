@@ -1,5 +1,5 @@
 import XMongoDataType = require("./XMongoDataType");
-import { ObjectID } from "mongodb";
+import { ObjectId } from "mongodb";
 import { UuidOptions, XMongoSchemaBuilder } from "./CustomTypes";
 // @ts-ignore
 import uuid = require("uuid");
@@ -8,7 +8,7 @@ import uuid = require("uuid");
 const isString = (v: any) => typeof v === "string";
 const isBoolean = (v: any) => typeof v === "boolean";
 const isObject = (v: any) => v && typeof v === "object" && !Array.isArray(v);
-const isObjectId = (v: any) => ObjectID.isValid(v);
+const isObjectId = (v: any) => ObjectId.isValid(v);
 const isArray = (v: any) => Array.isArray(v);
 const isDate = (v: any) => {
     if (v instanceof Date) {
@@ -140,17 +140,17 @@ const is: XMongoSchemaBuilder = {
                 or: [isString, isObjectId]
             })
             .cast((val, key) => {
-                if (typeof val === "object" && ObjectID.isValid(val)) {
+                if (typeof val === "object" && ObjectId.isValid(val)) {
                     return val;
                 }
 
                 try {
-                    return new ObjectID(val);
+                    return new ObjectId(val);
                 } catch (e) {
-                    throw TypeError(`(${key}) is not valid Mongodb-ObjectID`);
+                    throw TypeError(`(${key}) is not valid Mongodb-ObjectId`);
                 }
             })
-            .validatorError((key) => `(${key}) is not a Mongodb-ObjectID`);
+            .validatorError((key) => `(${key}) is not a Mongodb-ObjectId`);
     },
 
     /**

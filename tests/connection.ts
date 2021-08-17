@@ -4,10 +4,7 @@ const db = "mongodb://127.0.0.1:27017";
 const db_name = "xpress-mongo";
 
 export = async () => {
-    const connection = Client(db, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    const connection = Client(db);
 
     try {
         // Try Connecting...

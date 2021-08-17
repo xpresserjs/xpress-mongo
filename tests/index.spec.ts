@@ -40,7 +40,7 @@ test.group("Create User", () => {
             user.data,
             // Schema
             Joi.object({
-                // .allow(null) is used because there is no ObjectID yet
+                // .allow(null) is used because there is no ObjectId yet
                 _id: Joi.object().allow(null),
                 email: Joi.string(),
                 username: Joi.string(),
@@ -95,6 +95,12 @@ test.group("Read/Update User", () => {
         const exists = await User.exists({ username: "johndoe" });
 
         assert.isNotFalse(exists);
+    });
+
+    test("User count must be 1", async (assert) => {
+        const count = await User.count({ username: "johndoe" });
+
+        assert.isNotFalse(count === 1);
     });
 
     test("Fetch user from db", async (assert) => {
@@ -156,7 +162,7 @@ test.group("Delete User", async () => {
         await user!.delete();
     });
 
-    test("Confirm Delete", async (assert) => {
+    test("Confirm Delete", async () => {
         const user = await User.findOne({ username: "paulsmith2" });
         // Throw error if user exists
         if (user) throw Error("paulsmith2 still exists in database!");

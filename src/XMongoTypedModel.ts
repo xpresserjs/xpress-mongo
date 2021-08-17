@@ -1,6 +1,6 @@
 import XMongoModel from "./XMongoModel";
 import { StringToAnyObject } from "./CustomTypes";
-import { UpdateOneOptions, UpdateWriteOpResult } from "mongodb";
+import { UpdateOptions, UpdateResult } from "mongodb";
 
 class XMongoTypedModel<DT = Record<string, any>> extends XMongoModel {
     // Set this.data type to DT
@@ -21,8 +21,8 @@ class XMongoTypedModel<DT = Record<string, any>> extends XMongoModel {
     // Set this.update() to use DT keys
     declare update: (
         set: Record<keyof DT | string, any>,
-        options?: UpdateOneOptions
-    ) => Promise<UpdateWriteOpResult>;
+        options?: UpdateOptions
+    ) => Promise<UpdateResult>;
 
     /**
      * -----------------------
@@ -68,10 +68,7 @@ class XMongoTypedModel<DT = Record<string, any>> extends XMongoModel {
      * @param set
      * @param options
      */
-    updateTyped(
-        set: Record<keyof DT, any>,
-        options?: UpdateOneOptions
-    ): Promise<UpdateWriteOpResult> {
+    updateTyped(set: Record<keyof DT, any>, options?: UpdateOptions): Promise<UpdateResult> {
         return this.update(set as any, options);
     }
 }
