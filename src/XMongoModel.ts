@@ -203,7 +203,7 @@ class XMongoModel {
      *
      * Because this is
      */
-    static native(): Collection {
+    static native(): Collection<any> {
         const part = this.name ? `Model: {${this.name}}` : "Model";
         // @ts-ignore
         throw new Error(`Cannot access .native(), Link ${part} to a collection first.`);

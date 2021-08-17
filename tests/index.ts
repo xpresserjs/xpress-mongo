@@ -26,7 +26,7 @@ async function Main() {
     // });
     //
     // console.log(song);
-    const song = await User.findOne({});
+    const song: User | null = await User.native().findOne({});
 
     if (!song) throw Error("No Song found");
 
