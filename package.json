@@ -12,7 +12,8 @@
     "play": "ts-node-dev --respawn tests/index.ts",
     "test": "node JapaFile.js",
     "test-dev": "nodemon JapaFile.js --watch 'tests/**' --ext 'ts'",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "clt": "clt ts/prepare && clt ts/publish ./dist --tag next"
   },
   "repository": {
     "type": "git",
