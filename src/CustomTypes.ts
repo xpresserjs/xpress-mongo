@@ -65,7 +65,10 @@ export type XMongoSchemaBuilder = {
     Uuid(version: number, options?: UuidOptions): XMongoDataType;
 };
 
-export type XMongoSchema<DataType = any> = Record<keyof DataType, XMongoDataType | Joi.Schema>;
+export type XMongoSchema<DataType = any> = Record<
+    keyof Omit<DataType, "_id">,
+    XMongoDataType | Joi.Schema
+>;
 export type XMongoSchemaFn = (is: XMongoSchemaBuilder, Joi: Joi.Root) => XMongoSchema;
 export type XMongoStrictConfig = undefined | boolean | { removeNonSchemaFields?: boolean };
 
