@@ -983,7 +983,9 @@ class XMongoModel {
          * Project only ID so that mongodb doesn't have to read disk.
          * only relevant if query is ID
          */
-        return (await this.native().findOne(where, { projection: { _id: 1 } })) !== null;
+        const find = await this.native().findOne(where, { projection: { _id: 1 } });
+
+        return ![null, undefined].includes(find);
     }
 
     /**
