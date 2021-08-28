@@ -107,6 +107,7 @@ class XMongoModel {
          */
         hasLoadedSchema?: string | boolean;
         hasUniqueSchema?: false | string[];
+        usingCustomId?: false | ObjectId;
     };
 
     /**
@@ -504,8 +505,33 @@ class XMongoModel {
      * Get id of current model instance
      * @returns {*|ObjectId|null}
      */
-    id(): any | ObjectId | null {
-        return (this.data && this.data["_id"]) || null;
+    id(): ObjectId | null {
+        const id = (this.data && this.data["_id"]) || null;
+
+        if (typeof id === "string") return this.$static().id(id) as ObjectId;
+
+        return id;
+    }
+
+    /**
+     * Use custom _id
+     * @param _id
+     */
+    useId(_id: ObjectId | string) {
+        this.meta.usingCustomId = this.$static().id(_id);
+        return this;
+    }
+
+    /**
+     * Generate _id for this instance if none exists.
+     */
+    generateId(): any {
+        if (!this.id()) {
+            this.meta.usingCustomId = new ObjectId();
+            this.set("_id", this.meta.usingCustomId);
+        }
+
+        return this;
     }
 
     /**
@@ -624,7 +650,7 @@ class XMongoModel {
         return new Promise(async (resolve, reject) => {
             const id = this.id();
 
-            if (id) {
+            if (id && !this.meta.usingCustomId) {
                 await RunOnEvent("update", this);
 
                 let $set,
@@ -1097,26 +1123,22 @@ class XMongoModel {
 
     /**
      * Alias to mongo.ObjectId
+     * if no string is passed it returns a new id.
      * @param str {*}
-     * @param returnObject
      * @return {*}
      */
-    static id(str: any, returnObject = false): (ObjectId | string) | { _id: ObjectId | string } {
-        let _id: ObjectId | string = str;
+    static id(str?: any): ObjectId | undefined {
+        let _id: ObjectId | string = str || new ObjectId();
 
         if (typeof str === "string") {
             try {
                 _id = new ObjectId(str);
             } catch (e) {
-                _id = str;
+                return undefined;
             }
         }
 
-        if (returnObject) {
-            return { _id };
-        } else {
-            return _id;
-        }
+        return _id as ObjectId;
     }
 
     /**
@@ -1197,7 +1219,7 @@ class XMongoModel {
     ): Promise<InstanceType<T> | null> {
         let where;
         if (typeof _id === "string" || !isTypeObjectId) {
-            where = XMongoModel.id(_id, true);
+            where = { _id: this.id(_id) };
         } else {
             where = { _id };
         }
