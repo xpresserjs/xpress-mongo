@@ -519,16 +519,17 @@ class XMongoModel {
      */
     useId(_id: ObjectId | string) {
         this.meta.usingCustomId = this.$static().id(_id);
+        this.set("_id", this.meta.usingCustomId);
+
         return this;
     }
 
     /**
      * Generate _id for this instance if none exists.
      */
-    generateId(): any {
+    generateId() {
         if (!this.id()) {
-            this.meta.usingCustomId = new ObjectId();
-            this.set("_id", this.meta.usingCustomId);
+            this.useId(new ObjectId());
         }
 
         return this;
@@ -1602,6 +1603,7 @@ class XMongoModel {
         if (!value) throw Error("Error refreshing data, Refresh result is null");
 
         this.$replaceData(value.data);
+        if (this.meta.usingCustomId) this.meta.usingCustomId = false;
 
         return this;
     }
