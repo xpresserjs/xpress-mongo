@@ -41,7 +41,6 @@ export function mockUser() {
         username: "username",
         email: "username@email.com",
         firstName: "User",
-        lastName: "Name",
-        dummy: "hello"
+        lastName: "Name"
     });
 }
