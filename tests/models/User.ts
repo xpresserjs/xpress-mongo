@@ -1,5 +1,5 @@
 import { is, joi, XMongoDataType, XMongoModel } from "../../index";
-import { XMongoSchema } from "../../src/CustomTypes";
+import { XMongoSchema, XMongoStrictConfig } from "../../src/CustomTypes";
 import XMongoTypedModel = require("../../src/XMongoTypedModel");
 
 interface UserDataType {
@@ -12,7 +12,7 @@ interface UserDataType {
 }
 
 class User extends XMongoTypedModel<UserDataType> {
-    static strict = true;
+    static strict: XMongoStrictConfig = true;
     // Schema
     static schema: XMongoSchema<UserDataType> = {
         username: joi.string().required().lowercase().alphanum(),
@@ -35,3 +35,13 @@ class User extends XMongoTypedModel<UserDataType> {
 }
 
 export default User;
+
+export function mockUser() {
+    return new User().set({
+        username: "username",
+        email: "username@email.com",
+        firstName: "User",
+        lastName: "Name",
+        dummy: "hello"
+    });
+}

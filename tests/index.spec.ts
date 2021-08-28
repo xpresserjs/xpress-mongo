@@ -1,6 +1,5 @@
 import test from "japa";
 import Connector from "./connection";
-// import { Obj } from "object-collection/exports";
 import XMongoClient = require("../src/XMongoClient");
 import Songs = require("./models/Songs");
 import Joi from "joi";
@@ -161,10 +160,6 @@ test.group("Delete User", async () => {
         // Throw error if user exists
         if (user) throw Error("paulsmith2 still exists in database!");
     });
-});
-
-test("Strict", async () => {
-    // console.log()
 });
 
 function validateUserData(user: User) {
