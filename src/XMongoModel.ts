@@ -628,7 +628,10 @@ class XMongoModel {
      * @param update
      * @param options
      */
-    updateRaw(update: UpdateFilter<any>, options?: UpdateOptions): Promise<UpdateResult> {
+    updateRaw<DataType = any>(
+        update: UpdateFilter<DataType> | Partial<DataType>,
+        options?: UpdateOptions
+    ): Promise<UpdateResult> {
         if (!this.id())
             throw Error(
                 "UPDATE_RAW_ERROR: Model does not have an _id, so we assume it is not from the database."

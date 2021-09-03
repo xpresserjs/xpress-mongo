@@ -30,7 +30,7 @@ async function Main() {
 
     if (!song) throw Error("No Song found");
 
-    console.log(await song.update({ email: "hi@good.com" }));
+    console.log(await song.updateRaw({ email: "hi@good.com" }));
     // song.validate();
     // console.log(song.schema["email"]);
 
