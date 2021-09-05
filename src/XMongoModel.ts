@@ -1150,10 +1150,10 @@ class XMongoModel {
      * @param query
      * @param options
      */
-    static find(
+    static find<Return = any>(
         query: StringToAnyObject | Filter<any> = {},
         options: FindOptions<any> = {}
-    ): Promise<any[]> {
+    ): Promise<Return[]> {
         return new Promise((resolve, reject) => {
             return this.native()
                 .find(query, options)
