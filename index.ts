@@ -43,7 +43,7 @@ function parseServerUrl(url: string, options: { dbname: string; password: string
     }
 
     if (options.password) {
-        options.password = encodeURI(options.password);
+        options.password = encodeURIComponent(options.password);
         url = url.replace("<password>", options.password);
     }
 
