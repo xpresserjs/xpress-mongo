@@ -505,7 +505,7 @@ class XMongoModel {
      * Get id of current model instance
      * @returns {*|ObjectId|null}
      */
-    id(): ObjectId | null {
+    id(): ObjectId {
         const id = (this.data && this.data["_id"]) || null;
 
         if (typeof id === "string") return this.$static().id(id) as ObjectId;
@@ -1131,14 +1131,14 @@ class XMongoModel {
      * @param str {*}
      * @return {*}
      */
-    static id(str?: any): ObjectId | undefined {
-        let _id: ObjectId | string = str || new ObjectId();
+    static id(str?: any): ObjectId {
+        let _id: ObjectId | string = str ? str : new ObjectId();
 
         if (typeof str === "string") {
             try {
                 _id = new ObjectId(str);
             } catch (e) {
-                return undefined;
+                throw new Error(`Model.id() Error: ${str} is not a valid ObjectId`);
             }
         }
 

@@ -1,5 +1,6 @@
-import { MongoClient, MongoClientOptions } from "mongodb";
+import { MongoClient, MongoClientOptions, ObjectId } from "mongodb";
 import { XMongoSchemaBuilder, XMongoSchema, XMongoSchemaFn } from "./src/CustomTypes";
+
 // Require libs
 import is = require("./src/SchemaBuilder");
 import Projectors = require("./fn/projection");
@@ -92,5 +93,6 @@ export {
     omitIdAndPick,
     // Others
     parseServerUrl,
-    RefreshDateOnUpdate
+    RefreshDateOnUpdate,
+    ObjectId
 };
