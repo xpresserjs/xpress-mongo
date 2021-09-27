@@ -9,7 +9,6 @@ interface UserDataType {
     lastName: string;
     updatedAt: string;
     createdAt: string;
-    contact: any;
 }
 
 class User extends XMongoTypedModel<UserDataType> {
@@ -23,15 +22,7 @@ class User extends XMongoTypedModel<UserDataType> {
         firstName: is.String().required(),
         lastName: is.String().required(),
         updatedAt: is.Date().required(),
-        createdAt: is.Date().required(),
-        contact: is.Object(() => ({
-            a: {
-                b: {
-                    c: "foo"
-                },
-                d: "dog"
-            }
-        }))
+        createdAt: is.Date().required()
     };
 
     /**
