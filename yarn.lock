@@ -550,6 +550,11 @@ escape-goat@^2.0.0:
   resolved "https://registry.yarnpkg.com/escape-goat/-/escape-goat-2.1.1.tgz#1b2dc77003676c457ec760b2dc68edb648188675"
   integrity sha512-8/uIhbG12Csjy2JEW7D9pHbreaVaS/OpN3ycnyvElTdwM5n6GY6W6e2IPemfvGZeUMqZ9A/3GqIZMgKnBhAw/Q==
 
+escape-string-regexp-node@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/escape-string-regexp-node/-/escape-string-regexp-node-1.0.2.tgz#a53eae3cb2ce1dc5cad541750a1db52fecc842d9"
+  integrity sha512-tv6v/7vF8ob7vTNPBHJ6cdRGtb9t6wBZJt6ZWzJ5kDacXa3jplof+mmoXYLuEUtFXWw8xwR2wVbT2c20HvVubA==
+
 fast-glob@^3.2.2:
   version "3.2.5"
   resolved "https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.2.5.tgz#7939af2a656de79a4f1901903ee8adcaa7cb9661"
