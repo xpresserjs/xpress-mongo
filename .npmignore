@@ -1,6 +1,12 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea
 node_modules
-play.ts
+tests
+
+
 yarn.lock
 *.log
+
+*.ts
+!*.d.ts
+JapaFile.js

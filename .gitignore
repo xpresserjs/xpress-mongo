@@ -6,3 +6,6 @@ dist
 play.ts
 yarn.lock
 *.log
+
+*.js
+*.d.ts
