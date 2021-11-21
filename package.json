@@ -2,8 +2,8 @@
   "name": "xpress-mongo",
   "version": "2.0.13",
   "description": "Light Weight ODM for mongoDb",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "directories": {
     "test": "tests"
   },
