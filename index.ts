@@ -1,5 +1,5 @@
-import { MongoClient, MongoClientOptions, ObjectId } from "mongodb";
-import { XMongoSchemaBuilder, XMongoSchema, XMongoSchemaFn } from "./src/CustomTypes";
+import {MongoClient, MongoClientOptions, ObjectId} from "mongodb";
+import { XMongoSchema, XMongoSchemaBuilder, XMongoSchemaFn } from "./src/CustomTypes";
 
 // Require libs
 import is = require("./src/SchemaBuilder");
@@ -38,7 +38,7 @@ function Client(url: string | MongoClient, options: MongoClientOptions = {}): XM
  * @param url
  * @param options
  */
-function parseServerUrl(url: string, options: { dbname: string; password: string }) {
+function parseServerUrl(url: string, options: { dbname?: string; password?: string }) {
     if (options.dbname) {
         url = url.replace("<dbname>", options.dbname);
     }
