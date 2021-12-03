@@ -2,30 +2,24 @@ import ObjectCollection = require("object-collection");
 import XMongoDataType = require("./XMongoDataType");
 
 import {
-    ObjectID,
-    Collection,
-    UpdateWriteOpResult,
-    InsertOneWriteOpResult,
-    DeleteWriteOpResultObject,
-    Cursor,
-    FindOneOptions,
-    UpdateOneOptions,
-    CollectionInsertOneOptions,
-    CollectionAggregationOptions,
     AggregationCursor,
+    Collection,
+    CollectionAggregationOptions,
+    CollectionInsertOneOptions,
+    Cursor,
+    DeleteWriteOpResultObject,
+    FilterQuery,
+    FindOneOptions,
+    InsertOneWriteOpResult,
+    ObjectID,
+    UpdateOneOptions,
     UpdateQuery,
-    FilterQuery
+    UpdateWriteOpResult
 } from "mongodb";
 
 import is from "./SchemaBuilder";
-import { diff } from "deep-object-diff";
-import {
-    defaultValue,
-    runOrValidation,
-    runAndValidation,
-    RunOnEvent,
-    processSchema
-} from "../fn/inbuilt";
+import {diff} from "deep-object-diff";
+import {defaultValue, processSchema, runAndValidation, RunOnEvent, runOrValidation} from "../fn/inbuilt";
 import {
     PaginationData,
     SchemaPropertiesType,
@@ -35,7 +29,6 @@ import {
     XMongoStrictConfig
 } from "./CustomTypes";
 import Joi from "joi";
-import { Obj } from "object-collection/exports";
 
 /**
  * Get Lodash
@@ -637,21 +630,26 @@ class XMongoModel {
             if (id) {
                 await RunOnEvent("update", this);
 
-                let $set,
-                    changes = this.changes();
-                let $setKeys = Object.keys(changes);
-                if (!$setKeys.length) return resolve(false);
+                let $set = {} as StringToAnyObject;
+                const changes = this.changes();
+
+                // if no changes then return false
+                if (!Object.keys(changes).length) return resolve(false);
 
                 // Try to validate changes
                 try {
-                    $set = { ...changes, ...this.validate(changes) };
+                    $set = this.validate(changes);
 
+                    // if validated data i.e $set us empty after validation, then return false
+                    if (!Object.keys($set).length) return resolve(false);
+
+                    // Check unique fields
                     if (this.meta.hasUniqueSchema) {
                         await this.$checkUniqueSchema($set);
                     }
 
                     // Set original to this.
-                    Obj(this.original).merge($set);
+                    _.merge(this.original, $set);
                 } catch (e) {
                     return reject(e);
                 }
@@ -793,7 +791,7 @@ class XMongoModel {
             // find keys not defined in data
             for (const field in data) {
                 // If not defined in schema
-                this.$throwErrorIfNotDefinedInSchema(field, isStrict);
+                this.$throwErrorIfNotDefinedInSchema(field, isStrict, data);
             }
         }
 
@@ -1069,7 +1067,10 @@ class XMongoModel {
 
             if (Array.isArray(model) && typeof model[0] === "function") model = model[0]();
 
-            let relatedData = await (<typeof XMongoModel>model).native().findOne(where, options);
+            // noinspection JSVoidFunctionReturnValueUsed
+            let relatedData = (await (<typeof XMongoModel>model)
+                .native()
+                .findOne(where, options)) as any;
 
             if (cast && relatedData) relatedData = (<typeof XMongoModel>model).use(relatedData);
 
@@ -1647,10 +1648,14 @@ class XMongoModel {
      * Throw Error is a field is not defined in Schema
      * @param field
      * @param isStrict
-     * @param schema
+     * @param workingData
      * @private
      */
-    private $throwErrorIfNotDefinedInSchema(field: string, isStrict?: XMongoStrictConfig) {
+    private $throwErrorIfNotDefinedInSchema(
+        field: string,
+        isStrict?: XMongoStrictConfig,
+        workingData?: Record<string, any>
+    ) {
         if (isStrict === undefined) isStrict = this.$isStrict();
 
         if (
@@ -1665,6 +1670,7 @@ class XMongoModel {
         ) {
             if (typeof isStrict === "object" && isStrict.removeNonSchemaFields) {
                 delete this.data[field];
+                if (workingData) delete workingData[field];
             } else {
                 throw new Error(`STRICT: "${field}" is not defined in schema.`);
             }
