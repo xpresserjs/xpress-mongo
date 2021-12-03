@@ -1,10 +1,6 @@
 import Connector from "./connection";
 import User from "./models/User";
 import Songs from "./models/Songs";
-import XMongoTypedModel = require("../src/XMongoTypedModel");
-import { omitIdAndPick } from "../index";
-import Chance from "chance";
-const chance = new Chance();
 
 async function Main() {
     const connection = await Connector();
@@ -26,11 +22,12 @@ async function Main() {
     // });
     //
     // console.log(song);
+    User.strict = { removeNonSchemaFields: true };
     const song = await User.findOne({});
 
     if (!song) throw Error("No Song found");
 
-    console.log(await song.update({ email: "hi@good.com" }));
+    console.log(song.validate({ email: "hi@good.com", dummy: "hshs" }));
     // song.validate();
     // console.log(song.schema["email"]);
 

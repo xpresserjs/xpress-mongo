@@ -1,9 +1,9 @@
 import test from "japa";
 import Connector from "./connection";
-import XMongoClient = require("../src/XMongoClient");
-import Songs = require("./models/Songs");
 import Joi from "joi";
 import User from "./models/User";
+import XMongoClient = require("../dist/src/XMongoClient");
+import Songs = require("./models/Songs");
 
 /**
  * Set State using object collection;
@@ -155,7 +155,7 @@ test.group("Delete User", async () => {
         await user!.delete();
     });
 
-    test("Confirm Delete", async (assert) => {
+    test("Confirm Delete", async () => {
         const user = await User.findOne({ username: "paulsmith2" });
         // Throw error if user exists
         if (user) throw Error("paulsmith2 still exists in database!");
