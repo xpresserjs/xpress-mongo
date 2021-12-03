@@ -1,4 +1,4 @@
-import { is, joi, XMongoDataType, XMongoModel } from "../../index";
+import { is, joi, XMongoDataType } from "../../index";
 import { XMongoSchema, XMongoStrictConfig } from "../../src/CustomTypes";
 import XMongoTypedModel = require("../../src/XMongoTypedModel");
 
@@ -43,4 +43,8 @@ export function mockUser() {
         firstName: "User",
         lastName: "Name"
     });
+}
+
+export function deleteMockUser(user?: User) {
+    return User.native().deleteOne({ username: user ? user.data.username : "username" });
 }

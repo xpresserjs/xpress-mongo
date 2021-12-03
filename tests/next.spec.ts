@@ -1,13 +1,11 @@
 import test from "japa";
 import User, { mockUser } from "./models/User";
 import Connector from "./connection";
-import Songs = require("./models/Songs");
 
 test.group("Test xpresser@next functions", async (group) => {
     group.before(async () => {
         let connection = await Connector();
         connection.link(User, "users");
-        connection.link(Songs, "songs");
 
         await User.native().deleteMany({});
     });
