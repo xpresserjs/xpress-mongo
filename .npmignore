@@ -2,6 +2,7 @@
 .idea
 node_modules
 tests
+dist
 
 
 yarn.lock
