@@ -53,4 +53,50 @@ test.group("Test xpresser@next functions", async (group) => {
 
         await user.delete();
     });
+
+    test("Update, Delete & Unset: use findOneQuery if no _id", async (assert) => {
+        let user = await mockUser().saveAndReturn();
+        user = (await User.findOne({ username: user.data.username }, { projection: { _id: 0 } }))!;
+
+        // Try updating without _id;
+        await user.update({
+            lastName: "newLastName"
+        });
+
+        // Try unsetting without _id;
+        await user.unset("lastName");
+
+        // refresh data
+        await user.$refreshData();
+
+        // check if lastName has been removed
+        assert.isUndefined(user.data.lastName);
+
+        // Try deleting without _id;
+        await user.delete();
+    });
+
+    test.failing("Update: fail if no _id i.e canTalkToDatabase", async () => {
+        const user = mockUser();
+
+        await user.update({
+            lastName: "newLastName"
+        });
+    });
+
+    test.failing("UpdateRaw: fail if no _id i.e canTalkToDatabase", async () => {
+        const user = mockUser();
+
+        await user.updateRaw({
+            $set: {
+                lastName: "newLastName"
+            }
+        });
+    });
+
+    test.failing("Unset: fail if no _id i.e canTalkToDatabase", async () => {
+        const user = mockUser();
+
+        await user.unset("lastName");
+    });
 });

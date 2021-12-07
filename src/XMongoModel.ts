@@ -101,6 +101,7 @@ class XMongoModel {
         hasLoadedSchema?: string | boolean;
         hasUniqueSchema?: false | string[];
         usingCustomId?: false | ObjectId;
+        findQuery?: Record<string, any>;
     };
 
     /**
@@ -607,10 +608,7 @@ class XMongoModel {
      * @return {Promise<UpdateResult>}
      */
     update(set: StringToAnyObject, options?: UpdateOptions): Promise<UpdateResult> {
-        if (!this.id())
-            throw Error(
-                "UPDATE_ERROR: Model does not have an _id, so we assume it is not from the database."
-            );
+        this.$canTalkToDatabase("UPDATE_ERROR");
         return <Promise<UpdateResult>>this.set(set).save(options);
     }
 
@@ -625,14 +623,11 @@ class XMongoModel {
         update: UpdateFilter<DataType> | Partial<DataType>,
         options?: UpdateOptions
     ): Promise<UpdateResult> {
-        if (!this.id())
-            throw Error(
-                "UPDATE_RAW_ERROR: Model does not have an _id, so we assume it is not from the database."
-            );
+        this.$canTalkToDatabase("UPDATE_RAW_ERROR");
 
         return this.$static()
             .native()
-            .updateOne({ _id: this.id() }, update, options!) as Promise<UpdateResult>;
+            .updateOne(this.$findOneQuery()!, update, options!) as Promise<UpdateResult>;
     }
 
     /**
@@ -645,9 +640,9 @@ class XMongoModel {
         create = false
     ): Promise<boolean | UpdateResult | InsertOneResult<any>> {
         return new Promise(async (resolve, reject) => {
-            const id = this.id();
+            const findOneQuery = this.$findOneQuery();
 
-            if (id && !this.meta.usingCustomId) {
+            if (findOneQuery && !this.meta.usingCustomId) {
                 await RunOnEvent("update", this);
 
                 let $set = {} as StringToAnyObject;
@@ -673,9 +668,9 @@ class XMongoModel {
                     return reject(e);
                 }
 
-                return this.$static()
+                this.$static()
                     .native()
-                    .updateOne({ _id: this.id() }, { $set }, options, (error, res) => {
+                    .updateOne(findOneQuery, { $set }, options, (error, res) => {
                         if (error) {
                             return reject(error);
                         } else {
@@ -733,6 +728,8 @@ class XMongoModel {
      * @param {Object} options - Update options
      */
     unset(keys: string | string[], options: UpdateOptions = {}): Promise<UpdateResult> {
+        this.$canTalkToDatabase("UNSET_ERROR");
+
         // Throw Error if keys is undefined
         if (!keys) throw Error("Unset key or keys is required.");
 
@@ -755,7 +752,7 @@ class XMongoModel {
         return new Promise((resolve, reject) => {
             return this.$static()
                 .native()
-                .updateOne({ _id: this.id() }, { $unset }, options, (error, res) => {
+                .updateOne(this.$findOneQuery()!, { $unset }, options, (error, res) => {
                     if (error) return reject(error);
 
                     // Remove keys from current data
@@ -950,11 +947,11 @@ class XMongoModel {
      * @returns {Promise}
      */
     async delete(): Promise<DeleteResult> {
-        const _id = this.id();
+        const findOneQuery = this.$findOneQuery();
 
-        if (_id) {
+        if (findOneQuery) {
             // Delete Document
-            const result = await this.$static().native().deleteOne({ _id });
+            const result = await this.$static().native().deleteOne(findOneQuery);
 
             RunOnEvent("deleted", this).finally(() => {});
 
@@ -1200,7 +1197,7 @@ class XMongoModel {
                 if (!data) return resolve(null);
                 if (raw) return resolve(data as any);
 
-                return resolve(this.use(data) as InstanceType<T>);
+                return resolve(this.use(data).$updateFindOneQuery(query) as InstanceType<T>);
             });
         });
     }
@@ -1595,10 +1592,13 @@ class XMongoModel {
      * @param options
      */
     async $refreshData(options?: FindOptions<any>) {
-        if (!this.id()) throw Error("Error refreshing data, _id not found in current model.");
+        const findOneQuery = this.$findOneQuery();
+
+        if (!findOneQuery)
+            throw Error("Error refreshing data, _id/findOneQuery not found in current model.");
 
         const Model = this.$static();
-        const value = await Model.findById(this.id(), options);
+        const value = await Model.findOne(findOneQuery, options);
 
         if (!value) throw Error("Error refreshing data, Refresh result is null");
 
@@ -1722,6 +1722,50 @@ class XMongoModel {
 
             return resolve(true);
         });
+    }
+
+    public $updateFindOneQuery(query: string | string[] | Record<string, any>) {
+        // if string, set to object with value of field
+        if (typeof query === "string") {
+            this.meta.findQuery = { [query]: this.get(query) };
+        }
+        // if array, populate object with fields and value.
+        else if (Array.isArray(query)) {
+            this.meta.findQuery = _.pick(this.data, query);
+        }
+        // if object, populate object with fields and value.
+        else if (typeof query === "object") {
+            this.meta.findQuery = query;
+        }
+        // Else throw error
+        else {
+            throw new Error("Invalid query type");
+        }
+        return this;
+    }
+
+    /**
+     * Get the find query
+     * @private
+     */
+    private $findOneQuery() {
+        const _id = this.id();
+        if (_id) {
+            return { _id };
+        } else if (this.meta.findQuery) {
+            return this.meta.findQuery;
+        } else {
+            return undefined;
+        }
+    }
+
+    private $canTalkToDatabase(name: string) {
+        if (this.meta.usingCustomId || !this.$findOneQuery())
+            throw Error(
+                `${name}: Model does not have an _id, so we assume it is not from the database.`
+            );
+
+        return this;
     }
 }
 
