@@ -6,9 +6,9 @@ details. [Mongodb Native Client 4.0 Change Log](https://github.com/mongodb/node-
 ## Installation
 
 ```sh
-npm i xpress-mongo@next
+npm i xpress-mongo
 # OR
-yarn add xpress-mongo@next
+yarn add xpress-mongo
 ```
 
 ## About
