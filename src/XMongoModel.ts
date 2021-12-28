@@ -1322,12 +1322,12 @@ class XMongoModel {
      * @param page
      * @param perPage
      */
-    static async paginate(
+    static async paginate<T = any>(
         page: number = 1,
         perPage: number = 20,
         query = {},
         options: FindOptions<any> = {}
-    ): Promise<PaginationData> {
+    ): Promise<PaginationData<T>> {
         page = Number(page);
         perPage = Number(perPage);
 
@@ -1337,7 +1337,7 @@ class XMongoModel {
 
         /**
          * options as any is used here because mongodb did not make its new
-         * WithoutProjection<FindOptions<TsSchema>> type exportable so we can't make reference to it.
+         * WithoutProjection<FindOptions<TsSchema>> type exportable, so we can't make reference to it.
          */
         const data = await this.native()
             .find(query, options as any)
@@ -1362,12 +1362,12 @@ class XMongoModel {
      * @param {*} options
      * @returns {Promise<{total: (*|number), perPage: number, lastPage: number, data: *, page: number}>}
      */
-    static async paginateAggregate(
+    static async paginateAggregate<T = any>(
         page = 1,
         perPage = 20,
         query: any[] = [],
         options: AggregateOptions = {}
-    ): Promise<PaginationData> {
+    ): Promise<PaginationData<T>> {
         query = _.cloneDeep(query);
 
         page = Number(page);
@@ -1380,7 +1380,7 @@ class XMongoModel {
         query.push({ $skip: skips });
         query.push({ $limit: perPage });
 
-        const data = await this.native().aggregate(query, options).toArray();
+        const data = (await this.native().aggregate(query, options).toArray()) as T[];
 
         return {
             total,

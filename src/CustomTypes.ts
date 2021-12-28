@@ -33,12 +33,12 @@ export type SchemaPropertiesType = {
 
 export type StringToAnyObject = Record<string, any>;
 
-export type PaginationData = {
+export type PaginationData<T = any> = {
     total: number;
     perPage: number;
     page: number;
     lastPage: number;
-    data: any[];
+    data: T[];
 };
 
 type InputBuffer = ArrayLike<number>;

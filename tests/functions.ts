@@ -1,5 +1,9 @@
 import Connector from "./connection";
 
+/**
+ * Generates a random string of length `len`.
+ * @param length
+ */
 export function randomString(length: number = 10): string {
     const result = [];
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -10,13 +14,17 @@ export function randomString(length: number = 10): string {
     return result.join("");
 }
 
+/**
+ * Sleeps for `ms` milliseconds.
+ * @param ms
+ */
 export function sleep(ms: number = 2000) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Connects to the database and returns a connector.
+ */
 export async function connectToDb() {
-    /**
-     * Set State using object collection;
-     */
-    let connection = await Connector();
+    return await Connector();
 }
