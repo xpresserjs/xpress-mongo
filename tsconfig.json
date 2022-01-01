@@ -50,7 +50,6 @@
     // "typeRoots": [],                       /* List of folders to include type definitions from. */
     "types": [
       "node",
-      "lodash",
       "mongodb"
     ],
     /* Type declaration files to be included in compilation. */

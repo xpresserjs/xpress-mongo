@@ -32,8 +32,9 @@
     "deep-object-diff": "^1.1.0",
     "escape-string-regexp-node": "^1.0.2",
     "joi": "^17.5.0",
+    "lodash": "^4.17.21",
     "mongodb": "4.2.2",
-    "object-collection": "^2.0.0",
+    "object-collection": "^2.1.5",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
-import ObjectCollection = require("object-collection");
+import _ = require("object-collection/lodash");
 
 /**
  * Get Lodash
  */
-export = ObjectCollection.getLodash();
+export = _;
