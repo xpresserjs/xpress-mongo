@@ -29,11 +29,12 @@ import {
     XMongoStrictConfig
 } from "./CustomTypes";
 import Joi from "joi";
+import _ from "object-collection/lodash";
 
 /**
  * Get Lodash
  */
-const _ = ObjectCollection.getLodash();
+// const _ = ObjectCollection.getLodash();
 
 type FunctionWithRawArgument = (raw: Collection) => FindCursor | AggregationCursor;
 
@@ -1078,7 +1079,9 @@ class XMongoModel {
 
             if (Array.isArray(model) && typeof model[0] === "function") model = model[0]();
 
-            let relatedData = await (<typeof XMongoModel>model).native().findOne(where, options);
+            let relatedData = await(<typeof XMongoModel>model)
+                .native()
+                .findOne(where, options) as any;
 
             if (cast && relatedData) relatedData = (<typeof XMongoModel>model).use(relatedData);
 
