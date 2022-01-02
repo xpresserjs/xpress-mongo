@@ -966,7 +966,7 @@ class XMongoModel {
      * Sets data as an instance of ObjectCollection on this.$data
      * @return {ObjectCollection}
      */
-    toCollection(): ObjectCollection {
+    toCollection<DT extends StringToAnyObject>(): ObjectCollection<DT> {
         if (!this.hasOwnProperty("$data")) {
             Object.defineProperty(this, "$data", {
                 value: new ObjectCollection(this.data),
@@ -974,10 +974,10 @@ class XMongoModel {
                 enumerable: false
             });
 
-            return this.$data as ObjectCollection;
+            return this.$data as ObjectCollection<DT>;
         }
 
-        return this.$data as ObjectCollection;
+        return this.$data as ObjectCollection<DT>;
     }
 
     /**
