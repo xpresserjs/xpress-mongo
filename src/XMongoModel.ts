@@ -998,7 +998,7 @@ class XMongoModel {
      * Check if a document exists.
      * Projects only Id and returns boolean.
      */
-    static async exists(query: StringToAnyObject | Object) {
+    static async exists(query: StringToAnyObject) {
         let where = query;
         if (this.isValidId(query)) {
             where = { _id: query };

@@ -12,7 +12,7 @@
     "test": "node JapaFile.js",
     "test-dev": "npx nodemon JapaFile.js --watch 'tests/**' --ext 'ts'",
     "watch": "npx tsc --watch",
-    "prepublishOnly": "npx tsc"
+    "prepublishOnly": "npx tsc && npm run test"
   },
   "repository": {
     "type": "git",
