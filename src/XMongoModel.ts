@@ -1079,9 +1079,9 @@ class XMongoModel {
 
             if (Array.isArray(model) && typeof model[0] === "function") model = model[0]();
 
-            let relatedData = await(<typeof XMongoModel>model)
+            let relatedData = (await (<typeof XMongoModel>model)
                 .native()
-                .findOne(where, options) as any;
+                .findOne(where, options)) as any;
 
             if (cast && relatedData) relatedData = (<typeof XMongoModel>model).use(relatedData);
 
@@ -1214,7 +1214,7 @@ class XMongoModel {
      */
     static findById<T extends typeof XMongoModel>(
         this: T,
-        _id: any,
+        _id: string | ObjectId,
         options: FindOptions<any> = {},
         isTypeObjectId = true
     ): Promise<InstanceType<T> | null> {
