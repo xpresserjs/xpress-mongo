@@ -1,16 +1,16 @@
 import {MongoClient, MongoClientOptions, ObjectId} from "mongodb";
-import { XMongoSchema, XMongoSchemaBuilder, XMongoSchemaFn } from "./src/CustomTypes";
+import {XMongoSchema, XMongoSchemaBuilder, XMongoSchemaFn} from "./src/CustomTypes";
 
 // Require libs
-import is = require("./src/SchemaBuilder");
-import Projectors = require("./fn/projection");
-import XMongoDataType = require("./src/XMongoDataType");
-import XMongoClient = require("./src/XMongoClient");
-import XMongoModel = require("./src/XMongoModel");
-import XMongoTypedModel = require("./src/XMongoTypedModel");
-import Joi = require("joi");
+import is from "./src/SchemaBuilder";
+import * as Projectors from "./fn/projection";
+import XMongoDataType from "./src/XMongoDataType";
+import XMongoClient from "./src/XMongoClient";
+import XMongoModel from "./src/XMongoModel";
+import XMongoTypedModel from "./src/XMongoTypedModel";
+import * as Joi from "joi";
 
-const { omitIdAndPick, omitIdAnd, omitKeys, pickKeys } = Projectors;
+const {omitIdAndPick, omitIdAnd, omitKeys, pickKeys} = Projectors;
 
 /**
  * Get connected to a client

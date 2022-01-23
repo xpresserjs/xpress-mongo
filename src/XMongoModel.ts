@@ -1,5 +1,4 @@
-import ObjectCollection = require("object-collection");
-import XMongoDataType = require("./XMongoDataType");
+import ObjectCollection from "object-collection";
 
 import {
     AggregateOptions,
@@ -18,8 +17,14 @@ import {
 } from "mongodb";
 
 import is from "./SchemaBuilder";
-import {diff} from "deep-object-diff";
-import {defaultValue, processSchema, runAndValidation, RunOnEvent, runOrValidation} from "../fn/inbuilt";
+import { diff } from "deep-object-diff";
+import {
+    defaultValue,
+    processSchema,
+    runAndValidation,
+    RunOnEvent,
+    runOrValidation
+} from "../fn/inbuilt";
 import {
     PaginationData,
     SchemaPropertiesType,
@@ -30,11 +35,7 @@ import {
 } from "./CustomTypes";
 import Joi from "joi";
 import _ from "object-collection/lodash";
-
-/**
- * Get Lodash
- */
-// const _ = ObjectCollection.getLodash();
+import XMongoDataType from "./XMongoDataType";
 
 type FunctionWithRawArgument = (raw: Collection) => FindCursor | AggregationCursor;
 

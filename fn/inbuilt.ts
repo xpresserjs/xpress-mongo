@@ -1,14 +1,9 @@
-import {
-    FunctionReturnsBoolean,
-    SchemaPropertiesType,
-    StringToAnyObject,
-    ValidatorType
-} from "../src/CustomTypes";
+import {FunctionReturnsBoolean, SchemaPropertiesType, StringToAnyObject, ValidatorType} from "../src/CustomTypes";
 import XMongoModel from "../src/XMongoModel";
-import _ from "../src/Lodash";
-import { watch } from "fs";
+import _ from "object-collection/lodash";
+import {watch} from "fs";
 import Joi from "joi";
-import { XMongoDataType } from "../index";
+import {XMongoDataType} from "../index";
 
 /**
  * Get Default value.

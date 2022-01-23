@@ -1,4 +1,4 @@
-import XMongoModel = require("./XMongoModel");
+import XMongoModel from "./XMongoModel";
 import { Collection, Db, MongoClient } from "mongodb";
 import XMongoTypedModel from "./XMongoTypedModel";
 
@@ -111,7 +111,6 @@ class XMongoClient {
     /**
      * Creates a model using current connection
      * @param collection
-     * @param model
      * @return {typeof XMongoModel}
      */
     typedModel<DT>(collection: string): XMongoTypedModel<DT> {

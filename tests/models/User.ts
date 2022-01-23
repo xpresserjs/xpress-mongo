@@ -1,6 +1,6 @@
 import { is, joi, XMongoDataType } from "../../index";
 import { XMongoSchema, XMongoStrictConfig } from "../../src/CustomTypes";
-import XMongoTypedModel = require("../../src/XMongoTypedModel");
+import XMongoTypedModel from "../../src/XMongoTypedModel";
 
 interface UserDataType {
     username: string;

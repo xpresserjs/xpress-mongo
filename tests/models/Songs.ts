@@ -25,4 +25,4 @@ class Songs extends XMongoModel {
     data!: { username: string };
 }
 
-export = Songs;
+export default Songs;

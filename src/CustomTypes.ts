@@ -1,4 +1,4 @@
-import XMongoDataType = require("./XMongoDataType");
+import XMongoDataType from "./XMongoDataType";
 import XMongoModel from "./XMongoModel";
 import Joi from "joi";
 

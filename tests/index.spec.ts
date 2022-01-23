@@ -1,7 +1,7 @@
 import test from "japa";
 import Connector from "./connection";
-import XMongoClient = require("../src/XMongoClient");
-import Songs = require("./models/Songs");
+import XMongoClient from "../src/XMongoClient";
+import Songs from "./models/Songs";
 import Joi from "joi";
 import User from "./models/User";
 

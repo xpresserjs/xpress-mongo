@@ -1,8 +1,7 @@
-import XMongoDataType = require("./XMongoDataType");
+import XMongoDataType from "./XMongoDataType";
 import { ObjectId } from "mongodb";
 import { UuidOptions, XMongoSchemaBuilder } from "./CustomTypes";
-// @ts-ignore
-import uuid = require("uuid");
+import uuid from "uuid";
 
 // Quick Functions
 const isString = (v: any) => typeof v === "string";
