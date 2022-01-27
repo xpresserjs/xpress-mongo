@@ -62,7 +62,7 @@ export type XMongoSchemaBuilder = {
     ObjectId(): XMongoDataType;
     String(def?: string | string[] | (() => string | string[])): XMongoDataType;
     Types(types: XMongoDataType[]): XMongoDataType;
-    Uuid(version: number, options?: UuidOptions): XMongoDataType;
+    Uuid(version?: 1 | 3 | 4 | 5, options?: UuidOptions): XMongoDataType;
 };
 
 export type XMongoSchema<DataType = any> = Record<

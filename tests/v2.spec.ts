@@ -2,7 +2,7 @@ import test from "japa";
 import User, { mockUser } from "./models/User";
 import Connector from "./connection";
 
-test.group("Test xpresser@next functions", async (group) => {
+test.group("Test v >=2 functions", async (group) => {
     group.before(async () => {
         let connection = await Connector();
         connection.link(User, "users");

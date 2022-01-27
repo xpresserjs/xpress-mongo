@@ -41,6 +41,7 @@ test.group("Create User", () => {
             Joi.object({
                 // .allow(null) is used because there is no ObjectId yet
                 _id: Joi.object().allow(null),
+                uuid: Joi.string().required(),
                 email: Joi.string(),
                 username: Joi.string(),
                 firstName: Joi.string(),
@@ -176,6 +177,7 @@ function validateUserData(user: User) {
         // Schema
         Joi.object({
             _id: Joi.object(),
+            uuid: Joi.string().required(),
             email: Joi.string().required().email(),
             username: Joi.string().required(),
             firstName: Joi.string().required(),

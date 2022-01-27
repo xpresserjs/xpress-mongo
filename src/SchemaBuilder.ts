@@ -1,7 +1,7 @@
 import XMongoDataType from "./XMongoDataType";
 import { ObjectId } from "mongodb";
 import { UuidOptions, XMongoSchemaBuilder } from "./CustomTypes";
-import uuid from "uuid";
+import * as uuid from "uuid";
 
 // Quick Functions
 const isString = (v: any) => typeof v === "string";
@@ -216,7 +216,7 @@ const is: XMongoSchemaBuilder = {
      * @param version - version of uuid
      * @param options - options of uuid version 3 or 5
      */
-    Uuid: (version: 1 | 3 | 4 | 5 | number = 4, options?: UuidOptions): XMongoDataType => {
+    Uuid: (version: 1 | 3 | 4 | 5 = 4, options?: UuidOptions): XMongoDataType => {
         if (![1, 3, 4, 5].includes(version)) {
             throw Error("Uuid version argument expects 1, 3, 4 or 5!");
         }

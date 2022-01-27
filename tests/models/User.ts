@@ -3,6 +3,7 @@ import { XMongoSchema, XMongoStrictConfig } from "../../src/CustomTypes";
 import XMongoTypedModel from "../../src/XMongoTypedModel";
 
 interface UserDataType {
+    uuid: string;
     username: string;
     email: string;
     firstName: string;
@@ -15,6 +16,7 @@ class User extends XMongoTypedModel<UserDataType> {
     static strict: XMongoStrictConfig = true;
     // Schema
     static schema: XMongoSchema<UserDataType> = {
+        uuid: is.Uuid().required(),
         username: joi.string().required().lowercase().alphanum(),
         email: new XMongoDataType("email")
             .joi(joi.string().required().lowercase().email())
