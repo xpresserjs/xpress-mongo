@@ -132,6 +132,11 @@ class XMongoModel {
     static append: string[];
 
     /**
+     * Model Collection Name
+     */
+    static collectionName: string;
+
+    /**
      * Model Constructor
      *
      * The model constructor only initializes `this.action`

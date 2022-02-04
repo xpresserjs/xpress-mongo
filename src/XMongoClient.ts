@@ -109,6 +109,19 @@ class XMongoClient {
     }
 
     /**
+     * Alias of .model but to link model classes
+     * @param model
+     */
+    linkModel<T extends typeof XMongoModel>(model: T) {
+        const collectionName = model.collectionName;
+
+        if (!collectionName)
+            throw new Error(`Collection name is not defined in model ${model.name}`);
+
+        return this.model(collectionName, model) as T;
+    }
+
+    /**
      * Creates a model using current connection
      * @param collection
      * @return {typeof XMongoModel}
