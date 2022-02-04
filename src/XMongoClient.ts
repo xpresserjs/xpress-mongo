@@ -118,7 +118,7 @@ class XMongoClient {
         if (!collectionName)
             throw new Error(`Collection name is not defined in model ${model.name}`);
 
-        return this.model(collectionName, model) as T;
+        return this.link(model, collectionName);
     }
 
     /**
@@ -151,7 +151,7 @@ class XMongoClient {
      *
      *  client.link(MyModel, "my_model_collection");
      */
-    link(model: any, collection: string): this {
+    link(model: any, collection: string) {
         this.model(collection, model);
         return this;
     }

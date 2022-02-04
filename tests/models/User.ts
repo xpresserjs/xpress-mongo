@@ -13,6 +13,8 @@ interface UserDataType {
 }
 
 class User extends XMongoTypedModel<UserDataType> {
+    static collectionName = "users";
+
     static strict: XMongoStrictConfig = true;
     // Schema
     static schema: XMongoSchema<UserDataType> = {

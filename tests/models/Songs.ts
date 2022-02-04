@@ -1,6 +1,7 @@
 import { is, joi, XMongoModel } from "../../index";
 
 class Songs extends XMongoModel {
+    static collectionName = "songs";
     /**
      * Enable Strict Schema
      */
