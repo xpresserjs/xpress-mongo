@@ -33,7 +33,7 @@ import {
     XMongoSchemaFn,
     XMongoStrictConfig
 } from "./CustomTypes";
-import Joi from "joi";
+import Joi, { string } from "joi";
 import _ from "object-collection/lodash";
 import XMongoDataType from "./XMongoDataType";
 
@@ -1263,21 +1263,37 @@ class XMongoModel {
      *
      * const sumOfCredit = await Model.sum('credit');
      * ==> 300
+     * @param field
+     * @param match
+     */
+    static async sum(field: string, match?: StringToAnyObject): Promise<number> {
+        const sum = await this.sumMany([field], match);
+        return sum[field];
+    }
+
+    /**
+     * Sum fields in this collection.
+     * @example
+     * data: [
+     *  {name: 'john', credit: 100, debit: 400},
+     *  {name: 'doe', credit: 200, debit: 300}
+     * ]
      *
-     * const sumOfBoth = await Model.sum(['credit', 'debit']);
-     * ==> {credit: 300, debit: 700}
+     * const sum = await Model.sum(['credit', 'debit']);
+     * // {credit: 300, debit: 700}
+     * // OR
+     * const sum = await Model.sum({income: 'credit', expense: 'debit'});
+     * // {income: 300, expense: 700}
      *
      * @param fields
      * @param match
      */
-    static async sum(
-        fields: string | StringToAnyObject | string[],
+    static async sumMany<T extends string[] | readonly string[] | StringToAnyObject>(
+        fields: T,
         match?: StringToAnyObject
-    ): Promise<number | { [name: string]: number }> {
+    ) {
         const $group: StringToAnyObject = { _id: null };
         const $result: StringToAnyObject = {};
-
-        if (typeof fields === "string") fields = [fields];
 
         const fieldIsArray = Array.isArray(fields);
         if (fieldIsArray) {
@@ -1291,12 +1307,15 @@ class XMongoModel {
                 $group[field] = { $sum: "$" + (<any>fields)[field] };
                 $result[field] = 0;
             }
-            fields = keys;
+            fields = keys as T;
         }
+        const pipeline = [] as any[];
 
-        let result = await this.native()
-            .aggregate([{ $match: match }, { $group }])
-            .toArray();
+        if (match) pipeline.push({ $match: match });
+
+        pipeline.push({ $group });
+
+        let result = await this.native().aggregate(pipeline).toArray();
 
         if (result.length) {
             for (const field of fields as string[]) {
@@ -1304,7 +1323,9 @@ class XMongoModel {
             }
         }
 
-        return fields.length === 1 ? $result[(<string[]>fields)[0]] : $result;
+        return $result as T extends string[] | readonly string[]
+            ? Record<T[number], number>
+            : Record<keyof T, number>;
     }
 
     /**

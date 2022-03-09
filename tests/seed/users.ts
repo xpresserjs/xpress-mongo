@@ -1,47 +1,36 @@
-import Connector from "../connection";
-import User from "../models/User";
+import User, { UserDataType } from "../models/User";
 
-async function SeedUsers() {
-    const connection = await Connector();
-    // Link Model
-    connection.model("users", User);
-
+export async function SeedUsers(count: number = 1, deleteExisting: boolean = false) {
     const Chance = require("chance");
     const chance = new Chance();
 
     /**
      * Async Space
      */
-
-    await User.native().deleteMany({});
+    if (deleteExisting) await User.native().deleteMany({});
 
     let i = 0;
-    let amount = Number((process.argv[2] as any) || 1);
-    console.time("Total Time");
+    let amount = Number(count);
+
+    const insert: UserDataType[] = [];
 
     while (i < amount) {
         const user = new User();
+        const email = chance.email();
+        const username = email.split("@")[0];
 
-        user.set({
-            email: chance.email(),
+        user.set(<UserDataType>{
+            username,
+            email,
             firstName: chance.first(),
             lastName: chance.last()
         });
 
-        await user.save();
-
-        // console.log(`User (${user.fullName()}) created!`);
-
-        i++;
+        try {
+            insert.push(user.validate() as UserDataType);
+            i++;
+        } catch (e) {}
     }
 
-    console.timeLog("Total Time");
-
-    /**
-     * End Async Space
-     */
+    await User.native().insertMany(insert);
 }
-
-SeedUsers().then(() => {
-    process.exit();
-});

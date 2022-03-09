@@ -1,11 +1,14 @@
 import { is, joi, XMongoDataType } from "../../index";
 import { XMongoSchema, XMongoStrictConfig } from "../../src/CustomTypes";
 import XMongoTypedModel from "../../src/XMongoTypedModel";
+import { randomInt } from "crypto";
 
-interface UserDataType {
+export interface UserDataType {
     uuid: string;
     username: string;
     email: string;
+    age: number;
+    balance: number;
     firstName: string;
     lastName: string;
     updatedAt: string;
@@ -23,6 +26,8 @@ class User extends XMongoTypedModel<UserDataType> {
         email: new XMongoDataType("email")
             .joi(joi.string().required().lowercase().email())
             .unique(),
+        age: is.Number(() => randomInt(18, 80)).required(),
+        balance: is.Number(() => randomInt(10000, 80000)).required(),
         firstName: is.String().required(),
         lastName: is.String().required(),
         updatedAt: is.Date().required(),
