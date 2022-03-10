@@ -38,11 +38,12 @@ import {
 import Joi, { string } from "joi";
 import _ from "object-collection/lodash";
 import XMongoDataType from "./XMongoDataType";
+import { keysToObject } from "../fn/projection";
 
 type FunctionWithRawArgument = (raw: Collection) => FindCursor | AggregationCursor;
 
 type MakeMany<T extends typeof XMongoModel> = {
-    intercept?: (d: InstanceType<T>) => InstanceType<T> | false;
+    interceptor?: (d: InstanceType<T>) => InstanceType<T> | false;
 };
 
 type MakeManyData<T extends typeof XMongoModel> = MakeMany<T> & {
@@ -1811,6 +1812,11 @@ class XMongoModel {
         }
     }
 
+    /**
+     * Check if the current instance can talk to the database
+     * @param name
+     * @private
+     */
     private $canTalkToDatabase(name: string) {
         if (this.meta.usingCustomId || !this.$findOneQuery())
             throw Error(
@@ -1827,23 +1833,50 @@ class XMongoModel {
 
     /**
      * Get all data in the model
+     * Shorthand to find all with no conditions
      */
     static all(options?: FindOptions) {
         return this.find({}, options);
     }
 
     /**
-     * Get the last item added to the collection
+     * Get the last item added to the collection.
      */
-    static latest(options?: FindOptions, field: string = "_id") {
-        return this.findOne({}, { sort: { [field]: -1 } });
+    static last<T extends typeof XMongoModel>(
+        this: T,
+        data: { sortBy?: string | string[]; filter?: StringToAnyObject; options?: FindOptions } = {}
+    ) {
+        if (!data.sortBy) data.sortBy = "_id";
+        if (!data.filter) data.filter = {};
+
+        // if options has sort, merge it with the default sort
+        if (data.options && data.options.sort) {
+            data.options = _.merge({ sort: keysToObject(data.sortBy, -1) }, data.options);
+        } else {
+            data.options = { sort: keysToObject(data.sortBy, -1) };
+        }
+
+        return this.findOne(data.filter, data.options);
     }
 
     /**
-     * Get the first item added to the collection
+     * Get the first item added to the collection.
      */
-    static first(options?: FindOptions, field: string = "_id") {
-        return this.findOne({}, { sort: { [field]: 1 } });
+    static first<T extends typeof XMongoModel>(
+        this: T,
+        data: { sortBy?: string | string[]; filter?: StringToAnyObject; options?: FindOptions } = {}
+    ) {
+        if (!data.sortBy) data.sortBy = "_id";
+        if (!data.filter) data.filter = {};
+
+        // if options has sort, merge it with the default sort
+        if (data.options && data.options.sort) {
+            data.options = _.merge({ sort: keysToObject(data.sortBy, 1) }, data.options);
+        } else {
+            data.options = { sort: keysToObject(data.sortBy, 1) };
+        }
+
+        return this.findOne(data.filter, data.options);
     }
 
     /**
@@ -1856,18 +1889,18 @@ class XMongoModel {
         data: StringToAnyObject[],
         options: MakeMany<T> = {}
     ) {
+        // use flatMap instead of map to provide an option to skip items.
         return data.flatMap((d) => {
+            // Make instance
             const instance = this.make(d);
 
-            if (options.intercept) {
-                const result = options.intercept(instance);
-                if (!result) {
-                    return [];
-                } else {
-                    return result;
-                }
+            // If options has interceptor, run it
+            if (options.interceptor) {
+                const result = options.interceptor(instance);
+                return !result ? [] : result;
             }
 
+            // return instance
             return instance;
         });
     }
@@ -1877,19 +1910,22 @@ class XMongoModel {
      * @param data
      * @param options
      */
-    static makeManyData<T extends StringToAnyObject, X extends typeof XMongoModel>(
-        this: X,
-        data: StringToAnyObject[],
-        options: MakeManyData<X> = {}
-    ) {
+    static makeManyData<
+        T extends StringToAnyObject,
+        X extends typeof XMongoModel = typeof XMongoModel
+    >(this: X, data: StringToAnyObject[], options: MakeManyData<X> = {}) {
+        // Set default options
         const defOptions = { stopOnError: true };
         options = { ...defOptions, ...options };
 
+        // use flatMap instead of map to provide an option to skip items.
         return data.flatMap((d) => {
+            // Make instance
             let instance = this.make(d);
 
-            if (options.intercept) {
-                const result = options.intercept(instance);
+            // If options has interceptor, run it
+            if (options.interceptor) {
+                const result = options.interceptor(instance);
                 if (!result) {
                     return [];
                 } else {
@@ -1897,6 +1933,7 @@ class XMongoModel {
                 }
             }
 
+            // Validate instance
             if (options.validate) {
                 try {
                     return instance.validate() as T;
