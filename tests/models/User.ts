@@ -11,8 +11,8 @@ export interface UserDataType {
     balance: number;
     firstName: string;
     lastName: string;
-    updatedAt: string;
-    createdAt: string;
+    updatedAt: Date;
+    createdAt: Date;
 }
 
 class User extends XMongoTypedModel<UserDataType> {

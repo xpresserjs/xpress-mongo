@@ -1,10 +1,29 @@
 /**
+ * Convert array of keys to object of keys and value
+ * @param keys
+ * @param value
+ */
+export const keysToObject = <T extends string | readonly string[] | string[], V>(
+    keys: T,
+    value: V
+) => {
+    if (typeof keys === "string") keys = [keys] as T;
+
+    // create object using array values as keys and the value as the value
+    const obj = {} as T extends readonly string[] ? Record<T[number], V> : Record<string, V>;
+
+    for (const key of keys) (obj as any)[key] = value;
+
+    return obj;
+};
+
+/**
  * Omit keys
  * @param keys
  * @param returnObject
  * @returns {*}
  */
-export const omitKeys = (keys: string | string[], returnObject = false): object => {
+export const omitKeys = (keys: string | string[], returnObject = false): Record<string, any> => {
     // Turn keys to array if not array.
     if (!Array.isArray(keys)) keys = [keys];
 
@@ -14,7 +33,7 @@ export const omitKeys = (keys: string | string[], returnObject = false): object 
         data[key] = 0;
     }
 
-    return returnObject ? { projection: data } : data;
+    return returnObject ? {projection: data} : data;
 };
 
 /**
@@ -23,17 +42,9 @@ export const omitKeys = (keys: string | string[], returnObject = false): object 
  * @param returnObject
  * @returns {*}
  */
-export const pickKeys = (keys: string | string[], returnObject = false): object => {
-    // Turn keys to array if not array.
-    if (!Array.isArray(keys)) keys = [keys];
-
-    const data: any = {};
-
-    for (const key of keys) {
-        data[key] = 1;
-    }
-
-    return returnObject ? { projection: data } : data;
+export const pickKeys = (keys: string | string[], returnObject = false): Record<string, any> => {
+    const data = keysToObject(keys, 1);
+    return returnObject ? {projection: data} : data;
 };
 
 /**
@@ -45,8 +56,8 @@ export const pickKeys = (keys: string | string[], returnObject = false): object 
  * {_id: 0, name: 0, email: 0}
  * @returns {{}}
  */
-export const omitIdAnd = (omit: string | string[] = []): object => {
-    return { _id: 0, ...omitKeys(omit) };
+export const omitIdAnd = (omit: string | string[] = []): Record<string, any> => {
+    return {_id: 0, ...omitKeys(omit)};
 };
 
 /**
@@ -59,6 +70,6 @@ export const omitIdAnd = (omit: string | string[] = []): object => {
  * {_id: 0, name: 1, email: 1}
  * @returns {{}}
  */
-export const omitIdAndPick = (pick: string | string[] = []): object => {
-    return { _id: 0, ...pickKeys(pick) };
+export const omitIdAndPick = (pick: string | string[] = []): Record<string, any> => {
+    return {_id: 0, ...pickKeys(pick)};
 };
