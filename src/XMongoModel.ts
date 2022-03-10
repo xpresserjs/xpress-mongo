@@ -41,6 +41,15 @@ import XMongoDataType from "./XMongoDataType";
 
 type FunctionWithRawArgument = (raw: Collection) => FindCursor | AggregationCursor;
 
+type MakeMany<T extends typeof XMongoModel> = {
+    intercept?: (d: InstanceType<T>) => InstanceType<T> | false;
+};
+
+type MakeManyData<T extends typeof XMongoModel> = MakeMany<T> & {
+    validate?: boolean;
+    stopOnError?: boolean;
+};
+
 /**
  * @class
  */
@@ -1809,6 +1818,108 @@ class XMongoModel {
             );
 
         return this;
+    }
+
+    /**
+     *
+     * ==================== Semantic Sugars and Aliases ====================
+     */
+
+    /**
+     * Get all data in the model
+     */
+    static all(options?: FindOptions) {
+        return this.find({}, options);
+    }
+
+    /**
+     * Get the last item added to the collection
+     */
+    static latest(options?: FindOptions, field: string = "_id") {
+        return this.findOne({}, { sort: { [field]: -1 } });
+    }
+
+    /**
+     * Get the first item added to the collection
+     */
+    static first(options?: FindOptions, field: string = "_id") {
+        return this.findOne({}, { sort: { [field]: 1 } });
+    }
+
+    /**
+     * Insert Many
+     * @alias `new`
+     */
+    static async insert<T extends typeof XMongoModel>(
+        this: T,
+        data: StringToAnyObject,
+        save: boolean = true
+    ): Promise<InstanceType<T>> {
+        return this.new(data, save);
+    }
+
+    /**
+     * Make many model instances from data array
+     * @param data
+     * @param options
+     */
+    static makeMany<T extends typeof XMongoModel>(
+        this: T,
+        data: StringToAnyObject[],
+        options: MakeMany<T> = {}
+    ) {
+        return data.flatMap((d) => {
+            const instance = this.make(d);
+
+            if (options.intercept) {
+                const result = options.intercept(instance);
+                if (!result) {
+                    return [];
+                } else {
+                    return result;
+                }
+            }
+
+            return instance;
+        });
+    }
+
+    /**
+     * Make many model instance data from data array
+     * @param data
+     * @param options
+     */
+    static makeManyData<T extends StringToAnyObject, X extends typeof XMongoModel>(
+        this: X,
+        data: StringToAnyObject[],
+        options: MakeManyData<X> = {}
+    ) {
+        const defOptions = { stopOnError: true };
+        options = { ...defOptions, ...options };
+
+        return data.flatMap((d) => {
+            let instance = this.make(d);
+
+            if (options.intercept) {
+                const result = options.intercept(instance);
+                if (!result) {
+                    return [];
+                } else {
+                    instance = result;
+                }
+            }
+
+            if (options.validate) {
+                try {
+                    return instance.validate() as T;
+                } catch (e) {
+                    if (options.stopOnError) throw e;
+                    return [];
+                }
+            }
+
+            return instance.data as T;
+        }) as T[];
     }
 }
 

@@ -20,15 +20,30 @@ async function Main() {
 
     await User.native().deleteMany({});
 
-    const song = await User.new({
-        username: "John",
-        email: "hello@good.com",
-        firstName: "John",
-        lastName: "Smith"
-    });
+    const data = [
+        {
+            username: "John",
+            email: "hello@good.com",
+            firstName: "John",
+            lastName: "Smith",
+            age: 40
+        },
+        {
+            username: "Jane",
+            email: "jane@good.com",
+            firstName: "Jane",
+            lastName: "Smith",
+            age: 30
+        }
+    ];
 
-    //
-    console.log(song);
+    const makeMany = User.makeManyData(data, {
+        intercept: (user) => (user.data.age > 30 ? false : user)
+    });
+    console.log(makeMany);
+
+    // const makeManyData = User.makeManyData(data, { validate: true, stopOnError: false });
+    // console.log(makeManyData);
     // const song: User | null = await User.native().findOne({});
     //
     // if (!song) throw Error("No Song found");
