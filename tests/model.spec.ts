@@ -16,7 +16,7 @@ test.group("Static Methods", (group) => {
     });
 
     // Test Count
-    test.only("count():", async (assert) => {
+    test("count():", async (assert) => {
         let count = await User.count();
         assert.equal(count, 10);
 
@@ -26,6 +26,29 @@ test.group("Static Methods", (group) => {
         // Re-count && Re-check
         count = await User.count();
         assert.equal(count, 12);
+    });
+
+    test("count(): With Query", async (assert) => {
+        // shorthand
+        let count = await User.count({ age: { $gt: 20 } });
+
+        // long-hand
+        const users = await User.find();
+
+        // filter
+        const filtered = users.filter((user) => user.age > 20);
+
+        assert.equal(count, filtered.length);
+    });
+
+    test("countEstimated():", async (assert) => {
+        // shorthand
+        let count = await User.countEstimated();
+
+        // long-hand
+        const users = await User.find();
+
+        assert.equal(count, users.length);
     });
 
     test("sum(): Single Field", async (assert) => {

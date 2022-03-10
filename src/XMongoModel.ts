@@ -4,7 +4,9 @@ import {
     AggregateOptions,
     AggregationCursor,
     Collection,
+    CountDocumentsOptions,
     DeleteResult,
+    EstimatedDocumentCountOptions,
     Filter,
     FindCursor,
     FindOptions,
@@ -1241,16 +1243,27 @@ class XMongoModel {
      * @return {void | * | Promise | undefined | IDBRequest<number>}
      */
     static count(
-        query: StringToAnyObject | Filter<any> = {},
-        options?: FindOptions<any>
+        query?: StringToAnyObject | Filter<any>,
+        options?: CountDocumentsOptions
     ): Promise<number> {
-        /**
-         * options as any is used here because mongodb did not make its new
-         * WithoutProjection type exportable so we can't make reference to it.
-         */
-        return this.native()
-            .find(query, options as any)
-            .count();
+        const hasQuery = query && Object.keys(query).length > 0;
+
+        if (hasQuery) {
+            return options
+                ? this.native().countDocuments(query, options)
+                : this.native().countDocuments(query);
+        } else {
+            return this.native().estimatedDocumentCount();
+        }
+    }
+
+    /**
+     * Count All the documents without query using estimatedDocumentCount
+     */
+    static countEstimated(option?: EstimatedDocumentCountOptions): Promise<number> {
+        return option
+            ? this.native().estimatedDocumentCount(option)
+            : this.native().estimatedDocumentCount();
     }
 
     /**
