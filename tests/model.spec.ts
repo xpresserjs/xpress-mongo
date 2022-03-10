@@ -15,6 +15,19 @@ test.group("Static Methods", (group) => {
         await User.native().deleteMany({});
     });
 
+    // Test Count
+    test.only("count():", async (assert) => {
+        let count = await User.count();
+        assert.equal(count, 10);
+
+        // Add 2 more users
+        await SeedUsers(2);
+
+        // Re-count && Re-check
+        count = await User.count();
+        assert.equal(count, 12);
+    });
+
     test("sum(): Single Field", async (assert) => {
         // via shorthand
         const sum = await User.sum("age");
