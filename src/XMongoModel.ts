@@ -1847,18 +1847,6 @@ class XMongoModel {
     }
 
     /**
-     * Insert Many
-     * @alias `new`
-     */
-    static async insert<T extends typeof XMongoModel>(
-        this: T,
-        data: StringToAnyObject,
-        save: boolean = true
-    ): Promise<InstanceType<T>> {
-        return this.new(data, save);
-    }
-
-    /**
      * Make many model instances from data array
      * @param data
      * @param options
