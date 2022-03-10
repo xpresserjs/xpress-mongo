@@ -1,5 +1,5 @@
 /**
- * Convert array of keys to object of keys and value
+ * Convert array of keys to object of keys and value.
  * @param keys
  * @param value
  */
@@ -33,7 +33,7 @@ export const omitKeys = (keys: string | string[], returnObject = false): Record<
         data[key] = 0;
     }
 
-    return returnObject ? {projection: data} : data;
+    return returnObject ? { projection: data } : data;
 };
 
 /**
@@ -44,7 +44,7 @@ export const omitKeys = (keys: string | string[], returnObject = false): Record<
  */
 export const pickKeys = (keys: string | string[], returnObject = false): Record<string, any> => {
     const data = keysToObject(keys, 1);
-    return returnObject ? {projection: data} : data;
+    return returnObject ? { projection: data } : data;
 };
 
 /**
@@ -57,7 +57,7 @@ export const pickKeys = (keys: string | string[], returnObject = false): Record<
  * @returns {{}}
  */
 export const omitIdAnd = (omit: string | string[] = []): Record<string, any> => {
-    return {_id: 0, ...omitKeys(omit)};
+    return { _id: 0, ...omitKeys(omit) };
 };
 
 /**
@@ -71,5 +71,5 @@ export const omitIdAnd = (omit: string | string[] = []): Record<string, any> => 
  * @returns {{}}
  */
 export const omitIdAndPick = (pick: string | string[] = []): Record<string, any> => {
-    return {_id: 0, ...pickKeys(pick)};
+    return { _id: 0, ...pickKeys(pick) };
 };
