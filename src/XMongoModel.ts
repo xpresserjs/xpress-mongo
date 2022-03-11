@@ -369,7 +369,7 @@ class XMongoModel {
      * @return {Promise<this|*>}
      */
     static make<T extends typeof XMongoModel>(this: T, data: StringToAnyObject): InstanceType<T> {
-        return new this().set(data) as InstanceType<T>;
+        return new this().$replaceData(data) as InstanceType<T>;
     }
 
     /**
@@ -1622,6 +1622,7 @@ class XMongoModel {
         this.$emptyData();
         // Set Original Property
         this.$setOriginal(data);
+
         // Set Normal Data
         this.set(data);
 
