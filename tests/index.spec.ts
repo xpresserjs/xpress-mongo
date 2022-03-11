@@ -32,7 +32,7 @@ test.group("Create User", () => {
     let user: User;
 
     test("Make Data", () => {
-        user = User.make({});
+        user = User.make();
 
         // Check if model generated the expected data from schema
         Joi.attempt(
