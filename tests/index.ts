@@ -38,7 +38,7 @@ async function Main() {
     ];
 
     const makeMany = User.makeManyData(data, {
-        intercept: (user) => (user.data.age > 30 ? false : user)
+        interceptor: (user) => (user.data.age > 30 ? false : user)
     });
 
     console.log(makeMany);

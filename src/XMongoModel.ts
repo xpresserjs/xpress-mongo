@@ -368,8 +368,11 @@ class XMongoModel {
      * @param data - new record data.
      * @return {Promise<this|*>}
      */
-    static make<T extends typeof XMongoModel>(this: T, data: StringToAnyObject): InstanceType<T> {
-        return new this().$replaceData(data) as InstanceType<T>;
+    static make<T extends typeof XMongoModel>(
+        this: T,
+        data: StringToAnyObject = {}
+    ): InstanceType<T> {
+        return new this().set(data).$appendData() as InstanceType<T>;
     }
 
     /**
@@ -409,6 +412,22 @@ class XMongoModel {
             writable: true,
             enumerable: false
         });
+
+        return this;
+    }
+
+    private $appendData(append?: string[]): this {
+        // Get Append
+        if (!append) append = this.$static().append;
+
+        // If append then run append functions
+        if (append) {
+            for (const key of append) {
+                if (typeof (this as StringToAnyObject)[key] === "function") {
+                    this.set(key, (this as StringToAnyObject)[key]());
+                }
+            }
+        }
 
         return this;
     }
@@ -582,7 +601,7 @@ class XMongoModel {
         const changes = diff(this.original, this.data);
         const data: StringToAnyObject = {};
         // @ts-ignore
-        const append = this.constructor.append || [];
+        const append = this.$static().append || [];
         const excluded = [...append, ...this.loadedRelationships];
 
         for (const key in changes) {
@@ -1626,19 +1645,7 @@ class XMongoModel {
         // Set Normal Data
         this.set(data);
 
-        // Get Append
-        if (!append) append = this.$static().append;
-
-        // If append then run append functions
-        if (append) {
-            for (const key of append) {
-                if (typeof (this as StringToAnyObject)[key] === "function") {
-                    this.set(key, (this as StringToAnyObject)[key]());
-                }
-            }
-        }
-
-        return this;
+        return this.$appendData(append);
     }
 
     /**
