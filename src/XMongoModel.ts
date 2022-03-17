@@ -1858,7 +1858,7 @@ class XMongoModel {
         if (!data.filter) data.filter = {};
 
         // if options has sort, merge it with the default sort
-        if (data.options && data.options.sort) {
+        if (data.options) {
             data.options = _.merge({ sort: keysToObject(data.sortBy, -1) }, data.options);
         } else {
             data.options = { sort: keysToObject(data.sortBy, -1) };
@@ -1878,7 +1878,7 @@ class XMongoModel {
         if (!data.filter) data.filter = {};
 
         // if options has sort, merge it with the default sort
-        if (data.options && data.options.sort) {
+        if (data.options) {
             data.options = _.merge({ sort: keysToObject(data.sortBy, 1) }, data.options);
         } else {
             data.options = { sort: keysToObject(data.sortBy, 1) };
