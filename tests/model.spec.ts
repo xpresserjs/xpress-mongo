@@ -201,6 +201,22 @@ test.group("Static Methods", (group) => {
         assert.deepEqual(short, long);
     });
 
+    test("last(): with options", async (assert) => {
+        // shorthand
+        const short = await User.last({
+            options: { projection: { email: 1, age: 1 } }
+        });
+
+        // long-hand
+        const long = await User.findOne(
+            {},
+            { sort: { _id: -1 }, projection: { email: 1, age: 1 } }
+        );
+
+        // check if the same
+        assert.deepEqual(short, long);
+    });
+
     test("makeMany():", async (assert) => {
         const users = User.makeMany(manyUsers);
 
