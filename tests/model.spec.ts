@@ -309,4 +309,34 @@ test.group("Static Methods", (group) => {
         // check that user with username "Joe" is not included
         assert.isFalse(users.some((user) => user.username === "Joe"));
     });
+
+    test("paginate():", async (assert) => {
+        await SeedUsers(20, true);
+
+        const page = 1,
+            perPage = 5;
+
+        const users = await User.paginate(page, perPage);
+
+        assert.equal(users.total, 20);
+        assert.equal(users.perPage, perPage);
+        assert.equal(users.page, page);
+        assert.equal(users.lastPage, 4);
+        assert.equal(users.data.length, perPage);
+    });
+
+    test("paginateAggregate():", async (assert) => {
+        await SeedUsers(20, true);
+
+        const page = 1,
+            perPage = 5;
+
+        const users = await User.paginateAggregate(page, perPage);
+
+        assert.equal(users.total, 20);
+        assert.equal(users.perPage, perPage);
+        assert.equal(users.page, page);
+        assert.equal(users.lastPage, 4);
+        assert.equal(users.data.length, perPage);
+    });
 });
