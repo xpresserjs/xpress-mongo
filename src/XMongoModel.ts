@@ -372,7 +372,7 @@ class XMongoModel {
         this: M,
         data: StringToAnyObject = {}
     ): InstanceType<M> {
-        return new this().set(data).$appendData() as InstanceType<M>;
+        return new this().set(data) as InstanceType<M>;
     }
 
     /**
@@ -416,7 +416,11 @@ class XMongoModel {
         return this;
     }
 
-    private $appendData(append?: string[]): this {
+    /**
+     * Appends static `appends` to the model
+     * @param append
+     */
+    public $appendData(append?: string[]): this {
         // Get Append
         if (!append) append = this.$static().append;
 
