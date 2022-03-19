@@ -252,8 +252,8 @@ class XMongoModel {
      * @param $default
      * @return {*|undefined}
      */
-    get(key: string, $default?: any): any {
-        return _.get(this.data, key, $default);
+    get<Value = any>(key: string, $default?: Value) {
+        return _.get(this.data, key, $default) as Value;
     }
 
     /**
@@ -304,7 +304,7 @@ class XMongoModel {
      */
     pushToArray(key: string, value: any, strict: boolean = false): this {
         // Find current value of key
-        let data: any[] = this.get(key, undefined);
+        let data: any[] = this.get(key);
 
         // if current value is undefined create new array
         if (data === undefined) {
@@ -368,11 +368,11 @@ class XMongoModel {
      * @param data - new record data.
      * @return {Promise<this|*>}
      */
-    static make<T extends typeof XMongoModel>(
-        this: T,
+    static make<M extends typeof XMongoModel>(
+        this: M,
         data: StringToAnyObject = {}
-    ): InstanceType<T> {
-        return new this().set(data).$appendData() as InstanceType<T>;
+    ): InstanceType<M> {
+        return new this().set(data).$appendData() as InstanceType<M>;
     }
 
     /**
@@ -578,7 +578,7 @@ class XMongoModel {
          * Get Value to be compared with
          * @type {ObjectId|string}
          */
-        let compareWith = this.get(key, undefined);
+        let compareWith = this.get(key);
 
         // Return false of to || compareWith is false, undefined or null
         if (!to || !compareWith) return false;
@@ -600,7 +600,7 @@ class XMongoModel {
     changes(): StringToAnyObject {
         const changes = diff(this.original, this.data);
         const data: StringToAnyObject = {};
-        // @ts-ignore
+
         const append = this.$static().append || [];
         const excluded = [...append, ...this.loadedRelationships];
 
@@ -810,7 +810,7 @@ class XMongoModel {
      * @param data
      * @return {{}}
      */
-    validate(data?: StringToAnyObject): StringToAnyObject {
+    validate<ValidatedType extends StringToAnyObject>(data?: StringToAnyObject): ValidatedType {
         if (!this.meta.hasLoadedSchema) this.$useSchema(undefined, false);
 
         const isStrict = this.$isStrict();
@@ -849,10 +849,10 @@ class XMongoModel {
          */
         for (const schemaKey in this.schema) {
             /**
-             * If data doesnt have schemaKey we skip
+             * If data doesn't have schemaKey we skip
              * else throw Error if this is not a customData
              *
-             * i.e else if data === this.data
+             * i.e. else if data === this.data
              */
 
             if (data.hasOwnProperty(schemaKey)) {
@@ -977,7 +977,7 @@ class XMongoModel {
         }
 
         // Return this way to retain original object structure
-        return { ...data, ...validated };
+        return { ...data, ...validated } as ValidatedType;
     }
 
     /**
