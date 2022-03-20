@@ -34,7 +34,7 @@
     "escape-string-regexp-node": "^1.0.2",
     "joi": "^17.6.0",
     "mongodb": "4.4.1",
-    "object-collection": "^3.0.0",
+    "object-collection": "^3.0.1",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
