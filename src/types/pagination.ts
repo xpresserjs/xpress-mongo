@@ -33,7 +33,7 @@ export function Paginated<T>(): Paginated<T> {
  * @param result
  * @constructor
  */
-export function PaginatedMetaData<T = any>(result: Paginated<T>): PaginatedMetaData<T> {
-    const {data, ...meta} = result;
+export function PaginatedMetaData<T = any>(result?: Paginated<T>): PaginatedMetaData<T> {
+    const {data, ...meta} = result ? result : Paginated<T>();
     return {meta, data};
 }
