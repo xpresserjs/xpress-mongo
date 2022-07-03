@@ -1,4 +1,4 @@
-import {FunctionReturnsBoolean, SchemaPropertiesType, StringToAnyObject, ValidatorType} from "../src/CustomTypes";
+import {FunctionReturnsBoolean, SchemaPropertiesType, StringToAnyObject, ValidatorType} from "../src/types/index";
 import XMongoModel from "../src/XMongoModel";
 import _ from "object-collection/lodash";
 import {watch} from "fs";

@@ -1,5 +1,5 @@
-import XMongoDataType from "./XMongoDataType";
-import XMongoModel from "./XMongoModel";
+import XMongoDataType from "../XMongoDataType";
+import XMongoModel from "../XMongoModel";
 import Joi from "joi";
 
 export type FunctionReturnsBoolean = (...args: any[]) => boolean;
@@ -33,13 +33,6 @@ export type SchemaPropertiesType = {
 
 export type StringToAnyObject = Record<string, any>;
 
-export type PaginationData<T = any> = {
-    total: number;
-    perPage: number;
-    page: number;
-    lastPage: number;
-    data: T[];
-};
 
 type InputBuffer = ArrayLike<number>;
 export type UuidOptions = {

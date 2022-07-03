@@ -1,7 +1,7 @@
-import { is, joi, XMongoDataType } from "../../index";
-import { XMongoSchema, XMongoStrictConfig } from "../../src/CustomTypes";
+import {is, joi, XMongoDataType} from "../../index";
+import {XMongoSchema, XMongoStrictConfig} from "../../src/types/index";
 import XMongoTypedModel from "../../src/XMongoTypedModel";
-import { randomInt } from "crypto";
+import {randomInt} from "crypto";
 
 export interface UserDataType {
     uuid: string;

@@ -1,11 +1,4 @@
-import {
-    ValidatorType,
-    CastFunctionType,
-    SchemaPropertiesType,
-    RequiredIf,
-    UseJoi,
-    FnWithArg
-} from "./CustomTypes";
+import {CastFunctionType, FnWithArg, RequiredIf, SchemaPropertiesType, UseJoi, ValidatorType} from "./types/index";
 import Joi from "joi";
 import XMongoModel from "./XMongoModel";
 

@@ -1,5 +1,5 @@
 import {MongoClient, MongoClientOptions, ObjectId} from "mongodb";
-import {XMongoSchema, XMongoSchemaBuilder, XMongoSchemaFn} from "./src/CustomTypes";
+import {XMongoSchema, XMongoSchemaBuilder, XMongoSchemaFn} from "./src/types/index";
 
 // Require libs
 import is from "./src/SchemaBuilder";

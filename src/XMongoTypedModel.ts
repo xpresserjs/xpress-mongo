@@ -1,6 +1,6 @@
 import XMongoModel from "./XMongoModel";
-import { StringToAnyObject } from "./CustomTypes";
-import { UpdateOptions, UpdateResult } from "mongodb";
+import {StringToAnyObject} from "./types/index";
+import {UpdateOptions, UpdateResult} from "mongodb";
 
 class XMongoTypedModel<DT = Record<string, any>> extends XMongoModel {
     // Set this.data type to DT

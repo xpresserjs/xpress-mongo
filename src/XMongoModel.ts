@@ -1,5 +1,4 @@
 import ObjectCollection from "object-collection";
-
 import {
     AggregateOptions,
     AggregationCursor,
@@ -17,28 +16,15 @@ import {
     UpdateOptions,
     UpdateResult
 } from "mongodb";
-
 import is from "./SchemaBuilder";
-import { diff } from "deep-object-diff";
-import {
-    defaultValue,
-    processSchema,
-    runAndValidation,
-    RunOnEvent,
-    runOrValidation
-} from "../fn/inbuilt";
-import {
-    PaginationData,
-    SchemaPropertiesType,
-    StringToAnyObject,
-    XMongoSchema,
-    XMongoSchemaFn,
-    XMongoStrictConfig
-} from "./CustomTypes";
-import Joi, { string } from "joi";
+import {diff} from "deep-object-diff";
+import {defaultValue, processSchema, runAndValidation, RunOnEvent, runOrValidation} from "../fn/inbuilt";
+import {SchemaPropertiesType, StringToAnyObject, XMongoSchema, XMongoSchemaFn, XMongoStrictConfig} from "./types/index";
+import Joi, {string} from "joi";
 import _ from "object-collection/lodash";
 import XMongoDataType from "./XMongoDataType";
-import { keysToObject } from "../fn/projection";
+import {keysToObject} from "../fn/projection";
+import {Paginated} from "./types/pagination";
 
 type FunctionWithRawArgument = (raw: Collection) => FindCursor | AggregationCursor;
 
@@ -235,13 +221,13 @@ class XMongoModel {
          * if _id exists then add it.
          */
         if (_id) {
-            this.data = { _id };
+            this.data = {_id};
         } else {
             this.data = {};
         }
 
         if (replaceWith && typeof replaceWith === "object")
-            this.data = { ...this.data, ...replaceWith };
+            this.data = {...this.data, ...replaceWith};
 
         return this;
     }
@@ -475,7 +461,7 @@ class XMongoModel {
             schema = this.schemaStore[schema] || {};
         }
 
-        const newData: StringToAnyObject = { _id: this.id() };
+        const newData: StringToAnyObject = {_id: this.id()};
 
         // If schema is a function then call it and pass is.
         if (typeof schema === "function") {
@@ -712,7 +698,7 @@ class XMongoModel {
 
                 this.$static()
                     .native()
-                    .updateOne(findOneQuery, { $set }, options, (error, res) => {
+                    .updateOne(findOneQuery, {$set}, options, (error, res) => {
                         if (error) {
                             return reject(error);
                         } else {
@@ -740,7 +726,7 @@ class XMongoModel {
                     .native()
                     .insertOne(this.data, options, (error, res) => {
                         if (error) return reject(error);
-                        const { insertedId } = res!;
+                        const {insertedId} = res!;
 
                         this.set("_id", insertedId);
                         this.$setOriginal(this.data);
@@ -794,7 +780,7 @@ class XMongoModel {
         return new Promise((resolve, reject) => {
             return this.$static()
                 .native()
-                .updateOne(this.$findOneQuery()!, { $unset }, options, (error, res) => {
+                .updateOne(this.$findOneQuery()!, {$unset}, options, (error, res) => {
                     if (error) return reject(error);
 
                     // Remove keys from current data
@@ -981,7 +967,7 @@ class XMongoModel {
         }
 
         // Return this way to retain original object structure
-        return { ...data, ...validated } as ValidatedType;
+        return {...data, ...validated} as ValidatedType;
     }
 
     /**
@@ -995,7 +981,8 @@ class XMongoModel {
             // Delete Document
             const result = await this.$static().native().deleteOne(findOneQuery);
 
-            RunOnEvent("deleted", this).finally(() => {});
+            RunOnEvent("deleted", this).finally(() => {
+            });
 
             return result;
         } else {
@@ -1042,14 +1029,14 @@ class XMongoModel {
     static async exists(query: StringToAnyObject) {
         let where = query;
         if (this.isValidId(query)) {
-            where = { _id: query };
+            where = {_id: query};
         }
 
         /**
          * Project only ID so that mongodb doesn't have to read disk.
          * only relevant if query is ID
          */
-        const find = await this.native().findOne(where, { projection: { _id: 1 } });
+        const find = await this.native().findOne(where, {projection: {_id: 1}});
 
         return ![null, undefined].includes(find);
     }
@@ -1261,9 +1248,9 @@ class XMongoModel {
     ): Promise<InstanceType<T> | null> {
         let where;
         if (typeof _id === "string" || !isTypeObjectId) {
-            where = { _id: this.id(_id) };
+            where = {_id: this.id(_id)};
         } else {
-            where = { _id };
+            where = {_id};
         }
 
         return this.findOne(<StringToAnyObject>where, options);
@@ -1338,28 +1325,28 @@ class XMongoModel {
         fields: T,
         match?: StringToAnyObject
     ) {
-        const $group: StringToAnyObject = { _id: null };
+        const $group: StringToAnyObject = {_id: null};
         const $result: StringToAnyObject = {};
 
         const fieldIsArray = Array.isArray(fields);
         if (fieldIsArray) {
             for (const field of fields as string[]) {
-                $group[field] = { $sum: "$" + field };
+                $group[field] = {$sum: "$" + field};
                 $result[field] = 0;
             }
         } else if (typeof fields === "object") {
             const keys = Object.keys(fields);
             for (const field of keys as string[]) {
-                $group[field] = { $sum: "$" + (<any>fields)[field] };
+                $group[field] = {$sum: "$" + (<any>fields)[field]};
                 $result[field] = 0;
             }
             fields = keys as T;
         }
         const pipeline = [] as any[];
 
-        if (match) pipeline.push({ $match: match });
+        if (match) pipeline.push({$match: match});
 
-        pipeline.push({ $group });
+        pipeline.push({$group});
 
         let result = await this.native().aggregate(pipeline).toArray();
 
@@ -1381,7 +1368,7 @@ class XMongoModel {
      */
     static async countAggregate(query: any[] = [], options?: AggregateOptions): Promise<number> {
         query = _.cloneDeep(query);
-        query.push({ $count: "count_aggregate" });
+        query.push({$count: "count_aggregate"});
 
         const data = await this.native().aggregate(query, options).toArray();
 
@@ -1403,7 +1390,7 @@ class XMongoModel {
         perPage: number = 20,
         query = {},
         options: FindOptions<any> = {}
-    ): Promise<PaginationData<T>> {
+    ): Promise<Paginated<T>> {
         page = Number(page);
         perPage = Number(perPage);
 
@@ -1443,7 +1430,7 @@ class XMongoModel {
         perPage = 20,
         query: any[] = [],
         options: AggregateOptions = {}
-    ): Promise<PaginationData<T>> {
+    ): Promise<Paginated<T>> {
         query = _.cloneDeep(query);
 
         page = Number(page);
@@ -1453,8 +1440,8 @@ class XMongoModel {
         const lastPage = Math.ceil(total / perPage);
         const skips = perPage * (page - 1);
 
-        query.push({ $skip: skips });
-        query.push({ $limit: perPage });
+        query.push({$skip: skips});
+        query.push({$limit: perPage});
 
         const data = (await this.native().aggregate(query, options).toArray()) as T[];
 
@@ -1629,7 +1616,7 @@ class XMongoModel {
 
         // Merge to events
         if (handlerIsObject) {
-            _.merge(this.events, _.extend({}, { [event]: functionOrFunctions }));
+            _.merge(this.events, _.extend({}, {[event]: functionOrFunctions}));
         } else {
             _.merge(this.events, _.set({}, event, functionOrFunctions));
         }
@@ -1683,7 +1670,7 @@ class XMongoModel {
         if (!fieldValue) throw Error(`Error refreshing data, ${field} not found in current model.`);
 
         const Model = this.$static();
-        const value = await Model.findOne({ [field]: this.get(field) }, options);
+        const value = await Model.findOne({[field]: this.get(field)}, options);
 
         if (!value) throw Error("Error refreshing data, Refresh result is null");
 
@@ -1768,7 +1755,7 @@ class XMongoModel {
                     const uniqueQuery = schema.uniqueQuery || {};
 
                     let findQuery: any = uniqueQuery.query;
-                    if (!findQuery) findQuery = { [field]: data[field] };
+                    if (!findQuery) findQuery = {[field]: data[field]};
 
                     if (typeof findQuery === "function") {
                         findQuery = findQuery(this);
@@ -1792,7 +1779,7 @@ class XMongoModel {
     public $updateFindOneQuery(query: string | string[] | Record<string, any>) {
         // if string, set to object with value of field
         if (typeof query === "string") {
-            this.meta.findQuery = { [query]: this.get(query) };
+            this.meta.findQuery = {[query]: this.get(query)};
         }
         // if array, populate object with fields and value.
         else if (Array.isArray(query)) {
@@ -1816,7 +1803,7 @@ class XMongoModel {
     private $findOneQuery() {
         const _id = this.id();
         if (_id) {
-            return { _id };
+            return {_id};
         } else if (this.meta.findQuery) {
             return this.meta.findQuery;
         } else {
@@ -1863,9 +1850,9 @@ class XMongoModel {
 
         // if options has sort, merge it with the default sort
         if (data.options) {
-            data.options = _.merge({ sort: keysToObject(data.sortBy, -1) }, data.options);
+            data.options = _.merge({sort: keysToObject(data.sortBy, -1)}, data.options);
         } else {
-            data.options = { sort: keysToObject(data.sortBy, -1) };
+            data.options = {sort: keysToObject(data.sortBy, -1)};
         }
 
         return this.findOne(data.filter, data.options);
@@ -1883,9 +1870,9 @@ class XMongoModel {
 
         // if options has sort, merge it with the default sort
         if (data.options) {
-            data.options = _.merge({ sort: keysToObject(data.sortBy, 1) }, data.options);
+            data.options = _.merge({sort: keysToObject(data.sortBy, 1)}, data.options);
         } else {
-            data.options = { sort: keysToObject(data.sortBy, 1) };
+            data.options = {sort: keysToObject(data.sortBy, 1)};
         }
 
         return this.findOne(data.filter, data.options);
@@ -1922,13 +1909,11 @@ class XMongoModel {
      * @param data
      * @param options
      */
-    static makeManyData<
-        T extends StringToAnyObject,
-        X extends typeof XMongoModel = typeof XMongoModel
-    >(this: X, data: StringToAnyObject[], options: MakeManyData<X> = {}) {
+    static makeManyData<T extends StringToAnyObject,
+        X extends typeof XMongoModel = typeof XMongoModel>(this: X, data: StringToAnyObject[], options: MakeManyData<X> = {}) {
         // Set default options
-        const defOptions = { stopOnError: true };
-        options = { ...defOptions, ...options };
+        const defOptions = {stopOnError: true};
+        options = {...defOptions, ...options};
 
         // use flatMap instead of map to provide an option to skip items.
         return data.flatMap((d) => {
