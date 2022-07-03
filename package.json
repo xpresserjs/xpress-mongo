@@ -1,6 +1,6 @@
 {
   "name": "xpress-mongo",
-  "version": "2.10.2",
+  "version": "2.10.3",
   "description": "Light Weight ODM for mongoDb NodeJs",
   "main": "index.js",
   "types": "index.d.ts",
