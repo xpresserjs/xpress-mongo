@@ -7,7 +7,7 @@ export interface PaginatedMeta {
 
 export interface Paginated<T = any> extends PaginatedMeta {
     data: T[];
-};
+}
 
 export function Paginated<T>(): Paginated<T> {
     return {
