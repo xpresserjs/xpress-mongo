@@ -14,6 +14,10 @@ export interface PaginatedMetaData<T = any> {
     data: T[];
 }
 
+/**
+ * Make a pagination object
+ * @constructor
+ */
 export function Paginated<T>(): Paginated<T> {
     return {
         total: 0,
@@ -24,6 +28,11 @@ export function Paginated<T>(): Paginated<T> {
     };
 }
 
+/**
+ * Make a pagination object but with {meta, data} structure
+ * @param result
+ * @constructor
+ */
 export function PaginatedMetaData<T = any>(result: Paginated<T>): PaginatedMetaData<T> {
     const {data, ...meta} = result;
     return {meta, data};
