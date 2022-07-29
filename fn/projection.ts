@@ -3,6 +3,8 @@
  * @param keys
  * @param value
  */
+import {string} from "joi";
+
 export const keysToObject = <T extends string | readonly string[] | string[], V>(
     keys: T,
     value: V
@@ -23,7 +25,7 @@ export const keysToObject = <T extends string | readonly string[] | string[], V>
  * @param returnObject
  * @returns {*}
  */
-export const omitKeys = (keys: string | string[], returnObject = false): Record<string, any> => {
+export const omitKeys = <Key extends string>(keys: Key | Key[], returnObject = false): Record<string, any> => {
     // Turn keys to array if not array.
     if (!Array.isArray(keys)) keys = [keys];
 
@@ -33,7 +35,7 @@ export const omitKeys = (keys: string | string[], returnObject = false): Record<
         data[key] = 0;
     }
 
-    return returnObject ? { projection: data } : data;
+    return returnObject ? {projection: data} : data;
 };
 
 /**
@@ -42,9 +44,9 @@ export const omitKeys = (keys: string | string[], returnObject = false): Record<
  * @param returnObject
  * @returns {*}
  */
-export const pickKeys = (keys: string | string[], returnObject = false): Record<string, any> => {
+export const pickKeys = <Key extends string>(keys: Key | Key[], returnObject = false): Record<string, any> => {
     const data = keysToObject(keys, 1);
-    return returnObject ? { projection: data } : data;
+    return returnObject ? {projection: data} : data;
 };
 
 /**
@@ -56,8 +58,8 @@ export const pickKeys = (keys: string | string[], returnObject = false): Record<
  * {_id: 0, name: 0, email: 0}
  * @returns {{}}
  */
-export const omitIdAnd = (omit: string | string[] = []): Record<string, any> => {
-    return { _id: 0, ...omitKeys(omit) };
+export const omitIdAnd = <Key extends string>(omit: Key | Key[] = []): Record<string, any> => {
+    return {_id: 0, ...omitKeys(omit)};
 };
 
 /**
@@ -70,6 +72,6 @@ export const omitIdAnd = (omit: string | string[] = []): Record<string, any> => 
  * {_id: 0, name: 1, email: 1}
  * @returns {{}}
  */
-export const omitIdAndPick = (pick: string | string[] = []): Record<string, any> => {
-    return { _id: 0, ...pickKeys(pick) };
+export const omitIdAndPick = <Key extends string>(pick: Key | Key[] = []): Record<string, any> => {
+    return {_id: 0, ...pickKeys(pick)};
 };
