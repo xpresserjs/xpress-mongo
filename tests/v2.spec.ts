@@ -1,5 +1,5 @@
 import test from "japa";
-import User, { mockUser } from "./models/User";
+import User, {mockUser} from "./models/User";
 import Connector from "./connection";
 
 test.group("Test v >=2 functions", async (group) => {
@@ -27,6 +27,23 @@ test.group("Test v >=2 functions", async (group) => {
 
         await user.delete();
     });
+
+    test("Bug: generateId not able to save twice.", async (assert) => {
+        const user = mockUser().generateId();
+        const id = user.id()!;
+
+        await user.save();
+
+        user.data.username = "esther";
+
+        await user.save();
+
+        const user2 = await User.findById(id);
+        assert.equal(user2!.data.username, "esther");
+
+
+        await user.delete();
+    })
 
     test("Create new user with useId", async (assert) => {
         const user = mockUser().useId(User.id()!);

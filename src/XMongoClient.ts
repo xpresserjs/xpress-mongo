@@ -1,6 +1,7 @@
 import XMongoModel from "./XMongoModel";
-import { Collection, Db, MongoClient } from "mongodb";
+import {Collection, Db, MongoClient} from "mongodb";
 import XMongoTypedModel from "./XMongoTypedModel";
+import {StringToAnyObject} from "./types/index";
 
 /**
  * States
@@ -126,7 +127,7 @@ class XMongoClient {
      * @param collection
      * @return {typeof XMongoModel}
      */
-    typedModel<DT>(collection: string): XMongoTypedModel<DT> {
+    typedModel<DT extends StringToAnyObject>(collection: string): XMongoTypedModel<DT> {
         const connection: Collection = this.collection(collection);
         /**
          * Extend XMongoModel

@@ -2,7 +2,7 @@ import XMongoModel from "./XMongoModel";
 import {StringToAnyObject} from "./types/index";
 import {UpdateOptions, UpdateResult} from "mongodb";
 
-class XMongoTypedModel<DT = Record<string, any>> extends XMongoModel {
+class XMongoTypedModel<DT extends StringToAnyObject = StringToAnyObject> extends XMongoModel {
     // Set this.data type to DT
     declare data: DT;
 

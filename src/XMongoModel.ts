@@ -478,7 +478,7 @@ class XMongoModel {
                         // Attach default values
                         const value = this.data[field] || defaultValue(this.schema[field]);
                         /**
-                         * If default value is undefined and schema is required set field to undefined.
+                         * If default value is undefined and schema is required to be set field to undefined.
                          * else set field to value.
                          *
                          * This removes not required keys with undefined values.
@@ -731,6 +731,9 @@ class XMongoModel {
                         this.set("_id", insertedId);
                         this.$setOriginal(this.data);
 
+                        // set using custom id to false
+                        this.meta.usingCustomId = false;
+
                         // resolve
                         resolve(res as InsertOneResult);
 
@@ -768,7 +771,7 @@ class XMongoModel {
         // Setup $unset object
         const $unset: StringToAnyObject = {};
 
-        // Change keys to Array if its a string
+        // Change keys to Array if it's a string
         if (typeof keys === "string") keys = [keys];
 
         // Loop Through and add to $unset object
@@ -1024,7 +1027,7 @@ class XMongoModel {
 
     /**
      * Check if a document exists.
-     * Projects only Id and returns boolean.
+     * Projects only ID and returns boolean.
      */
     static async exists(query: StringToAnyObject) {
         let where = query;
@@ -1195,7 +1198,7 @@ class XMongoModel {
     ): FindCursor {
         /**
          * options as any is used here because mongodb did not make its new
-         * WithoutProjection type exportable so we can't make reference to it.
+         * WithoutProjection type exportable, so we can't make reference to it.
          */
         return this.native().find(query, options as any);
     }
@@ -1220,7 +1223,7 @@ class XMongoModel {
         return new Promise((resolve, reject) => {
             /**
              * options as any is used here because mongodb did not make its new
-             * WithoutProjection type exportable so we can't make reference to it.
+             * WithoutProjection type exportable, so we can't make reference to it.
              */
             return this.native().findOne(query, options as any, (error, data) => {
                 if (error) return reject(error);
