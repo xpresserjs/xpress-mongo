@@ -10,10 +10,18 @@ import User from "./models/User";
  */
 let connection: XMongoClient;
 
-test.group("Initialize DB", () => {
-    test(`Connect to database: "xpress-mongo"`, async () => {
+test.group("Initialize DB", (group) => {
+    group.before(async () => {
         connection = await Connector();
-    });
+    })
+
+    test("models without class", (assert) => {
+        const songs = connection.model("songs")
+
+        // check that class name is Songs
+        assert.equal(songs.name, "Songs")
+
+    })
 
     test("Link models to collections", async () => {
         // Link Models To Database
