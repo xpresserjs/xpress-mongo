@@ -114,13 +114,15 @@ test.group("Read/Update User", () => {
     });
 
     test("Fetch user from db", async (assert) => {
-        user = (await User.findOne({ username: "johndoe" }))!;
+        user = (await User.findOne({username: "johndoe"}))!;
 
         // Throw error if null.
         assert.isNotNull(user);
 
         //Check Data returned
         validateUserData(user);
+
+        user.validate()
     });
 
     test(`Update using ".update()"`, async (assert) => {
@@ -195,7 +197,9 @@ function validateUserData(user: User) {
             firstName: Joi.string().required(),
             lastName: Joi.string().required(),
             updatedAt: Joi.date().less("now"),
-            createdAt: Joi.date().less("now")
+            createdAt: Joi.date().less("now"),
+
+            fullName: Joi.string().optional()
         })
     );
 }

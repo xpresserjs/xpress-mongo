@@ -19,6 +19,8 @@ class User extends XMongoTypedModel<UserDataType> {
     static collectionName = "users";
 
     static strict: XMongoStrictConfig = true;
+
+    static append = ["fullName"];
     // Schema
     static schema: XMongoSchema<UserDataType> = {
         uuid: is.Uuid().required(),

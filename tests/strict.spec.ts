@@ -1,5 +1,5 @@
 import test from "japa";
-import User, { deleteMockUser, mockUser } from "./models/User";
+import User, {deleteMockUser, mockUser} from "./models/User";
 import Connector from "./connection";
 
 test.group("Strict", async (group) => {
@@ -9,7 +9,7 @@ test.group("Strict", async (group) => {
     });
 
     group.after(async () => {
-        await deleteMockUser();
+        // await deleteMockUser();
     });
 
     test.failing("Insert: Should fail when adding unknown field", () => {

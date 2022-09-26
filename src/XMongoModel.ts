@@ -734,6 +734,9 @@ class XMongoModel {
                         // set using custom id to false
                         this.meta.usingCustomId = false;
 
+                        // append data
+                        this.$appendData();
+
                         // resolve
                         resolve(res as InsertOneResult);
 
@@ -830,8 +833,12 @@ class XMongoModel {
         const validated: StringToAnyObject = {};
 
         if (isStrict) {
+            const appended = this.$static().append || [];
+
             // find keys not defined in data
             for (const field in data) {
+                if (appended.includes(field)) continue;
+
                 // If not defined in schema
                 this.$throwErrorIfNotDefinedInSchema(field, isStrict, data);
             }
