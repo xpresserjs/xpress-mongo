@@ -1,5 +1,5 @@
 import escapeRegexp from "escape-string-regexp-node";
-import type {Paginated} from "../src/types/pagination";
+import type { Paginated } from "../src/types/pagination";
 
 export { escapeRegexp };
 
@@ -17,4 +17,11 @@ export function DefaultPaginationData<T>(merge: Partial<Paginated> = {}): Pagina
         data: [] as T[],
         ...merge
     };
+}
+
+/**
+ * Do Nothing
+ */
+export function DoNothing() {
+    // literally do nothing
 }
