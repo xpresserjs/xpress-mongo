@@ -13,15 +13,14 @@ let connection: XMongoClient;
 test.group("Initialize DB", (group) => {
     group.before(async () => {
         connection = await Connector();
-    })
+    });
 
     test("models without class", (assert) => {
-        const songs = connection.model("songs")
+        const songs = connection.model("songs");
 
         // check that class name is Songs
-        assert.equal(songs.name, "Songs")
-
-    })
+        assert.equal(songs.name, "Songs");
+    });
 
     test("Link models to collections", async () => {
         // Link Models To Database
@@ -63,7 +62,7 @@ test.group("Create User", () => {
     });
 
     test("Set Data", () => {
-        user.set({
+        user.setMany({
             email: "hello",
             username: "johnDoe",
             firstName: "John",
@@ -114,7 +113,7 @@ test.group("Read/Update User", () => {
     });
 
     test("Fetch user from db", async (assert) => {
-        user = (await User.findOne({username: "johndoe"}))!;
+        user = (await User.findOne({ username: "johndoe" }))!;
 
         // Throw error if null.
         assert.isNotNull(user);
@@ -122,7 +121,7 @@ test.group("Read/Update User", () => {
         //Check Data returned
         validateUserData(user);
 
-        user.validate()
+        user.validate();
     });
 
     test(`Update using ".update()"`, async (assert) => {

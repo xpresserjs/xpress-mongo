@@ -270,7 +270,7 @@ class XMongoModel {
      * Set many fields at once
      * @param fields - Object of fields to set
      */
-    setMany<Data extends Record<string, any>>(fields: Data): this {
+    setMany<Data extends Record<any, any>>(fields: Data): this {
         for (const property in fields) {
             _.set(this.data, property, fields[property]);
         }
@@ -1146,7 +1146,7 @@ class XMongoModel {
             return <StringToAnyObject | typeof XMongoModel>relatedData;
         } else {
             throw Error(
-                `Relationship: (${relationship}) does not exists in model {${this.constructor.name}}`
+                `Relationship: (${relationship}) does not exist in model {${this.constructor.name}}`
             );
         }
     }
@@ -1943,4 +1943,4 @@ class XMongoModel {
     }
 }
 
-export = XMongoModel;
+export default XMongoModel;

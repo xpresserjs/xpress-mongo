@@ -19,7 +19,7 @@ export async function SeedUsers(count: number = 1, deleteExisting: boolean = fal
         const email = chance.email();
         const username = email.split("@")[0];
 
-        user.set(<UserDataType>{
+        user.setMany(<UserDataType>{
             username,
             email,
             firstName: chance.first(),

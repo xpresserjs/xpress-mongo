@@ -1,6 +1,6 @@
 import XMongoDataType from "./XMongoDataType";
-import {ObjectId} from "mongodb";
-import {UuidOptions, XMongoSchemaBuilder} from "./types/index";
+import { ObjectId } from "mongodb";
+import { UuidOptions, XMongoSchemaBuilder } from "./types/index";
 import * as uuid from "uuid";
 
 // Quick Functions
@@ -248,4 +248,4 @@ const is: XMongoSchemaBuilder = {
     }
 };
 
-export = is;
+export default is;
