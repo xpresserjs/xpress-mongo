@@ -33,7 +33,7 @@
     "deep-object-diff": "^1.1.7",
     "escape-string-regexp-node": "^1.0.2",
     "joi": "^17.6.1",
-    "mongodb": "4.10.0",
+    "mongodb": "4.17.0",
     "object-collection": "^3.0.1",
     "uuid": "^9.0.0"
   },
