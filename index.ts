@@ -1,5 +1,5 @@
-import {MongoClient, MongoClientOptions, ObjectId} from "mongodb";
-import {XMongoSchema, XMongoSchemaBuilder, XMongoSchemaFn} from "./src/types/index";
+import { MongoClient, MongoClientOptions, ObjectId } from "mongodb";
+import { XMongoSchema, XMongoSchemaBuilder, XMongoSchemaFn } from "./src/types/index";
 
 // Require libs
 import is from "./src/SchemaBuilder";
@@ -10,7 +10,7 @@ import XMongoModel from "./src/XMongoModel";
 import XMongoTypedModel from "./src/XMongoTypedModel";
 import * as Joi from "joi";
 
-const {omitIdAndPick, omitIdAnd, omitKeys, pickKeys} = Projectors;
+const { omitIdAndPick, omitIdAnd, omitKeys, pickKeys } = Projectors;
 
 /**
  * Get connected to a client
@@ -49,6 +49,46 @@ function parseServerUrl(url: string, options: { dbname?: string; password?: stri
     }
 
     return url;
+}
+
+/**
+ * Create Index Helper
+ * @param Model - Model to create index for
+ * @param field - Field/Fields to create index for
+ * @param unique - If index should be unique
+ * @param onError - Error callback
+ * @constructor
+ *
+ * @example
+ * CreateIndex(User, "username"); // Create index for username
+ * CreateIndex(User, "username", true); // Create index for username
+ * CreateIndex(User, ["username", "email"]); // Create compound index for username and email
+ * CreateIndex(User, ["username", "email"], true); // Create compound index for username and email
+ */
+function CreateIndex(
+    Model: typeof XMongoModel,
+    field: string | string[],
+    unique = false,
+    onError = () => console.error
+) {
+    let options;
+
+    if (unique) {
+        options = { unique };
+    }
+
+    if (typeof field === "string") {
+        Model.native()
+            .createIndex({ [field]: 1 }, options || {})
+            .catch(onError);
+    } else {
+        const fields = {} as Record<string, any>;
+        field.forEach((f) => (fields[f] = 1));
+
+        Model.native()
+            .createIndex(fields, options || {})
+            .catch(onError);
+    }
 }
 
 /**
@@ -94,5 +134,6 @@ export {
     // Others
     parseServerUrl,
     RefreshDateOnUpdate,
-    ObjectId
+    ObjectId,
+    CreateIndex
 };
