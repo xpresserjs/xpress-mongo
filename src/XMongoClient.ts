@@ -1,8 +1,8 @@
 import XMongoModel from "./XMongoModel";
-import {Collection, Db, MongoClient} from "mongodb";
+import { Collection, Db, MongoClient } from "mongodb";
 import XMongoTypedModel from "./XMongoTypedModel";
-import {StringToAnyObject} from "./types/index";
-import {startCase} from "object-collection/lodash";
+import { StringToAnyObject } from "./types/index";
+import { startCase } from "object-collection/lodash";
 
 /**
  * States
@@ -87,10 +87,13 @@ class XMongoClient {
      * @param model
      * @return {typeof XMongoModel}
      */
-    model(collection: string | { collection: string, className: string }, model?: typeof XMongoModel): typeof XMongoModel {
-
+    model(
+        collection: string | { collection: string; className: string },
+        model?: typeof XMongoModel
+    ): typeof XMongoModel {
         const name = typeof collection === "string" ? collection : collection.collection;
-        const className = typeof collection === "string" ? startCase(collection) : collection.className;
+        const className =
+            typeof collection === "string" ? startCase(collection) : collection.className;
 
         const connection: Collection = this.collection(name);
 
@@ -113,8 +116,7 @@ class XMongoClient {
             });
 
             // Set Class Name Using Object.defineProperty
-            Object.defineProperty($class, "name", {value: className});
-
+            Object.defineProperty($class, "name", { value: className });
 
             return $class;
         }
@@ -169,4 +171,4 @@ class XMongoClient {
     }
 }
 
-export = XMongoClient;
+export default XMongoClient;

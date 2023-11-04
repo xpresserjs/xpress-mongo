@@ -1,7 +1,7 @@
-import {is, joi, XMongoDataType} from "../../index";
-import {XMongoSchema, XMongoStrictConfig} from "../../src/types/index";
+import { is, joi, XMongoDataType } from "../../index";
+import { XMongoSchema, XMongoStrictConfig } from "../../src/types/index";
 import XMongoTypedModel from "../../src/XMongoTypedModel";
-import {randomInt} from "crypto";
+import { randomInt } from "crypto";
 
 export interface UserDataType {
     uuid: string;
@@ -36,6 +36,8 @@ class User extends XMongoTypedModel<UserDataType> {
         createdAt: is.Date().required()
     };
 
+    static publicFields = ["uuid", "username", "email", "age", "balance", "fullName"];
+
     /**
      * Returns the full name of the user.
      * @return {string}
@@ -48,7 +50,7 @@ class User extends XMongoTypedModel<UserDataType> {
 export default User;
 
 export function mockUser() {
-    return new User().set({
+    return new User().setMany({
         username: "username",
         email: "username@email.com",
         firstName: "User",

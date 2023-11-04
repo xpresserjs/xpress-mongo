@@ -1,4 +1,11 @@
-import {CastFunctionType, FnWithArg, RequiredIf, SchemaPropertiesType, UseJoi, ValidatorType} from "./types/index";
+import {
+    CastFunctionType,
+    FnWithArg,
+    RequiredIf,
+    SchemaPropertiesType,
+    UseJoi,
+    ValidatorType
+} from "./types/index";
 import Joi from "joi";
 import XMongoModel from "./XMongoModel";
 
@@ -160,4 +167,4 @@ class XMongoDataType {
     }
 }
 
-export = XMongoDataType;
+export default XMongoDataType;

@@ -2,6 +2,7 @@ import test from "japa";
 import Connector from "./connection";
 import User, { UserDataType } from "./models/User";
 import { SeedUsers } from "./seed/users";
+import _ from "object-collection/lodash";
 
 const manyUsers = [
     { username: "John", age: 20, balance: 100 },
@@ -338,5 +339,146 @@ test.group("Static Methods", (group) => {
         assert.equal(users.page, page);
         assert.equal(users.lastPage, 4);
         assert.equal(users.data.length, perPage);
+    });
+
+    test("projectPublicFields(): No Arguments", async (assert) => {
+        const projection = User.projectPublicFields();
+        const expectedResult = { _id: 0 } as Record<string, 1 | 0>;
+
+        User.publicFields.forEach((field) => {
+            expectedResult[field] = 1;
+        });
+
+        // will exclude _id and include username, age, balance
+        assert.deepEqual(projection, expectedResult);
+    });
+
+    test("projectPublicFields(): With Add", async (assert) => {
+        const projection = User.projectPublicFields(["email"]);
+        const expectedResult = { _id: 0 } as Record<string, 1 | 0>;
+
+        User.publicFields.concat(["email"]).forEach((field) => {
+            expectedResult[field] = 1;
+        });
+
+        // will exclude _id and include username, age, balance, email
+        assert.deepEqual(projection, expectedResult);
+    });
+
+    test("projectPublicFields(): With Except", async (assert) => {
+        const projection = User.projectPublicFields([], ["username"]);
+        const expectedResult = { _id: 0 } as Record<string, 1 | 0>;
+
+        User.publicFields
+            .filter((field) => field !== "username")
+            .forEach((field) => {
+                expectedResult[field] = 1;
+            });
+
+        // will exclude _id and include age, balance, ignoring username
+        assert.deepEqual(projection, expectedResult);
+
+        // test except helper method
+        const projection2 = User.projectPublicFieldsExcept(["username"]);
+
+        assert.deepEqual(projection2, expectedResult);
+    });
+
+    test("projectPublicFields(): With Add and Except", async (assert) => {
+        const projection = User.projectPublicFields(["email"], ["username"]);
+        const expectedResult = { _id: 0 } as Record<string, 1 | 0>;
+
+        User.publicFields
+            .concat(["email"])
+            .filter((field) => field !== "username")
+            .forEach((field) => {
+                expectedResult[field] = 1;
+            });
+
+        // will exclude _id and include age, balance, email, ignoring username
+        assert.deepEqual(projection, expectedResult);
+    });
+
+    test("getPublicFields()", async (assert) => {
+        const user = await User.first();
+        if (!user) throw new Error("User not found");
+
+        const fields = user.getPublicFields();
+        const expectedResult = {} as Record<string, 1 | 0>;
+
+        User.publicFields.forEach((field) => {
+            expectedResult[field] = user.get(field);
+        });
+
+        assert.deepEqual(fields, expectedResult);
+    });
+
+    test("getPublicFields(): With Add", async (assert) => {
+        const user = await User.first();
+        if (!user) throw new Error("User not found");
+
+        const fields = user.getPublicFields(["updatedAt"]);
+        const expectedResult = {} as Record<string, any>;
+
+        User.publicFields.concat(["updatedAt"]).forEach((field) => {
+            expectedResult[field] = user.get(field);
+        });
+
+        assert.deepEqual(fields, expectedResult);
+    });
+
+    test("getPublicFields(): With Except", async (assert) => {
+        const user = await User.first();
+        if (!user) throw new Error("User not found");
+
+        const fields = user.getPublicFields(undefined, ["balance"]);
+        const expectedResult = {} as Record<string, any>;
+
+        User.publicFields
+            .filter((field) => field !== "balance")
+            .forEach((field) => {
+                expectedResult[field] = user.get(field);
+            });
+
+        assert.deepEqual(fields, expectedResult);
+    });
+
+    test("getPublicFields(): With Add and Except", async (assert) => {
+        const user = await User.first();
+        if (!user) throw new Error("User not found");
+
+        const fields = user.getPublicFields(["updatedAt"], ["balance"]);
+        const expectedResult = {} as Record<string, any>;
+
+        User.publicFields
+            .concat(["updatedAt"])
+            .filter((field) => field !== "balance")
+            .forEach((field) => {
+                expectedResult[field] = user.get(field);
+            });
+
+        assert.deepEqual(fields, expectedResult);
+    });
+
+    test("pick()", async (assert) => {
+        const user = await User.first();
+        if (!user) throw new Error("User not found");
+
+        const fields = user.pick(["username", "age"]);
+
+        assert.deepEqual(fields, {
+            username: user.get("username"),
+            age: user.get("age")
+        });
+    });
+
+    test("omit()", async (assert) => {
+        const user = await User.first();
+        if (!user) throw new Error("User not found");
+
+        const fields = user.omit(["username", "age"]);
+        const expectedResult = _.omit(user.data, ["username", "age"]);
+
+        assert.deepEqual(fields, expectedResult);
     });
 });

@@ -1,9 +1,15 @@
-import {FunctionReturnsBoolean, SchemaPropertiesType, StringToAnyObject, ValidatorType} from "../src/types/index";
+import {
+    FunctionReturnsBoolean,
+    SchemaPropertiesType,
+    StringToAnyObject,
+    ValidatorType
+} from "../src/types/index";
 import XMongoModel from "../src/XMongoModel";
 import _ from "object-collection/lodash";
-import {watch} from "fs";
+import { watch } from "fs";
 import Joi from "joi";
-import {XMongoDataType} from "../index";
+import { XMongoDataType } from "../index";
+import { DoNothing } from "./helpers";
 
 /**
  * Get Default value.
@@ -118,8 +124,7 @@ export async function RunOnEvent(
      */
     if (typeof thisEvent === "function") {
         if (["watch", "created", "deleted"].includes(event)) {
-            // noinspection ES6MissingAwait
-            RunInBackground(() => thisEvent(modelInstance));
+            RunInBackground(() => thisEvent(modelInstance)).finally(DoNothing);
         } else {
             await thisEvent(modelInstance);
         }
@@ -129,8 +134,7 @@ export async function RunOnEvent(
         for (const field of fields) {
             if (event === "watch") {
                 if (_.has(changes, field)) {
-                    // noinspection ES6MissingAwait
-                    RunInBackground(() => thisEvent[field](modelInstance));
+                    RunInBackground(() => thisEvent[field](modelInstance)).finally(DoNothing);
                 }
             } else {
                 // else it is `update` or `create`

@@ -3,8 +3,6 @@
  * @param keys
  * @param value
  */
-import {string} from "joi";
-
 export const keysToObject = <T extends string | readonly string[] | string[], V>(
     keys: T,
     value: V

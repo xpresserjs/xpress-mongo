@@ -1,16 +1,16 @@
 import XMongoModel from "./XMongoModel";
-import {StringToAnyObject} from "./types/index";
-import {UpdateOptions, UpdateResult} from "mongodb";
+import { StringToAnyObject } from "./types/index";
+import { UpdateOptions, UpdateResult } from "mongodb";
 
 class XMongoTypedModel<DT extends StringToAnyObject = StringToAnyObject> extends XMongoModel {
     // Set this.data type to DT
     declare data: DT;
 
     // Set this.set() key to accept DT keys.
-    declare set: (
-        key: string | keyof DT | StringToAnyObject | Record<keyof DT | string, any>,
-        value?: any
-    ) => this;
+    declare set: (key: string | keyof DT, value: any) => this;
+
+    // Set this.setMany() key to accept DT keys.
+    declare setMany: (fields: Record<keyof DT | string, any>) => this;
 
     // Set this.get() key to accept DT keys.
     declare get: <T = unknown>(key: keyof DT | string, $default?: any) => T;
@@ -34,17 +34,25 @@ class XMongoTypedModel<DT extends StringToAnyObject = StringToAnyObject> extends
 
     /**
      * SetTyped is same as `set` but will throw error at compile time
-     * if key used does not exists in schema.
+     * if key used does not exist in schema.
      * @param key
      * @param value
      */
-    setTyped(key: keyof DT | Record<keyof DT, any>, value?: any) {
-        return this.set(key as string, value);
+    setTyped<Value = any>(key: keyof DT, value: Value) {
+        return this.set(key, value);
+    }
+
+    /**
+     * setManyTyped is same as `setMany` but will throw error at compile time if key used does not exist in schema.
+     * @param fields
+     */
+    setManyTyped(fields: Record<keyof DT, any>) {
+        return this.setMany(fields);
     }
 
     /**
      * hasTyped is same as `has` but will throw error at compile time
-     * if key used does not exists in schema.
+     * if key used does not exist in schema.
      * @param key
      * @param value
      */
@@ -54,7 +62,7 @@ class XMongoTypedModel<DT extends StringToAnyObject = StringToAnyObject> extends
 
     /**
      * getTyped is same as `get` but will throw error at compile time
-     * if key used does not exists in schema.
+     * if key used does not exist in schema.
      * @param key
      * @param $default
      */
@@ -64,7 +72,7 @@ class XMongoTypedModel<DT extends StringToAnyObject = StringToAnyObject> extends
 
     /**
      * updateTyped is same as `update` but will throw error at compile time
-     * if key used does not exists in schema.
+     * if key used does not exist in schema.
      * @param set
      * @param options
      */
@@ -73,4 +81,4 @@ class XMongoTypedModel<DT extends StringToAnyObject = StringToAnyObject> extends
     }
 }
 
-export = XMongoTypedModel;
+export default XMongoTypedModel;

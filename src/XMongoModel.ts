@@ -17,14 +17,29 @@ import {
     UpdateResult
 } from "mongodb";
 import is from "./SchemaBuilder";
-import {diff} from "deep-object-diff";
-import {defaultValue, processSchema, runAndValidation, RunOnEvent, runOrValidation} from "../fn/inbuilt";
-import {SchemaPropertiesType, StringToAnyObject, XMongoSchema, XMongoSchemaFn, XMongoStrictConfig} from "./types/index";
-import Joi, {string} from "joi";
+import { diff } from "deep-object-diff";
+import {
+    defaultValue,
+    processSchema,
+    runAndValidation,
+    RunOnEvent,
+    runOrValidation
+} from "../fn/inbuilt";
+import {
+    SchemaPropertiesType,
+    StringToAnyObject,
+    XMongoSchema,
+    XMongoSchemaFn,
+    XMongoStrictConfig
+} from "./types/index";
+import Joi, { string } from "joi";
 import _ from "object-collection/lodash";
 import XMongoDataType from "./XMongoDataType";
-import {keysToObject} from "../fn/projection";
-import {Paginated} from "./types/pagination";
+import { keysToObject, omitIdAndPick } from "../fn/projection";
+import { Paginated } from "./types/pagination";
+import { DoNothing } from "../fn/helpers";
+import { Obj } from "object-collection/exports";
+import { pickKeys } from "../index";
 
 type FunctionWithRawArgument = (raw: Collection) => FindCursor | AggregationCursor;
 
@@ -89,6 +104,11 @@ class XMongoModel {
      * @type {{}}
      */
     public schemaStore: StringToAnyObject = {};
+
+    /**
+     * Public Fields
+     */
+    static publicFields: string[];
 
     /**
      * Model meta
@@ -221,13 +241,13 @@ class XMongoModel {
          * if _id exists then add it.
          */
         if (_id) {
-            this.data = {_id};
+            this.data = { _id };
         } else {
             this.data = {};
         }
 
         if (replaceWith && typeof replaceWith === "object")
-            this.data = {...this.data, ...replaceWith};
+            this.data = { ...this.data, ...replaceWith };
 
         return this;
     }
@@ -239,23 +259,38 @@ class XMongoModel {
      * @return {*|undefined}
      */
     get<Value = any>(key: string, $default?: Value) {
-        return _.get(this.data, key, $default) as Value;
+        if (key.includes(".")) {
+            return _.get(this.data, key, $default) as Value;
+        } else {
+            return this.data[key] as Value;
+        }
     }
 
     /**
      * Set data in model
-     * @param key
-     * @param value
+     * @param field - Field to set
+     * @param value - Value to set
      * @return {this}
      */
-    set(key: string | Record<string, any>, value?: any): this {
-        if (typeof key === "object" && value === undefined) {
-            for (const property in key) {
-                _.set(this.data, property, key[property]);
-            }
-        } else if (typeof key === "string") {
-            _.set(this.data, key, value);
+    set<Value = any>(field: string, value: Value): this {
+        if (field.includes(".")) {
+            _.set(this.data, field, value);
+        } else {
+            this.data[field] = value;
         }
+
+        return this;
+    }
+
+    /**
+     * Set many fields at once
+     * @param fields - Object of fields to set
+     */
+    setMany<Data extends Record<any, any>>(fields: Data): this {
+        for (const property in fields) {
+            this.set(property, fields[property]);
+        }
+
         return this;
     }
 
@@ -358,7 +393,7 @@ class XMongoModel {
         this: M,
         data: StringToAnyObject = {}
     ): InstanceType<M> {
-        return new this().set(data) as InstanceType<M>;
+        return new this().setMany(data) as InstanceType<M>;
     }
 
     /**
@@ -461,7 +496,7 @@ class XMongoModel {
             schema = this.schemaStore[schema] || {};
         }
 
-        const newData: StringToAnyObject = {_id: this.id()};
+        const newData: StringToAnyObject = { _id: this.id() };
 
         // If schema is a function then call it and pass is.
         if (typeof schema === "function") {
@@ -637,7 +672,7 @@ class XMongoModel {
      */
     update(set: StringToAnyObject, options?: UpdateOptions): Promise<UpdateResult> {
         this.$canTalkToDatabase("UPDATE_ERROR");
-        return <Promise<UpdateResult>>this.set(set).save(options);
+        return <Promise<UpdateResult>>this.setMany(set).save(options);
     }
 
     /**
@@ -686,63 +721,59 @@ class XMongoModel {
                     // if validated data i.e $set us empty after validation, then return false
                     if (!Object.keys($set).length) return resolve(false);
 
+                    // Check if unique schema is defined
+                    // if yes, then check if unique schema is unique
                     if (this.meta.hasUniqueSchema) {
                         await this.$checkUniqueSchema($set);
                     }
 
                     // Set original to this.
                     _.merge(this.original, $set);
+
+                    // Update data
+                    const res = await this.$static()
+                        .native()
+                        .updateOne(findOneQuery, { $set }, options);
+
+                    // Resolve
+                    resolve(res as UpdateResult);
+
+                    // Run Watch Event
+                    RunOnEvent("watch", this, changes).finally(DoNothing);
                 } catch (e) {
                     return reject(e);
                 }
-
-                this.$static()
-                    .native()
-                    .updateOne(findOneQuery, {$set}, options, (error, res) => {
-                        if (error) {
-                            return reject(error);
-                        } else {
-                            // Resolve
-                            resolve(res as UpdateResult);
-
-                            // Run Watch Event
-                            RunOnEvent("watch", this, changes);
-                        }
-                    });
             } else {
                 await RunOnEvent("create", this);
                 // Try to validate new data.
                 try {
                     this.$emptyData(this.validate(undefined));
 
+                    // Check if unique schema is defined
+                    // if yes, then check if unique schema is unique
                     if (this.meta.hasUniqueSchema) {
                         await this.$checkUniqueSchema();
                     }
+
+                    const res = await this.$static().native().insertOne(this.data, options);
+
+                    this.set("_id", res.insertedId);
+                    this.$setOriginal(this.data);
+
+                    // set using custom id to false
+                    this.meta.usingCustomId = false;
+
+                    // append data
+                    this.$appendData();
+
+                    // resolve
+                    resolve(res as InsertOneResult);
+
+                    // Run on created event
+                    RunOnEvent("created", this).finally(DoNothing);
                 } catch (e) {
                     return reject(e);
                 }
-
-                return this.$static()
-                    .native()
-                    .insertOne(this.data, options, (error, res) => {
-                        if (error) return reject(error);
-                        const {insertedId} = res!;
-
-                        this.set("_id", insertedId);
-                        this.$setOriginal(this.data);
-
-                        // set using custom id to false
-                        this.meta.usingCustomId = false;
-
-                        // append data
-                        this.$appendData();
-
-                        // resolve
-                        resolve(res as InsertOneResult);
-
-                        // Run on created event
-                        RunOnEvent("created", this);
-                    });
             }
         });
     }
@@ -761,7 +792,7 @@ class XMongoModel {
      * @param {string|[]} keys - Key or Keys to unset from collection
      * @param {Object} options - Update options
      */
-    unset(keys: string | string[], options: UpdateOptions = {}): Promise<UpdateResult> {
+    async unset(keys: string | string[], options: UpdateOptions = {}): Promise<UpdateResult> {
         this.$canTalkToDatabase("UNSET_ERROR");
 
         // Throw Error if keys is undefined
@@ -783,20 +814,16 @@ class XMongoModel {
         }
 
         // Run MongoDb query and return response in Promise
-        return new Promise((resolve, reject) => {
-            return this.$static()
-                .native()
-                .updateOne(this.$findOneQuery()!, {$unset}, options, (error, res) => {
-                    if (error) return reject(error);
+        const res = await this.$static()
+            .native()
+            .updateOne(this.$findOneQuery()!, { $unset }, options);
 
-                    // Remove keys from current data
-                    for (const key of keys) {
-                        this.toCollection().unset(key);
-                    }
+        // Remove keys from current data
+        for (const key of keys) {
+            this.toCollection().unset(key);
+        }
 
-                    return resolve(res as UpdateResult);
-                });
-        });
+        return res as UpdateResult;
     }
 
     /**
@@ -977,7 +1004,7 @@ class XMongoModel {
         }
 
         // Return this way to retain original object structure
-        return {...data, ...validated} as ValidatedType;
+        return { ...data, ...validated } as ValidatedType;
     }
 
     /**
@@ -991,8 +1018,7 @@ class XMongoModel {
             // Delete Document
             const result = await this.$static().native().deleteOne(findOneQuery);
 
-            RunOnEvent("deleted", this).finally(() => {
-            });
+            RunOnEvent("deleted", this).finally(() => {});
 
             return result;
         } else {
@@ -1039,14 +1065,14 @@ class XMongoModel {
     static async exists(query: StringToAnyObject) {
         let where = query;
         if (this.isValidId(query)) {
-            where = {_id: query};
+            where = { _id: query };
         }
 
         /**
          * Project only ID so that mongodb doesn't have to read disk.
          * only relevant if query is ID
          */
-        const find = await this.native().findOne(where, {projection: {_id: 1}});
+        const find = await this.native().findOne(where, { projection: { _id: 1 } });
 
         return ![null, undefined].includes(find);
     }
@@ -1137,7 +1163,7 @@ class XMongoModel {
             return <StringToAnyObject | typeof XMongoModel>relatedData;
         } else {
             throw Error(
-                `Relationship: (${relationship}) does not exists in model {${this.constructor.name}}`
+                `Relationship: (${relationship}) does not exist in model {${this.constructor.name}}`
             );
         }
     }
@@ -1185,18 +1211,12 @@ class XMongoModel {
      * @param query
      * @param options
      */
-    static find<Return = any>(
+    static async find<Return = any>(
         query: StringToAnyObject | Filter<any> = {},
         options: FindOptions<any> = {}
     ): Promise<Return[]> {
-        return new Promise((resolve, reject) => {
-            return this.native()
-                .find(query, options)
-                .toArray((error, data) => {
-                    if (error) return reject(error);
-                    return resolve(data as any);
-                });
-        });
+        const data = await this.native().find(query, options).toArray();
+        return data as Return[];
     }
 
     static findRaw(
@@ -1207,7 +1227,7 @@ class XMongoModel {
          * options as any is used here because mongodb did not make its new
          * WithoutProjection type exportable, so we can't make reference to it.
          */
-        return this.native().find(query, options as any);
+        return this.native().find(query, options);
     }
 
     /**
@@ -1216,7 +1236,7 @@ class XMongoModel {
      * @param options
      * @param raw
      */
-    static findOne<T extends typeof XMongoModel>(
+    static async findOne<T extends typeof XMongoModel>(
         this: T,
         query: StringToAnyObject | Filter<any> = {},
         options: FindOptions<any> | boolean = {},
@@ -1227,20 +1247,13 @@ class XMongoModel {
             options = {};
         }
 
-        return new Promise((resolve, reject) => {
-            /**
-             * options as any is used here because mongodb did not make its new
-             * WithoutProjection type exportable, so we can't make reference to it.
-             */
-            return this.native().findOne(query, options as any, (error, data) => {
-                if (error) return reject(error);
-                // Return new instance of Model
-                if (!data) return resolve(null);
-                if (raw) return resolve(data as any);
+        const data = await this.native().findOne(query, options);
+        if (!data) return null;
 
-                return resolve(this.use(data).$updateFindOneQuery(query) as InstanceType<T>);
-            });
-        });
+        // if raw is true return the raw data.
+        if (raw) return data as any;
+
+        return this.use(data).$updateFindOneQuery(query) as InstanceType<T>;
     }
 
     /**
@@ -1258,9 +1271,9 @@ class XMongoModel {
     ): Promise<InstanceType<T> | null> {
         let where;
         if (typeof _id === "string" || !isTypeObjectId) {
-            where = {_id: this.id(_id)};
+            where = { _id: this.id(_id) };
         } else {
-            where = {_id};
+            where = { _id };
         }
 
         return this.findOne(<StringToAnyObject>where, options);
@@ -1335,28 +1348,28 @@ class XMongoModel {
         fields: T,
         match?: StringToAnyObject
     ) {
-        const $group: StringToAnyObject = {_id: null};
+        const $group: StringToAnyObject = { _id: null };
         const $result: StringToAnyObject = {};
 
         const fieldIsArray = Array.isArray(fields);
         if (fieldIsArray) {
             for (const field of fields as string[]) {
-                $group[field] = {$sum: "$" + field};
+                $group[field] = { $sum: "$" + field };
                 $result[field] = 0;
             }
         } else if (typeof fields === "object") {
             const keys = Object.keys(fields);
             for (const field of keys as string[]) {
-                $group[field] = {$sum: "$" + (<any>fields)[field]};
+                $group[field] = { $sum: "$" + (<any>fields)[field] };
                 $result[field] = 0;
             }
             fields = keys as T;
         }
         const pipeline = [] as any[];
 
-        if (match) pipeline.push({$match: match});
+        if (match) pipeline.push({ $match: match });
 
-        pipeline.push({$group});
+        pipeline.push({ $group });
 
         let result = await this.native().aggregate(pipeline).toArray();
 
@@ -1378,7 +1391,7 @@ class XMongoModel {
      */
     static async countAggregate(query: any[] = [], options?: AggregateOptions): Promise<number> {
         query = _.cloneDeep(query);
-        query.push({$count: "count_aggregate"});
+        query.push({ $count: "count_aggregate" });
 
         const data = await this.native().aggregate(query, options).toArray();
 
@@ -1450,8 +1463,8 @@ class XMongoModel {
         const lastPage = Math.ceil(total / perPage);
         const skips = perPage * (page - 1);
 
-        query.push({$skip: skips});
-        query.push({$limit: perPage});
+        query.push({ $skip: skips });
+        query.push({ $limit: perPage });
 
         const data = (await this.native().aggregate(query, options).toArray()) as T[];
 
@@ -1495,6 +1508,16 @@ class XMongoModel {
     }
 
     /**
+     * A helper to fetch result as array.
+     * @param query - a function
+     * @returns {Promise<[]>}
+     */
+    static toArray<Return = any>(query: FunctionWithRawArgument): Promise<Return[]> {
+        if (typeof query !== "function") throw Error(".toArray expects a function as argument");
+        return query(this.native()).toArray();
+    }
+
+    /**
      * Turn query result array provided to model instances.
 
      * @example
@@ -1513,45 +1536,21 @@ class XMongoModel {
      * @param {Object[]} query - Data as array or query as function.
      * @param {function|boolean} interceptor - Intercepts raw database array if not false.
      */
-    static fromQuery<T extends typeof XMongoModel>(
+    static async fromQuery<T extends typeof XMongoModel>(
         this: T,
         query: FunctionWithRawArgument,
         interceptor: false | { (lists: Array<any>): any } = false
     ): Promise<InstanceType<T>[]> {
-        return new Promise((resolve, reject) => {
-            return query(this.native()).toArray((error, lists) => {
-                if (error) return reject(error);
+        const lists = await this.toArray(query);
 
-                /**
-                 * Check if interceptor is a function
-                 * if it is we pass list to the function
-                 *
-                 * else we pass it to self (fromArray)
-                 */
-                return resolve(
-                    typeof interceptor === "function"
-                        ? interceptor(lists as any[])
-                        : this.fromArray(lists as any[])
-                );
-            });
-        });
-    }
-
-    /**
-     * A helper to fetch result as array.
-     * @param query - a function
-     * @returns {Promise<[]>}
-     */
-    static toArray(query: FunctionWithRawArgument): Promise<any[]> {
-        return new Promise((resolve, reject) => {
-            if (typeof query !== "function")
-                return reject(Error(".toArray expects a function as argument"));
-
-            query(this.native()).toArray((error, data) => {
-                if (error) return reject(error);
-                return resolve(data as any[]);
-            });
-        });
+        /**
+         * Check if interceptor is a function
+         * if it is we pass list to the function
+         * else we pass it to self (fromArray)
+         */
+        return typeof interceptor === "function"
+            ? interceptor(lists as any[])
+            : this.fromArray(lists as any[]);
     }
 
     /**
@@ -1626,7 +1625,7 @@ class XMongoModel {
 
         // Merge to events
         if (handlerIsObject) {
-            _.merge(this.events, _.extend({}, {[event]: functionOrFunctions}));
+            _.merge(this.events, _.extend({}, { [event]: functionOrFunctions }));
         } else {
             _.merge(this.events, _.set({}, event, functionOrFunctions));
         }
@@ -1644,7 +1643,7 @@ class XMongoModel {
         this.$setOriginal(data);
 
         // Set Normal Data
-        this.set(data);
+        this.setMany(data);
 
         return this.$appendData(append);
     }
@@ -1680,7 +1679,7 @@ class XMongoModel {
         if (!fieldValue) throw Error(`Error refreshing data, ${field} not found in current model.`);
 
         const Model = this.$static();
-        const value = await Model.findOne({[field]: this.get(field)}, options);
+        const value = await Model.findOne({ [field]: this.get(field) }, options);
 
         if (!value) throw Error("Error refreshing data, Refresh result is null");
 
@@ -1751,29 +1750,33 @@ class XMongoModel {
      * @private
      */
     private $checkUniqueSchema(data?: StringToAnyObject): Promise<boolean | Error> {
+        // return a promise that resolves to true if no unique fields are defined
         return new Promise(async (resolve, reject) => {
             if (!this.meta.hasUniqueSchema) return resolve(true);
             if (!data) data = this.data;
 
+            // loop through unique fields
             for (const field of this.meta.hasUniqueSchema) {
+                // if the field is not defined in the data, skip it
                 if (!data[field]) continue;
 
+                // get field schema
+                // if no schema is defined, skip it
                 const schema: SchemaPropertiesType = this.schema[field];
                 if (!schema) continue;
 
                 try {
+                    // get the unique query
                     const uniqueQuery = schema.uniqueQuery || {};
 
                     let findQuery: any = uniqueQuery.query;
-                    if (!findQuery) findQuery = {[field]: data[field]};
+                    if (!findQuery) findQuery = { [field]: data[field] };
 
                     if (typeof findQuery === "function") {
                         findQuery = findQuery(this);
                     }
 
-                    const findField = await this.$static()
-                        .native()
-                        .findOne(findQuery as Filter<any>);
+                    const findField = await this.$static().exists(findQuery as Filter<any>);
 
                     if (findField)
                         return reject(Error(`Field: (${field}) expects a unique value!`));
@@ -1789,7 +1792,7 @@ class XMongoModel {
     public $updateFindOneQuery(query: string | string[] | Record<string, any>) {
         // if string, set to object with value of field
         if (typeof query === "string") {
-            this.meta.findQuery = {[query]: this.get(query)};
+            this.meta.findQuery = { [query]: this.get(query) };
         }
         // if array, populate object with fields and value.
         else if (Array.isArray(query)) {
@@ -1813,7 +1816,7 @@ class XMongoModel {
     private $findOneQuery() {
         const _id = this.id();
         if (_id) {
-            return {_id};
+            return { _id };
         } else if (this.meta.findQuery) {
             return this.meta.findQuery;
         } else {
@@ -1860,9 +1863,9 @@ class XMongoModel {
 
         // if options has sort, merge it with the default sort
         if (data.options) {
-            data.options = _.merge({sort: keysToObject(data.sortBy, -1)}, data.options);
+            data.options = _.merge({ sort: keysToObject(data.sortBy, -1) }, data.options);
         } else {
-            data.options = {sort: keysToObject(data.sortBy, -1)};
+            data.options = { sort: keysToObject(data.sortBy, -1) };
         }
 
         return this.findOne(data.filter, data.options);
@@ -1880,9 +1883,9 @@ class XMongoModel {
 
         // if options has sort, merge it with the default sort
         if (data.options) {
-            data.options = _.merge({sort: keysToObject(data.sortBy, 1)}, data.options);
+            data.options = _.merge({ sort: keysToObject(data.sortBy, 1) }, data.options);
         } else {
-            data.options = {sort: keysToObject(data.sortBy, 1)};
+            data.options = { sort: keysToObject(data.sortBy, 1) };
         }
 
         return this.findOne(data.filter, data.options);
@@ -1919,11 +1922,13 @@ class XMongoModel {
      * @param data
      * @param options
      */
-    static makeManyData<T extends StringToAnyObject,
-        X extends typeof XMongoModel = typeof XMongoModel>(this: X, data: StringToAnyObject[], options: MakeManyData<X> = {}) {
+    static makeManyData<
+        T extends StringToAnyObject,
+        X extends typeof XMongoModel = typeof XMongoModel
+    >(this: X, data: StringToAnyObject[], options: MakeManyData<X> = {}) {
         // Set default options
-        const defOptions = {stopOnError: true};
-        options = {...defOptions, ...options};
+        const defOptions = { stopOnError: true };
+        options = { ...defOptions, ...options };
 
         // use flatMap instead of map to provide an option to skip items.
         return data.flatMap((d) => {
@@ -1953,6 +1958,59 @@ class XMongoModel {
             return instance.data as T;
         }) as T[];
     }
+
+    /**
+     * Returns mongodb projection query using public fields
+     */
+    static projectPublicFields(add?: string[], except?: string[]) {
+        let fields = this.publicFields;
+        // If add concat fields
+        if (add && add.length) fields = fields.concat(add);
+
+        // If remove fields
+        if (except && except.length) fields = fields.filter((v) => !except.includes(v));
+
+        return fields.includes("_id") ? pickKeys(fields) : omitIdAndPick(fields);
+    }
+
+    /**
+     * Same as `projectPublicFields` but for making exceptions
+     * @param except
+     */
+    static projectPublicFieldsExcept(except: string[] = []) {
+        return this.projectPublicFields([], except);
+    }
+
+    /**
+     * Returns the public field defined in a model.
+     */
+    getPublicFields<T extends Record<string, any>>(add?: string[], except?: string[]): T {
+        let fields = this.$static().publicFields;
+        if (add && add.length) fields = fields.concat(add);
+        if (except && except.length) fields = fields.filter((v) => !except.includes(v));
+        return this.toCollection().pick(fields) as T;
+    }
+
+    /**
+     * Pick fields from model instance
+     * toCollection is not used here for cases where there is a dot notation in the pick keys.
+     */
+    pick<T = any>(pick: string[]): T {
+        const o = Obj({} as T);
+
+        for (const p of pick) {
+            o.set(p, this.get(p));
+        }
+
+        return o.data;
+    }
+
+    /**
+     * Shortcut for `this.toCollection().omit()
+     */
+    omit<T = any>(omit: string[]): T {
+        return this.toCollection().omit(omit) as T;
+    }
 }
 
-export = XMongoModel;
+export default XMongoModel;
