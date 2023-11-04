@@ -36,6 +36,8 @@ class User extends XMongoTypedModel<UserDataType> {
         createdAt: is.Date().required()
     };
 
+    static publicFields = ["uuid", "username", "email", "age", "balance", "fullName"];
+
     /**
      * Returns the full name of the user.
      * @return {string}

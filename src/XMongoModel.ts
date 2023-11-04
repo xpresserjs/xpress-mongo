@@ -35,9 +35,11 @@ import {
 import Joi, { string } from "joi";
 import _ from "object-collection/lodash";
 import XMongoDataType from "./XMongoDataType";
-import { keysToObject } from "../fn/projection";
+import { keysToObject, omitIdAndPick } from "../fn/projection";
 import { Paginated } from "./types/pagination";
 import { DoNothing } from "../fn/helpers";
+import { Obj } from "object-collection/exports";
+import { pickKeys } from "../index";
 
 type FunctionWithRawArgument = (raw: Collection) => FindCursor | AggregationCursor;
 
@@ -102,6 +104,11 @@ class XMongoModel {
      * @type {{}}
      */
     public schemaStore: StringToAnyObject = {};
+
+    /**
+     * Public Fields
+     */
+    static publicFields: string[];
 
     /**
      * Model meta
@@ -252,7 +259,11 @@ class XMongoModel {
      * @return {*|undefined}
      */
     get<Value = any>(key: string, $default?: Value) {
-        return _.get(this.data, key, $default) as Value;
+        if (key.includes(".")) {
+            return _.get(this.data, key, $default) as Value;
+        } else {
+            return this.data[key] as Value;
+        }
     }
 
     /**
@@ -262,7 +273,12 @@ class XMongoModel {
      * @return {this}
      */
     set<Value = any>(field: string, value: Value): this {
-        _.set(this.data, field, value);
+        if (field.includes(".")) {
+            _.set(this.data, field, value);
+        } else {
+            this.data[field] = value;
+        }
+
         return this;
     }
 
@@ -272,8 +288,9 @@ class XMongoModel {
      */
     setMany<Data extends Record<any, any>>(fields: Data): this {
         for (const property in fields) {
-            _.set(this.data, property, fields[property]);
+            this.set(property, fields[property]);
         }
+
         return this;
     }
 
@@ -1940,6 +1957,59 @@ class XMongoModel {
 
             return instance.data as T;
         }) as T[];
+    }
+
+    /**
+     * Returns mongodb projection query using public fields
+     */
+    static projectPublicFields(add?: string[], except?: string[]) {
+        let fields = this.publicFields;
+        // If add concat fields
+        if (add && add.length) fields = fields.concat(add);
+
+        // If remove fields
+        if (except && except.length) fields = fields.filter((v) => !except.includes(v));
+
+        return fields.includes("_id") ? pickKeys(fields) : omitIdAndPick(fields);
+    }
+
+    /**
+     * Same as `projectPublicFields` but for making exceptions
+     * @param except
+     */
+    static projectPublicFieldsExcept(except: string[] = []) {
+        return this.projectPublicFields([], except);
+    }
+
+    /**
+     * Returns the public field defined in a model.
+     */
+    getPublicFields<T extends Record<string, any>>(add?: string[], except?: string[]): T {
+        let fields = this.$static().publicFields;
+        if (add && add.length) fields = fields.concat(add);
+        if (except && except.length) fields = fields.filter((v) => !except.includes(v));
+        return this.toCollection().pick(fields) as T;
+    }
+
+    /**
+     * Pick fields from model instance
+     * toCollection is not used here for cases where there is a dot notation in the pick keys.
+     */
+    pick<T = any>(pick: string[]): T {
+        const o = Obj({} as T);
+
+        for (const p of pick) {
+            o.set(p, this.get(p));
+        }
+
+        return o.data;
+    }
+
+    /**
+     * Shortcut for `this.toCollection().omit()
+     */
+    omit<T = any>(omit: string[]): T {
+        return this.toCollection().omit(omit) as T;
     }
 }
 
