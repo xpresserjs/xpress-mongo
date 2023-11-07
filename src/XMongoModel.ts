@@ -108,7 +108,7 @@ class XMongoModel {
     /**
      * Public Fields
      */
-    static publicFields: string[];
+    static publicFields: string[] = [];
 
     /**
      * Model meta
