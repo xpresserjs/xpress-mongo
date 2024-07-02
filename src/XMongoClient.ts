@@ -98,6 +98,7 @@ class XMongoClient {
         const connection: Collection = this.collection(name);
 
         if (model) {
+            model.collectionName = name;
             model.native = function (): Collection {
                 return connection;
             };
@@ -107,6 +108,11 @@ class XMongoClient {
              * Extend XMongoModel
              */
             const $class = <typeof XMongoModel>(<unknown>class extends XMongoModel {
+                /**
+                 * Collection Name
+                 */
+                static collectionName: string = name;
+
                 /**
                  * Returns native mongodb instance to run native queries
                  */
