@@ -8,6 +8,7 @@ import XMongoModel from "../src/XMongoModel";
 import _ from "object-collection/lodash";
 import { watch } from "fs";
 import Joi from "joi";
+import { z } from "zod";
 import { XMongoDataType } from "../index";
 import { DoNothing } from "./helpers";
 
@@ -155,13 +156,16 @@ export async function RunOnEvent(
  * @param fieldName
  */
 export function processSchema(
-    schema: XMongoDataType | Joi.Schema,
+    schema: XMongoDataType | Joi.Schema | z.ZodType,
     fieldName: string
 ): XMongoDataType {
     if (Joi.isSchema(schema)) {
         // Covert Joi to XMongoDataType
         schema = (schema as Joi.Schema).label(fieldName);
         schema = new XMongoDataType("Joi").joi(schema);
+    } else if (schema instanceof z.ZodType) {
+        // Convert Zod to XMongoDataType
+        schema = new XMongoDataType("Zod").zod(schema as z.ZodType);
     }
 
     return schema as XMongoDataType;

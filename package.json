@@ -35,7 +35,8 @@
     "joi": "^17.11.0",
     "mongodb": "6.2.0",
     "object-collection": "^3.0.1",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/chance": "^1.1.5",

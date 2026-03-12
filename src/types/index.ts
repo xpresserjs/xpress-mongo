@@ -1,6 +1,7 @@
 import XMongoDataType from "../XMongoDataType";
 import XMongoModel from "../XMongoModel";
 import Joi from "joi";
+import { z } from "zod";
 
 export type FunctionReturnsBoolean = (...args: any[]) => boolean;
 export type FunctionReturnsVoidOrBoolean = (...args: any[]) => boolean | void;
@@ -15,15 +16,17 @@ export type ValidatorType =
       };
 
 export type UseJoi = (joi: Joi.Root) => Joi.Schema;
+export type UseZod = (zod: typeof z) => z.ZodType;
 
 export type SchemaPropertiesType = {
     name: string;
     default?: any;
-    validator: ValidatorType | Joi.Schema;
+    validator: ValidatorType | Joi.Schema | z.ZodType;
     validationError: (key: string) => string;
     required: boolean | RequiredIf;
     cast: CastFunctionType | null;
     isJoi?: boolean;
+    isZod?: boolean;
     isUnique?: boolean;
     uniqueQuery?: {
         query?: FnWithArg<any, Record<string, any>>;
@@ -60,7 +63,7 @@ export type XMongoSchemaBuilder = {
 
 export type XMongoSchema<DataType = any> = Record<
     keyof Omit<DataType, "_id">,
-    XMongoDataType | Joi.Schema
+    XMongoDataType | Joi.Schema | z.ZodType
 >;
 export type XMongoSchemaFn = (is: XMongoSchemaBuilder, Joi: Joi.Root) => XMongoSchema;
 export type XMongoStrictConfig = undefined | boolean | { removeNonSchemaFields?: boolean };

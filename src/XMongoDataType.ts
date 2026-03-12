@@ -4,9 +4,11 @@ import {
     RequiredIf,
     SchemaPropertiesType,
     UseJoi,
+    UseZod,
     ValidatorType
 } from "./types/index";
 import Joi from "joi";
+import { z } from "zod";
 import XMongoModel from "./XMongoModel";
 
 class XMongoDataType {
@@ -91,6 +93,36 @@ class XMongoDataType {
 
         this.default(schema.$_getFlag("default"));
         this.required(schema.$_getFlag("presence") === "required");
+
+        return this;
+    }
+
+    /**
+     * Set Validator to zod schema
+     * @param schema
+     */
+    zod(schema: z.ZodType | UseZod) {
+        // Run if function
+        if (typeof schema === "function") {
+            schema = schema(z);
+        }
+
+        // Set Validator
+        this.schema.validator = schema;
+        this.schema.isZod = true;
+
+        // Extract default value from zod schema
+        const zodDef = (schema as any)._zod?.def || (schema as any)._def;
+        if (zodDef?.type === "default") {
+            const defaultValue = zodDef.defaultValue;
+            this.default(defaultValue);
+        }
+
+        // Determine required: zod schemas are required by default unless optional/nullable/default
+        const zodType = (schema as any)._zod?.def?.type;
+        const isOptional =
+            zodType === "optional" || zodType === "nullable" || zodDef?.type === "default";
+        this.required(!isOptional);
 
         return this;
     }
