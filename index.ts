@@ -9,6 +9,7 @@ import XMongoClient from "./src/XMongoClient";
 import XMongoModel from "./src/XMongoModel";
 import XMongoTypedModel from "./src/XMongoTypedModel";
 import * as Joi from "joi";
+import * as Zod from "zod";
 
 const { omitIdAndPick, omitIdAnd, omitKeys, pickKeys } = Projectors;
 
@@ -116,6 +117,8 @@ export {
     is,
     // Export Joi as joi to avoid conflict with consumer's own Joi version.
     Joi as joi,
+    // Export Zod as zod to avoid conflict with consumer's own Zod version.
+    Zod as zod,
     // Export Client
     Client,
     // Export Model Class and Helpers

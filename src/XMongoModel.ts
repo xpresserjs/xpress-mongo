@@ -33,6 +33,7 @@ import {
     XMongoStrictConfig
 } from "./types/index";
 import Joi, { string } from "joi";
+import { z } from "zod";
 import _ from "object-collection/lodash";
 import XMongoDataType from "./XMongoDataType";
 import { keysToObject, omitIdAndPick } from "../fn/projection";
@@ -937,6 +938,14 @@ class XMongoModel {
                          * Validate using Joi
                          */
                         dataValue = Joi.attempt(dataValue, schema.validator as Joi.Schema);
+                    } else if (schema.isZod) {
+                        if (!(schema.validator instanceof z.ZodType))
+                            throw new Error(`Invalid Zod Schema provided for: ${schemaKey}`);
+
+                        /**
+                         * Validate using Zod
+                         */
+                        dataValue = (schema.validator as z.ZodType).parse(dataValue);
                     } else if (
                         typeof schema.validator === "function" &&
                         !schema.validator(dataValue)
